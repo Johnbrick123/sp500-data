@@ -48,5 +48,6 @@ jobs:
           tar --zstd -cf raw.tar.zst data/raw
           gh release create data --title "Market dataset" --notes "auto" 2>/dev/null || true
           gh release upload data data/prices.parquet data/universe/members.parquet \
-             data/verification_report.txt raw.tar.zst --clobber
+             data/verification_report.txt data/recycled_tickers.csv \
+             data/no_data_tickers.txt data/universe/renames.csv raw.tar.zst --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
