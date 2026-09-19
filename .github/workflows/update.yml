@@ -1,0 +1,52 @@
+name: Nightly market data update
+
+on:
+  schedule:
+    - cron: '0 23 * * 1-5'   # 6pm Chicago, weekdays, after the close
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q yfinance pandas pyarrow duckdb beautifulsoup4 lxml
+
+      # Restore last night's data so the fetch is incremental, not a cold pull
+      - name: Download previous dataset
+        run: |
+          gh release download data --pattern 'raw.tar.zst' --dir . || true
+          [ -f raw.tar.zst ] && tar --zstd -xf raw.tar.zst || true
+        env: { GH_TOKEN: "${{ github.token }}" }
+
+      - run: python build_universe.py
+      - run: python bridge_membership.py
+      - run: python fetch_prices.py
+      - name: Recover delisted names from Tiingo (optional - needs secret)
+        if: ${{ env.TIINGO_API_KEY != '' }}
+        run: python fetch_delisted_tiingo.py
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: python compute_adjusted.py
+      - run: python verify.py
+
+      - name: Push to MotherDuck (optional - needs secret)
+        if: ${{ env.motherduck_token != '' }}
+        run: python load_motherduck.py
+        env: { motherduck_token: "${{ secrets.MOTHERDUCK_TOKEN }}" }
+
+      # Publish the data as a Release asset: free, no size games with git,
+      # and DuckDB can query the URL directly:
+      #   SELECT * FROM 'https://github.com/<you>/<repo>/releases/download/data/prices.parquet'
+      - name: Publish dataset
+        run: |
+          tar --zstd -cf raw.tar.zst data/raw
+          gh release create data --title "Market dataset" --notes "auto" 2>/dev/null || true
+          gh release upload data data/prices.parquet data/universe/members.parquet \
+             data/verification_report.txt raw.tar.zst --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
