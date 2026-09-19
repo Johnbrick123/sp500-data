@@ -117,12 +117,35 @@ weekdays at 6pm Chicago and publishes `prices.parquet` as a Release asset.
 DuckDB can query that URL directly, no download step:
 
 ```sql
-SELECT * FROM 'https://github.com/<you>/<repo>/releases/download/data/prices.parquet'
+SELECT * FROM 'https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet'
 WHERE ticker = 'AAPL'
 ```
 
 Add `MOTHERDUCK_TOKEN` and `TIINGO_API_KEY` as repository secrets and the
 workflow pushes to MotherDuck and recovers delisted names on its own.
+
+## Backtest it
+
+`backtest_example.py` is a complete, honest backtest that runs straight off
+the public release: a 10-month moving-average trend strategy on the
+point-in-time S&P 500, 1996 to now, against SPY and an equal-weight
+buy-and-hold of the same names. It prints its own caveats. Read them.
+
+```bash
+python backtest_example.py
+```
+
+## Sharing with a colleague
+
+Everything is public; there is nothing to log into. Three ways in:
+
+- **Python** — `pip install duckdb` then `python query_remote.py`
+- **DuckDB CLI** — `duckdb -c "SELECT * FROM 'https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet' WHERE ticker='AAPL' LIMIT 5"`
+- **Excel** — Data → Get Data → From Web, paste the parquet URL. Power Query
+  reads parquet natively. Filter to a ticker before loading; the full file is
+  4.6M rows.
+
+To let someone edit the pipeline: Settings → Collaborators.
 
 ## Querying
 

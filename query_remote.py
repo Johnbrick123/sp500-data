@@ -2,11 +2,11 @@
 Query the dataset from anywhere - no download, no account, no token.
 Works for Claude, for you, for a colleague. Just needs `pip install duckdb`.
 
-Replace REPO with your GitHub path, e.g. "johnbrick/sp500-data".
+Defaults to Johnbrick123/sp500-data; pass OWNER/REPO to point at a fork.
 """
 import duckdb, sys
 
-REPO = sys.argv[1] if len(sys.argv) > 1 else "YOUR_USER/YOUR_REPO"
+REPO = sys.argv[1] if len(sys.argv) > 1 else "Johnbrick123/sp500-data"
 BASE = f"https://github.com/{REPO}/releases/download/data"
 PRICES = f"{BASE}/prices.parquet"
 MEMBERS = f"{BASE}/members.parquet"
