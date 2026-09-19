@@ -1,0 +1,180 @@
+"""
+Step 1b: Bridge point-in-time membership from 2019-01-11 to today, and
+normalize renamed tickers.
+
+The free historical-constituents file stops at 2019-01-11. Wikipedia kept a
+change log (added / removed / reason) until mid-2026, when it was dropped from
+the live page. We pull it from a page revision that still has it, replay every
+change forward from the 2019 snapshot, then diff against today's constituent
+list to close the final gap.
+
+Renames: when a company changes its symbol (FB -> META, FISV -> FI), Yahoo keeps
+the FULL history under the NEW symbol and purges the old one. So an old symbol
+that "has no data" is often a live company wearing a new name. We rewrite the
+membership table to the current symbol, which recovers that history for free.
+
+Outputs:
+  data/universe/members.parquet     (overwritten, now 1996 -> today)
+  data/universe/renames.csv         old_ticker -> new_ticker map
+"""
+import io, json, re, urllib.request
+from pathlib import Path
+import pandas as pd
+from bs4 import BeautifulSoup
+
+ROOT = Path(__file__).parent
+U = ROOT / "data" / "universe"
+H = {"User-Agent": "Mozilla/5.0 (research script)"}
+PAGE = "List_of_S%26P_500_companies"
+SNAP_END = pd.Timestamp("2019-01-11")
+
+
+def wiki_changes():
+    """Newest page revision that still has the #changes table."""
+    for ts in ["2026-09-01", "2026-07-01", "2026-05-01", "2026-03-01",
+               "2026-01-01", "2025-11-01", "2025-09-01", "2025-06-01"]:
+        api = (f"https://en.wikipedia.org/w/api.php?action=query&prop=revisions"
+               f"&titles={PAGE}&rvlimit=1&rvdir=older&rvstart={ts}T00:00:00Z"
+               f"&rvprop=ids&format=json")
+        j = json.load(urllib.request.urlopen(
+            urllib.request.Request(api, headers=H), timeout=30))
+        rev = list(j["query"]["pages"].values())[0]["revisions"][0]["revid"]
+        html = urllib.request.urlopen(urllib.request.Request(
+            f"https://en.wikipedia.org/w/index.php?title={PAGE}&oldid={rev}",
+            headers=H), timeout=60).read().decode()
+        t = BeautifulSoup(html, "lxml").find("table", id="changes")
+        if t is not None:
+            df = pd.read_html(io.StringIO(str(t)))[0]
+            df.columns = ["date", "added_ticker", "added_name",
+                          "removed_ticker", "removed_name", "reason"]
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            df = df.dropna(subset=["date"]).sort_values("date")
+            df.to_csv(U / "wiki_changes.csv", index=False)
+            print(f"change log: {len(df)} rows through {df.date.max().date()} "
+                  f"(page revision {rev})")
+            return df
+    raise RuntimeError("no revision with a changes table found")
+
+
+def norm_name(s):
+    s = str(s).lower()
+    s = re.sub(r"[^a-z0-9 ]", " ", s)
+    for w in ["inc", "corp", "corporation", "co", "company", "plc", "ltd",
+              "holdings", "group", "the", "class", "a", "b", "c"]:
+        s = re.sub(rf"\b{w}\b", " ", s)
+    return " ".join(s.split())
+
+
+# Curated: old symbol -> symbol Yahoo keeps the full history under.
+# Built from the replay diff (stale vs unaccounted symbols) plus known
+# corporate renames. Chains are collapsed to the terminal symbol.
+KNOWN_RENAMES = {
+    "ABC": "COR",    # AmerisourceBergen -> Cencora
+    "ANTM": "ELV",   # Anthem -> Elevance
+    "BBT": "TFC",    # BB&T -> Truist
+    "BHI": "BKR", "BHGE": "BKR",   # Baker Hughes
+    "BK": "BNY",     # Bank of New York Mellon
+    "BLL": "BALL",   # Ball Corp
+    "CBS": "PSKY", "VIAC": "PSKY", "PARA": "PSKY",   # CBS -> ViacomCBS -> Paramount -> Paramount Skydance
+    "CDAY": "DAY",   # Ceridian -> Dayforce
+    "COG": "CTRA",   # Cabot Oil & Gas -> Coterra
+    "CTL": "LUMN",   # CenturyLink -> Lumen
+    "FB": "META",
+    "FLT": "CPAY",   # FleetCor -> Corpay
+    "FISV": "FI",    # Fiserv
+    "FBHS": "FBIN",  # Fortune Brands
+    "HCP": "DOC", "PEAK": "DOC",   # HCP -> Healthpeak
+    "HRS": "LHX",    # Harris -> L3Harris
+    "JEC": "J",      # Jacobs
+    "KFT": "MDLZ",   # Kraft -> Mondelez
+    "LB": "BBWI",    # L Brands -> Bath & Body Works
+    "MMC": "MRSH",   # Marsh McLennan
+    "MYL": "VTRS",   # Mylan -> Viatris
+    "PKI": "RVTY",   # PerkinElmer -> Revvity
+    "PX": "LIN",     # Praxair -> Linde
+    "RE": "EG",      # Everest Re
+    "SATS": "ECHO",  # EchoStar
+    "SYMC": "GEN", "NLOK": "GEN",  # Symantec -> NortonLifeLock -> Gen Digital
+    "TMK": "GL",     # Torchmark -> Globe Life
+    "UTX": "RTX",
+    "WLTW": "WTW",
+    "WRK": "SW",     # WestRock -> Smurfit WestRock
+    "DWDP": "DD",    # DowDuPont -> DuPont
+    "TWX": "T",      # Time Warner absorbed by AT&T (history lost - acquisition)
+}
+
+
+def main():
+    members = pd.read_parquet(U / "members.parquet")
+    members["date"] = pd.to_datetime(members["date"])
+    members = members[members.date <= SNAP_END]
+    ch = wiki_changes()
+    curr = pd.read_csv(U / "current_constituents.csv")
+    current = set(curr["Symbol"].astype(str).str.strip())
+
+    # --- replay changes forward from the 2019 snapshot ---
+    members["ticker"] = members["ticker"].map(lambda t: KNOWN_RENAMES.get(t, t))
+    for c in ["added_ticker", "removed_ticker"]:
+        ch[c] = ch[c].astype(str).str.strip().map(lambda t: KNOWN_RENAMES.get(t, t))
+    held = set(members[members.date == members.date.max()].ticker)
+    print(f"2019-01-11 snapshot: {len(held)} names")
+    rows = []
+    for d, g in ch[ch.date > SNAP_END].groupby("date"):
+        for _, r in g.iterrows():
+            rem = str(r.removed_ticker).strip()
+            add = str(r.added_ticker).strip()
+            if rem and rem != "nan":
+                held.discard(rem)
+            if add and add != "nan":
+                held.add(add)
+        rows.extend((d, t) for t in sorted(held))
+    replayed = pd.DataFrame(rows, columns=["date", "ticker"])
+    print(f"replayed through {replayed.date.max().date()}: {len(held)} names")
+
+    # --- close the final gap vs today's list ---
+    missed_add = current - held
+    missed_rem = held - current
+    print(f"vs today: +{len(missed_add)} not in replay, "
+          f"-{len(missed_rem)} in replay but not current")
+    today = pd.Timestamp.today().normalize()
+    rows = [(today, t) for t in sorted(current)]
+    final = pd.DataFrame(rows, columns=["date", "ticker"])
+
+    # --- rename map: same company, new symbol ---
+    # Source 1: change-log rows where the added and removed company match.
+    renames = {}
+    for _, r in ch.iterrows():
+        a, b = str(r.added_ticker).strip(), str(r.removed_ticker).strip()
+        if a in ("", "nan") or b in ("", "nan") or a == b:
+            continue
+        reason = str(r.reason).lower()
+        same = norm_name(r.added_name) == norm_name(r.removed_name)
+        if same:
+            renames[b] = a
+    renames.update(KNOWN_RENAMES)
+    # Source 2: dead tickers whose last snapshot name matches a current name.
+    # (Only possible where we have names; the 2019 file has tickers only.)
+    # Chase chains (A->B->C) to the terminal symbol.
+    def terminal(t, seen=()):
+        n = renames.get(t)
+        return t if n is None or n in seen else terminal(n, seen + (t,))
+    renames = {k: terminal(k) for k in renames}
+    rn = pd.DataFrame(sorted(renames.items()), columns=["old", "new"])
+    rn.to_csv(U / "renames.csv", index=False)
+    print(f"renames detected: {len(rn)}")
+
+    all_m = pd.concat([members, replayed, final], ignore_index=True)
+    all_m["ticker"] = all_m["ticker"].map(lambda t: renames.get(t, t))
+    all_m = all_m.drop_duplicates().sort_values(["date", "ticker"])
+    all_m.to_parquet(U / "members.parquet", index=False)
+
+    ever = sorted(set(all_m.ticker))
+    etfs = [t for t in (U / "tickers.txt").read_text().split("\n")
+            if t.strip() and t not in ever]
+    (U / "tickers.txt").write_text("\n".join(sorted(set(ever) | set(etfs))))
+    print(f"membership now {all_m.date.min().date()} -> "
+          f"{all_m.date.max().date()}, {len(ever)} distinct tickers")
+
+
+if __name__ == "__main__":
+    main()

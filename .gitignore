@@ -1,0 +1,8 @@
+# Data lives in GitHub Releases, not in git history
+data/raw/
+data/prices.parquet
+data/*.duckdb
+data/*.duckdb.wal
+raw.tar.zst
+__pycache__/
+.env
