@@ -205,6 +205,25 @@ def main():
 
     all_m = pd.concat([members, replayed, final], ignore_index=True)
     all_m["ticker"] = all_m["ticker"].map(lambda t: renames.get(t, t))
+    # The upstream file switches some delisted names to a 'TICKER-YYYYMM' label
+    # partway through (e.g. AET until 2018-09, AET-201811 from 2016-01). Merge
+    # the bare label into the suffixed one when the bare label never appears
+    # after the delisting month and is not a current member; the suffixed label
+    # is the canonical id for that security.
+    suffixed = {t: t.rsplit("-", 1)[1] for t in set(all_m.ticker) if re.search(r"-\d{6}$", t)}
+    last_seen = all_m.groupby("ticker").date.max()
+    merge = {}
+    for sfx, ym in suffixed.items():
+        bare = sfx.rsplit("-", 1)[0]
+        if bare in last_seen.index and bare not in current:
+            if last_seen[bare] <= pd.Timestamp(ym[:4] + "-" + ym[4:] + "-01") + pd.Timedelta(days=60):
+                merge[bare] = sfx
+    all_m["ticker"] = all_m["ticker"].map(lambda t: merge.get(t, t))
+    print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
+    raw = ROOT / "data" / "raw"                       # move any price file saved under the bare label
+    for bare, sfx in merge.items():
+        if (raw / f"{bare}.parquet").exists() and not (raw / f"{sfx}.parquet").exists():
+            (raw / f"{bare}.parquet").rename(raw / f"{sfx}.parquet")
     all_m = all_m.drop_duplicates().sort_values(["date", "ticker"])
     all_m.to_parquet(U / "members.parquet", index=False)
     iv = build_intervals(all_m)
