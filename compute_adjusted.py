@@ -35,7 +35,16 @@ def adjust_one(df):
     # known AAPL 7:1 - it produced a 7x jump in the adjusted series).
     # So we apply ONLY the dividend adjustment here. The splits column is
     # retained as an audit record and is used by verify.py.
-    div_factor = np.where(prev_close > 0, 1.0 - div / prev_close, 1.0)
+    # A dividend that equals or exceeds the prior close cannot be a cash
+    # distribution; it is a bad data row. Applying it would make the factor
+    # <= 0 and flip the entire earlier history negative. Skip it and say so,
+    # so verify.py flags one row rather than a thousand.
+    bogus = (prev_close > 0) & (div >= prev_close)
+    if bogus.any():
+        t = df["ticker"].iloc[0] if "ticker" in df.columns else "?"
+        for _, r in df[bogus].iterrows():
+            print(f"  WARN {t} {pd.Timestamp(r['date']).date()}: dividend {r['dividends']} >= prior close - ignored")
+    div_factor = np.where((prev_close > 0) & ~bogus, 1.0 - div / prev_close, 1.0)
     factor = pd.Series(div_factor, index=df.index)
     # Tiingo (delisted recovery) gives a truly UNADJUSTED close, so for those
     # rows the split ratio must be applied as well.

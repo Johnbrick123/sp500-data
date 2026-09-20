@@ -61,7 +61,7 @@ def main():
           f"{len(dead)} known-dead ({'re-checking' if recheck_dead else 'skipped until Monday'}), "
           f"{len(live)} to pull fresh", flush=True)
 
-    saved, empty = 0, []
+    saved, empty, dropped = 0, [], 0
     for i in range(0, len(live), BATCH):
         batch = live[i:i + BATCH]
         df = fetch_batch(batch)
@@ -73,6 +73,10 @@ def main():
             except KeyError:
                 empty.append(t); continue
             sub = sub.dropna(how="all")
+            # a row with no positive close is not a price (Yahoo emits 0.0 on some
+            # listing days and during outages); keep it out of the raw store
+            if "Close" in sub.columns:
+                n0 = len(sub); sub = sub[sub["Close"] > 0]; dropped += n0 - len(sub)
             if len(sub) < 20:
                 empty.append(t); continue
             sub = sub.reset_index()
