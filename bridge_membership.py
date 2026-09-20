@@ -81,7 +81,6 @@ KNOWN_RENAMES = {
     "CTL": "LUMN",   # CenturyLink -> Lumen
     "FB": "META",
     "FLT": "CPAY",   # FleetCor -> Corpay
-    "FISV": "FI",    # Fiserv
     "FBHS": "FBIN",  # Fortune Brands
     "HCP": "DOC", "PEAK": "DOC",   # HCP -> Healthpeak
     "HRS": "LHX",    # Harris -> L3Harris
@@ -100,8 +99,41 @@ KNOWN_RENAMES = {
     "WLTW": "WTW",
     "WRK": "SW",     # WestRock -> Smurfit WestRock
     "DWDP": "DD",    # DowDuPont -> DuPont
-    "TWX": "T",      # Time Warner absorbed by AT&T (history lost - acquisition)
 }
+
+
+# Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
+# (date, added, removed). Source: S&P DJI announcements.
+MANUAL_CHANGES = [
+    ("2026-08-05", "FERG", "EA"),     # Ferguson replaces Electronic Arts
+    ("2026-08-18", "RDDT", "AVB"),    # Reddit replaces AvalonBay
+]
+
+
+def norm(t):
+    """One symbol convention everywhere: dots -> hyphens (BRK.B -> BRK-B)."""
+    return str(t).strip().replace(".", "-")
+
+
+def build_intervals(snapshots):
+    """Snapshots (date, ticker) -> [start, end) membership intervals.
+    The end of a span is the next SNAPSHOT date, not the ticker's next
+    appearance - a removed name must stop being a member on the day the
+    next snapshot no longer lists it. end is NULL while still a member."""
+    dates = sorted(snapshots.date.unique())
+    nxt = {d: (dates[i + 1] if i + 1 < len(dates) else pd.NaT) for i, d in enumerate(dates)}
+    rows = []
+    for t, g in snapshots.groupby("ticker"):
+        ds = sorted(g.date.unique())
+        start, prev = ds[0], ds[0]
+        for d in ds[1:]:
+            if d != nxt[prev]:                    # gap: the name left and came back
+                rows.append((t, start, nxt[prev])); start = d
+            prev = d
+        rows.append((t, start, nxt[prev]))
+    iv = pd.DataFrame(rows, columns=["ticker", "start", "end"])
+    iv["end"] = pd.to_datetime(iv["end"])
+    return iv.sort_values(["ticker", "start"]).reset_index(drop=True)
 
 
 def main():
@@ -110,12 +142,18 @@ def main():
     members = members[members.date <= SNAP_END]
     ch = wiki_changes()
     curr = pd.read_csv(U / "current_constituents.csv")
-    current = set(curr["Symbol"].astype(str).str.strip())
+    current = set(curr["Symbol"].astype(str).str.strip())   # normalized below
 
     # --- replay changes forward from the 2019 snapshot ---
-    members["ticker"] = members["ticker"].map(lambda t: KNOWN_RENAMES.get(t, t))
+    members["ticker"] = members["ticker"].map(norm).map(lambda t: KNOWN_RENAMES.get(t, t))
     for c in ["added_ticker", "removed_ticker"]:
-        ch[c] = ch[c].astype(str).str.strip().map(lambda t: KNOWN_RENAMES.get(t, t))
+        ch[c] = ch[c].astype(str).map(norm).map(lambda t: KNOWN_RENAMES.get(t, t))
+    current = {norm(t) for t in current}
+    # manual post-log changes become ordinary change rows at their effective dates
+    extra = pd.DataFrame([{"date": pd.Timestamp(d), "added_ticker": a, "added_name": "",
+                           "removed_ticker": r, "removed_name": "", "reason": "manual"}
+                          for d, a, r in MANUAL_CHANGES])
+    ch = pd.concat([ch, extra], ignore_index=True).sort_values("date")
     held = set(members[members.date == members.date.max()].ticker)
     print(f"2019-01-11 snapshot: {len(held)} names")
     rows = []
@@ -147,8 +185,10 @@ def main():
         a, b = str(r.added_ticker).strip(), str(r.removed_ticker).strip()
         if a in ("", "nan") or b in ("", "nan") or a == b:
             continue
-        reason = str(r.reason).lower()
-        same = norm_name(r.added_name) == norm_name(r.removed_name)
+        an, rn = norm_name(r.added_name), norm_name(r.removed_name)
+        if not an or not rn or str(r.reason) == "manual":
+            continue                              # no names -> no rename inference
+        same = an == rn
         if same:
             renames[b] = a
     renames.update(KNOWN_RENAMES)
@@ -167,6 +207,11 @@ def main():
     all_m["ticker"] = all_m["ticker"].map(lambda t: renames.get(t, t))
     all_m = all_m.drop_duplicates().sort_values(["date", "ticker"])
     all_m.to_parquet(U / "members.parquet", index=False)
+    iv = build_intervals(all_m)
+    iv.to_parquet(U / "membership_intervals.parquet", index=False)
+    today_members = iv[iv.end.isna()].ticker.nunique()
+    print(f"intervals: {len(iv)} spans, {today_members} current members "
+          f"(current list has {len(current)})")
 
     ever = sorted(set(all_m.ticker))
     etfs = [t for t in (U / "tickers.txt").read_text().split("\n")

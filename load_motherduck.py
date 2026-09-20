@@ -23,21 +23,25 @@ if not os.environ.get("motherduck_token"):
 ROOT = Path(__file__).parent
 prices = (ROOT / "data" / "prices.parquet").as_posix()
 members = (ROOT / "data" / "universe" / "members.parquet").as_posix()
+intervals = (ROOT / "data" / "universe" / "membership_intervals.parquet").as_posix()
+recycled = (ROOT / "data" / "recycled_tickers.csv").as_posix()
 
 con = duckdb.connect("md:")                      # token read from env
 con.execute("CREATE DATABASE IF NOT EXISTS market")
 con.execute("USE market")
 con.execute(f"CREATE OR REPLACE TABLE prices  AS SELECT * FROM '{prices}'")
 con.execute(f"CREATE OR REPLACE TABLE members AS SELECT * FROM '{members}'")
+con.execute(f"CREATE OR REPLACE TABLE membership_intervals AS SELECT * FROM '{intervals}'")
+con.execute(f"CREATE OR REPLACE TABLE recycled AS SELECT ticker FROM read_csv_auto('{recycled}')")
 con.execute("""
+-- Point-in-time index membership: [start, end) intervals, end NULL = still a member.
+-- Recycled symbols (a different company now owns the ticker) are excluded outright.
 CREATE OR REPLACE VIEW v_sp500 AS
-WITH spans AS (
-  SELECT ticker, date AS from_date,
-         LEAD(date) OVER (PARTITION BY ticker ORDER BY date) AS to_date
-  FROM members)
-SELECT p.* FROM prices p JOIN spans s
-  ON p.ticker = s.ticker AND p.date >= s.from_date
- AND p.date < COALESCE(s.to_date, DATE '2100-01-01')
+SELECT p.*
+FROM prices p
+JOIN membership_intervals m
+  ON p.ticker = m.ticker AND p.date >= m.start AND (m."end" IS NULL OR p.date < m."end")
+WHERE p.ticker NOT IN (SELECT ticker FROM recycled)
 """)
 n = con.execute("SELECT COUNT(*), COUNT(DISTINCT ticker) FROM prices").fetchone()
 print(f"MotherDuck market.prices: {n[0]:,} rows, {n[1]:,} tickers")

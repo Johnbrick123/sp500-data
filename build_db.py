@@ -21,28 +21,28 @@ con = duckdb.connect(str(DB))
 p = (ROOT / "data" / "prices.parquet").as_posix()
 m = (ROOT / "data" / "universe" / "members.parquet").as_posix()
 
+iv = (ROOT / "data" / "universe" / "membership_intervals.parquet").as_posix()
+rc = (ROOT / "data" / "recycled_tickers.csv").as_posix()
 con.execute(f"CREATE OR REPLACE TABLE prices AS SELECT * FROM '{p}'")
 con.execute(f"CREATE OR REPLACE TABLE members AS SELECT * FROM '{m}'")
+con.execute(f"CREATE OR REPLACE TABLE membership_intervals AS SELECT * FROM '{iv}'")
+con.execute(f"CREATE OR REPLACE TABLE recycled AS SELECT ticker FROM read_csv_auto('{rc}')")
 
 con.execute("CREATE INDEX IF NOT EXISTS idx_pt ON prices(ticker, date)")
 
 # Membership snapshots are periodic; forward-fill to daily ranges.
 con.execute("""
+-- Point-in-time index membership: [start, end) intervals, end NULL = still a member.
+-- Recycled symbols (a different company now owns the ticker) are excluded outright.
 CREATE OR REPLACE VIEW v_sp500 AS
-WITH spans AS (
-  SELECT ticker, date AS from_date,
-         LEAD(date) OVER (PARTITION BY ticker ORDER BY date) AS to_date
-  FROM members
-)
 SELECT p.*
 FROM prices p
-JOIN spans s
-  ON p.ticker = s.ticker
- AND p.date  >= s.from_date
- AND p.date  <  COALESCE(s.to_date, DATE '2100-01-01')
+JOIN membership_intervals m
+  ON p.ticker = m.ticker AND p.date >= m.start AND (m."end" IS NULL OR p.date < m."end")
+WHERE p.ticker NOT IN (SELECT ticker FROM recycled)
 """)
 
-for t in ["prices", "members"]:
+for t in ["prices", "members", "membership_intervals", "recycled"]:
     n = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
     print(f"{t:10s}: {n:>12,} rows")
 
@@ -64,6 +64,7 @@ Query it like this:
           "AVG(adj_close) OVER (PARTITION BY ticker ORDER BY date "
           "ROWS 199 PRECEDING) AS ma200 FROM prices").df()
 
-  # Survivorship-bias-free: only names actually IN the index that day
+  # Point-in-time: only names actually IN the index that day (price coverage
+  # is incomplete - see README coverage table - so this is NOT survivorship-free)
   con.sql("SELECT * FROM v_sp500 WHERE date = '2008-09-15'").df()
 """)

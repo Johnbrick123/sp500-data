@@ -52,18 +52,24 @@ def load():
     px = con.sql(f"""
         SELECT date, ticker, adj_close
         FROM read_parquet('{PRICES}')
-        WHERE date >= DATE '{START}' AND ticker NOT LIKE 'X%'   -- drop sector ETFs
+        WHERE date >= DATE '{START}'
     """).df()
     mem = con.sql(f"SELECT date, ticker FROM read_parquet('{MEMBERS}')").df()
     px["date"] = pd.to_datetime(px["date"])
     mem["date"] = pd.to_datetime(mem["date"])
+    # ETFs are never index members, so the membership join excludes them; no
+    # ticker-prefix filter needed (an earlier 'NOT LIKE X%' also dropped XOM).
     return px, mem
 
 
 def month_end_prices(px):
     """Last adjusted close of each month, tickers as columns."""
     wide = px.pivot(index="date", columns="ticker", values="adj_close")
-    return wide.resample("ME").last()
+    m = wide.resample("ME").last()
+    # drop a trailing partial month so it is not labelled as a full month-end
+    if wide.index.max() < m.index.max():
+        m = m.iloc[:-1]
+    return m
 
 
 def membership_by_month(mem, month_ends, prices_wide):
@@ -101,6 +107,9 @@ def run(prices_m, members_m):
         cov.append((d_next, len(held), len(members_m.get(d, ()))))
         if not held:
             strat.append((d_next, 0.0)); ew.append((d_next, 0.0)); continue
+        # A name with no price next month has left the file (acquired/delisted).
+        # We have no terminal return for it, so it is treated as flat for that
+        # month - an explicit, documented bias, not a silent zero.
         r_next = rets.loc[d_next, held].fillna(0.0)
         ew.append((d_next, r_next.mean()))
         longs = [x for x in held if above.at[d, x]]
@@ -162,11 +171,12 @@ def main():
 
     print("""
 CAVEATS - read before believing any of the numbers above
-  1. SURVIVORSHIP BIAS IS STILL PRESENT. Names that went bankrupt or were
-     acquired before Yahoo purged them have no price data, so they silently
-     drop out of the universe. Coverage above shows how much is missing. The
-     strategy numbers are flattered by exactly the losers it cannot see.
-     Add a Tiingo key (fetch_delisted_tiingo.py) to close most of this gap.
+  1. SURVIVORSHIP BIAS IS PRESENT AND LARGE. Names that went bankrupt or were
+     acquired have no price data, so they silently drop out of the universe.
+     Coverage is ~38% of the index in 1996, ~48% in 2000, ~63% in 2008, ~76%
+     in 2015 (see verify.py). Results before ~2010 are not survivorship-safe.
+     Names that leave the file mid-history get a 0% return for their last
+     month (no terminal/delisting return is available).
   2. No transaction costs, slippage, or taxes. Monthly turnover in a trend
      strategy is real money.
   3. Cash earns 0%. Using T-bills would add roughly the risk-free rate to the

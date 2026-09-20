@@ -1,103 +1,96 @@
 """
-Step 2: Pull RAW OHLCV + dividends + splits from Yahoo.
+Step 2: Pull RAW OHLCV + dividends + splits from Yahoo, for EVERY live ticker,
+EVERY run.
 
-Design decision that matters: we store RAW prices and a SEPARATE corporate
-actions table. We do NOT store Yahoo's 'Adj Close'.
+Why a full re-pull every night instead of appending new days:
+  Yahoo restates history. Its 'Close' is split-adjusted retroactively, and
+  every new dividend/split changes the whole back-series. An append-only
+  refresh would leave old rows on the pre-split basis and new rows on the
+  post-split basis - a silent corruption. A full re-pull of ~700 live names
+  in batches takes about 3 minutes on GitHub's runners, so we just do that.
 
-Why: Yahoo silently restates Adj Close every time a new dividend posts, so a
-snapshot you took last month will not reproduce today. Storing raw + actions
-and computing the adjustment yourself makes your history immutable and
-auditable. compute_adjusted.py does the math.
+  (The first version of this script skipped any ticker already on disk. That
+  was fine for the one-time backfill and fatal for the nightly refresh: no
+  existing name ever received a new day of data. Found by external audit.)
 
-Batched downloads (25 tickers/request) keep us well clear of Yahoo's rate
-limiter. Resumable: already-downloaded tickers are skipped on re-run.
+Symbols:
+  - dot -> hyphen (BRK.B -> BRK-B), one convention everywhere.
+  - labels with a '-YYYYMM' delisting suffix (from the historical membership
+    file) are never sent to Yahoo: Yahoo has purged those companies, and the
+    bare symbol may now belong to a different company. They go to
+    data/delisted_suffix_tickers.txt for fetch_delisted_tiingo.py.
+  - known-dead tickers (Yahoo returned nothing) are re-checked on Mondays
+    only, since each one costs a slow timeout.
 """
-import sys, time, warnings
+import re, sys, time, warnings
+from datetime import date
 from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
 warnings.filterwarnings("ignore")
-
 ROOT = Path(__file__).parent
-RAW = ROOT / "data" / "raw"
-RAW.mkdir(parents=True, exist_ok=True)
-
-START = "1995-01-01"
-BATCH = 25
-PAUSE = 1.0          # seconds between batches - be polite to Yahoo
-MAX_RETRIES = 3
+RAW = ROOT / "data" / "raw"; RAW.mkdir(parents=True, exist_ok=True)
+START, BATCH, PAUSE, MAX_RETRIES = "1995-01-01", 50, 1.0, 3
+SUFFIX = re.compile(r"-\d{6}$")
+DEAD_F = ROOT / "data" / "no_data_tickers.txt"
+SUFFIX_F = ROOT / "data" / "delisted_suffix_tickers.txt"
 
 
-def load_tickers():
-    p = ROOT / "data" / "universe" / "tickers.txt"
-    return [t for t in p.read_text().split("\n") if t.strip()]
-
-
-def clean(t):
-    """Yahoo uses - where the index files use . (BRK.B -> BRK-B)."""
-    return t.replace(".", "-").strip()
+def norm(t): return t.strip().replace(".", "-")
 
 
 def fetch_batch(tickers):
     for attempt in range(MAX_RETRIES):
         try:
-            return yf.download(
-                [clean(t) for t in tickers], start=START,
-                auto_adjust=False, actions=True, progress=False,
-                group_by="ticker", threads=True, timeout=30,
-            )
+            return yf.download(tickers, start=START, auto_adjust=False, actions=True,
+                               progress=False, group_by="ticker", threads=True, timeout=30)
         except Exception as e:
-            wait = 5 * (attempt + 1)
-            print(f"    retry in {wait}s ({e})", flush=True)
-            time.sleep(wait)
+            time.sleep(5 * (attempt + 1)); print(f"    retry ({e})", flush=True)
     return None
 
 
 def main():
-    tickers = load_tickers()
-    done = {p.stem for p in RAW.glob("*.parquet")}
-    dead_f = ROOT / "data" / "no_data_tickers.txt"
-    dead = set(dead_f.read_text().split("\n")) if dead_f.exists() else set()
-    todo = [t for t in tickers if clean(t) not in done and t not in dead]
-    print(f"{len(tickers)} tickers, {len(done)} already on disk, "
-          f"{len(todo)} to fetch", flush=True)
+    tickers = sorted({norm(t) for t in (ROOT / "data" / "universe" / "tickers.txt").read_text().split("\n") if t.strip()})
+    suffixed = [t for t in tickers if SUFFIX.search(t)]
+    SUFFIX_F.write_text("\n".join(suffixed))
+    dead = set(DEAD_F.read_text().split("\n")) - {""} if DEAD_F.exists() else set()
+    recheck_dead = date.today().weekday() == 0 or "--recheck-dead" in sys.argv
+    live = [t for t in tickers if t not in suffixed and (t not in dead or recheck_dead)]
+    print(f"{len(tickers)} symbols: {len(suffixed)} delisted-suffix (skipped, for Tiingo), "
+          f"{len(dead)} known-dead ({'re-checking' if recheck_dead else 'skipped until Monday'}), "
+          f"{len(live)} to pull fresh", flush=True)
 
-    ok, empty = 0, []
-    for i in range(0, len(todo), BATCH):
-        batch = todo[i:i + BATCH]
+    saved, empty = 0, []
+    for i in range(0, len(live), BATCH):
+        batch = live[i:i + BATCH]
         df = fetch_batch(batch)
         if df is None:
-            empty.extend(batch)
-            continue
-
+            empty.extend(batch); continue
         for t in batch:
-            c = clean(t)
             try:
-                sub = df[c] if isinstance(df.columns, pd.MultiIndex) else df
+                sub = df[t] if isinstance(df.columns, pd.MultiIndex) else df
             except KeyError:
-                empty.append(t)
-                continue
+                empty.append(t); continue
             sub = sub.dropna(how="all")
-            if sub.empty or len(sub) < 20:
-                empty.append(t)
-                continue
+            if len(sub) < 20:
+                empty.append(t); continue
             sub = sub.reset_index()
-            sub.columns = [str(x).lower().replace(" ", "_") for x in sub.columns]
+            sub.columns = [str(c).lower().replace(" ", "_") for c in sub.columns]
             sub = sub.drop(columns=["adj_close"], errors="ignore")
-            sub["ticker"] = c
-            sub.to_parquet(RAW / f"{c}.parquet", index=False)
-            ok += 1
-
-        print(f"  {i + len(batch):>5}/{len(todo)}  saved={ok}  "
-              f"empty={len(empty)}", flush=True)
+            sub["ticker"] = t; sub["source"] = "yahoo"
+            sub.to_parquet(RAW / f"{t}.parquet", index=False)   # overwrite: full restated history
+            saved += 1
+        print(f"  {i + len(batch):>5}/{len(live)}  saved={saved}  empty={len(empty)}", flush=True)
         time.sleep(PAUSE)
 
-    dead_f.write_text("\n".join(sorted(dead | set(empty))))
-    print(f"\nDONE. {ok} tickers saved. {len(empty)} returned no data.")
-    print("Tickers with no data are mostly long-delisted names Yahoo has "
-          "purged - see data/no_data_tickers.txt. This is a real and "
-          "unavoidable gap in free data; note it before backtesting.")
+    # a previously-live ticker that returned nothing today keeps yesterday's file
+    # (Yahoo hiccups) but is reported; a never-seen ticker joins the dead list
+    newly_dead = [t for t in empty if not (RAW / f"{t}.parquet").exists()]
+    still_dead = (dead - set(live)) | set(newly_dead) if not recheck_dead else set(newly_dead)
+    DEAD_F.write_text("\n".join(sorted(still_dead)))
+    print(f"\nDONE. {saved} pulled fresh. {len(newly_dead)} returned nothing and have no file. "
+          f"{len(empty) - len(newly_dead)} returned nothing but keep yesterday's file (check freshness).")
 
 
 if __name__ == "__main__":

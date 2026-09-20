@@ -2,6 +2,14 @@
 
 Free, reproducible daily price history back to 1995. No paid data vendor.
 
+> **Read this first.** Membership is point-in-time (who was in the index on
+> each date). Price coverage of those members is NOT complete: about 38% in
+> 1996, 48% in 2000, 63% in 2008, 76% in 2015, 97% in 2024. The missing names
+> are the ones that later disappeared, so any backtest on this data is
+> flattered, badly so before ~2010. `verify.py` prints the coverage table on
+> every run. This dataset is not survivorship-bias-free; it is honest about
+> how far from it it is.
+
 ## What you have
 
 | | |
@@ -11,7 +19,7 @@ Free, reproducible daily price history back to 1995. No paid data vendor.
 | Range | 1995-01-03 → 2026-09-18 |
 | Size | 108 MB (Parquet) |
 
-`data/prices.parquet` — one tidy table: `date, ticker, open, high, low, close, volume, adj_close, dividends, stock_splits, source`
+`data/prices.parquet` — one tidy table (`close` is split-adjusted, not the literal tape price; `adj_close` is split+dividend adjusted): `date, ticker, open, high, low, close, volume, adj_close, dividends, stock_splits, source`
 
 ## Run it
 
@@ -37,9 +45,10 @@ missing. A full cold backfill takes ~20 minutes. A nightly update takes seconds.
 503 are in it today. 730 names left. A "current members" dataset silently
 deletes all of them and will flatter every backtest you run.
 
-*Handled:* `members.parquet` stores point-in-time membership. The `v_sp500`
-view in DuckDB joins prices to membership so you only ever see names that were
-actually in the index on that date.
+*Handled for membership, not for prices:* `membership_intervals.parquet` holds
+[start, end) spans per ticker, verified against S&P announcements for known
+changes. The `v_sp500` view joins prices to those spans. It cannot conjure
+prices for the names Yahoo purged - see the coverage table above.
 
 **2. Yahoo's `Adj Close` is unstable.** It gets silently restated every time a
 new dividend posts, so last month's snapshot won't reproduce today.
@@ -70,7 +79,8 @@ Exclude them from point-in-time work.
 7. **Recycled tickers** — symbol reassignment detection
 8. **Adjustment reconciliation** — our derived total return vs Yahoo's
 
-Current status: **0 hard failures.**
+Every check reports PASS, FAIL or UNVERIFIED. A check that cannot run
+(source unreachable, sample missing) is UNVERIFIED and never counted as a pass.
 
 ### Why check 8 exists
 

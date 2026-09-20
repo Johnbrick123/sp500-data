@@ -1,247 +1,198 @@
 """
-Step 4: Verify the data. Runs six independent checks and writes a report.
+Step 4: Verify the data. Every check reports one of three outcomes:
 
-  1. Split spot-checks   - known corporate actions must appear correctly
-  2. Cross-source        - Stooq vs Yahoo adjusted returns, sample of tickers
-  3. Calendar            - missing / duplicate / weekend rows vs NYSE calendar
-  4. Outliers            - >25% daily moves with no matching corporate action
-  5. Continuity          - gaps longer than 5 trading days
-  6. Index reconstruction- equal-weight S&P vs SPY (end-to-end sanity)
+  PASS        the check ran and the data met the bar
+  FAIL        the check ran and the data did not  -> non-zero exit, no publish
+  UNVERIFIED  the check could not run (source unreachable, sample missing)
 
-Exit code is non-zero if a hard check fails, so this can gate a CI run.
+UNVERIFIED never counts as PASS. The first version of this file let an
+unreachable cross-check source and a missing sample ticker fall through as
+"0 failures". An external audit caught it. Gates are on RETURN ERROR, not
+correlation alone: adding 0.1pp to every daily return keeps correlation at
+1.000 while compounding to 2.7x the correct wealth over 1,000 days.
 """
-import io, sys, urllib.request
+import io, sys, urllib.request, warnings
+from datetime import date
 from pathlib import Path
 import pandas as pd
-import numpy as np
 
+warnings.filterwarnings("ignore")
 ROOT = Path(__file__).parent
 PRICES = ROOT / "data" / "prices.parquet"
+INTERVALS = ROOT / "data" / "universe" / "membership_intervals.parquet"
 REPORT = ROOT / "data" / "verification_report.txt"
 
-KNOWN_SPLITS = [
-    ("AAPL", "2014-06-09", 7.0), ("AAPL", "2020-08-31", 4.0),
-    ("NVDA", "2024-06-10", 10.0), ("TSLA", "2020-08-31", 5.0),
-    ("AMZN", "2022-06-06", 20.0), ("GOOGL", "2022-07-18", 20.0),
-]
-lines = []
+lines, results = [], []            # results: (check, status, detail)
 
 
 def say(s=""):
-    print(s, flush=True)
-    lines.append(str(s))
+    print(s, flush=True); lines.append(str(s))
 
 
-def check_splits(df):
-    say("\n[1] SPLIT SPOT-CHECKS")
-    bad = 0
-    for tk, date, ratio in KNOWN_SPLITS:
-        sub = df[(df.ticker == tk) & (df.date == pd.Timestamp(date))]
+def record(check, status, detail=""):
+    results.append((check, status, detail))
+    say(f"    [{status}] {detail}")
+
+
+# 1. Known corporate actions (issuer filings). A missing sample is a FAIL.
+KNOWN_SPLITS = [("AAPL", "2014-06-09", 7.0), ("AAPL", "2020-08-31", 4.0), ("NVDA", "2024-06-10", 10.0),
+                ("TSLA", "2020-08-31", 5.0), ("AMZN", "2022-06-06", 20.0), ("GOOGL", "2022-07-18", 20.0),
+                ("WMT", "2024-02-26", 3.0), ("GE", "2021-08-02", 0.125)]
+KNOWN_DIVS = [("MSFT", "2004-11-15", 3.08), ("COST", "2023-12-27", 15.0), ("NVDA", "2024-06-11", 0.01)]
+
+
+def check_corporate_actions(df):
+    say("\n[1] KNOWN CORPORATE ACTIONS")
+    for tk, d, ratio in KNOWN_SPLITS:
+        sub = df[(df.ticker == tk) & (df.date == pd.Timestamp(d))]
         if sub.empty:
-            say(f"    ?  {tk} {date}: no row (ticker may be missing)")
-            continue
-        got = float(sub["stock_splits"].iloc[0])
-        ok = abs(got - ratio) < 0.01
-        bad += (not ok)
-        say(f"    {'PASS' if ok else 'FAIL'}  {tk} {date}: "
-            f"expected {ratio}, got {got}")
-    return bad
+            record("split " + tk, "FAIL", f"{tk} {d}: no row in dataset"); continue
+        got = float(sub.stock_splits.iloc[0])
+        record("split " + tk, "PASS" if abs(got - ratio) < 1e-3 else "FAIL", f"{tk} {d} split {got:g} (expected {ratio:g})")
+    for tk, d, amt in KNOWN_DIVS:
+        sub = df[(df.ticker == tk) & (df.date == pd.Timestamp(d))]
+        if sub.empty:
+            record("div " + tk, "FAIL", f"{tk} {d}: no row in dataset"); continue
+        got = float(sub.dividends.iloc[0])
+        record("div " + tk, "PASS" if abs(got - amt) < 0.005 else "FAIL", f"{tk} {d} dividend {got:.4f} (expected {amt})")
 
 
-def check_cross_source(df, n=12):
-    """Pull the same tickers from Stooq and compare adjusted returns."""
-    say("\n[2] CROSS-SOURCE (Yahoo vs Stooq)")
-    sample = ["SPY", "AAPL", "MSFT", "XOM", "JPM", "JNJ",
-              "KO", "PG", "WMT", "GE", "IBM", "CAT"][:n]
-    worst = []
-    for tk in sample:
-        try:
-            url = (f"https://stooq.com/q/d/l/?s={tk.lower()}.us"
-                   f"&d1=20000101&d2=20260918&i=d")
-            raw = urllib.request.urlopen(url, timeout=30).read().decode()
-            s = pd.read_csv(io.StringIO(raw))
-            if "Close" not in s.columns or len(s) < 100:
-                say(f"    ?  {tk}: Stooq returned no usable data")
-                continue
-            s["Date"] = pd.to_datetime(s["Date"])
-            ours = df[df.ticker == tk][["date", "adj_close"]].copy()
-            m = ours.merge(s[["Date", "Close"]], left_on="date",
-                           right_on="Date", how="inner")
-            if len(m) < 100:
-                say(f"    ?  {tk}: too few overlapping days")
-                continue
-            r1 = m["adj_close"].pct_change()
-            r2 = m["Close"].pct_change()
-            d = (r1 - r2).abs()
-            corr = r1.corr(r2)
-            pct_off = (d > 0.01).mean() * 100
-            worst.append(pct_off)
-            flag = "PASS" if (corr > 0.98 and pct_off < 2) else "CHECK"
-            say(f"    {flag}  {tk}: return corr {corr:.4f}, "
-                f"{pct_off:.2f}% of days differ >1% ({len(m):,} days)")
-        except Exception as e:
-            say(f"    ?  {tk}: {type(e).__name__}")
-    return 0
-
-
-def check_calendar(df):
-    say("\n[3] CALENDAR")
-    d = df[["date", "ticker"]]
-    dupes = d.duplicated().sum()
-    weekend = df[df.date.dt.dayofweek >= 5].shape[0]
-    say(f"    duplicate (ticker,date) rows : {dupes:,}")
-    say(f"    weekend rows                 : {weekend:,}")
-    spy = set(df[df.ticker == "SPY"].date)
-    say(f"    SPY trading days on file     : {len(spy):,}")
-    return int(dupes > 0) + int(weekend > 0)
-
-
-def check_outliers(df):
-    say("\n[4] OUTLIERS (>25% move, no corporate action)")
-    g = df.sort_values("date").groupby("ticker")
-    df = df.assign(ret=g["close"].pct_change())
-    sus = df[(df.ret.abs() > 0.25) &
-             (df.stock_splits.fillna(0) == 0) &
-             (df.dividends.fillna(0) == 0)]
-    say(f"    flagged rows: {len(sus):,} "
-        f"({len(sus)/max(len(df),1)*100:.4f}% of all rows)")
-    if len(sus):
-        top = sus.reindex(sus.ret.abs().sort_values(ascending=False).index).head(5)
-        for _, r in top.iterrows():
-            say(f"      {r.ticker} {r.date.date()}  {r.ret*100:+.1f}%")
-        say("    Note: most are real (crashes, biotech, 2008, COVID). "
-            "Review, don't auto-delete.")
-    return 0
-
-
-def check_continuity(df):
-    say("\n[5] CONTINUITY (gaps > 10 calendar days mid-history)")
-    bad = []
-    for tk, g in df.groupby("ticker"):
-        gaps = g.sort_values("date").date.diff().dt.days
-        n = (gaps > 10).sum()
-        if n > 3:
-            bad.append((tk, int(n)))
-    bad.sort(key=lambda x: -x[1])
-    say(f"    tickers with >3 large gaps: {len(bad)}")
-    for tk, n in bad[:8]:
-        say(f"      {tk}: {n} gaps")
-    return 0
-
-
-def check_index_reconstruction(df):
-    """End-to-end test: equal-weight basket of large caps vs SPY."""
-    say("\n[6] INDEX RECONSTRUCTION (equal-weight basket vs SPY)")
-    try:
-        names = ["AAPL", "MSFT", "JNJ", "XOM", "JPM", "PG", "KO", "WMT",
-                 "MRK", "PFE", "CVX", "HD", "MCD", "IBM", "CAT", "BA",
-                 "MMM", "DIS", "VZ", "T"]
-        sub = df[df.ticker.isin(names)].pivot(index="date", columns="ticker",
-                                              values="adj_close")
-        sub = sub.loc["2010-01-01":].dropna(axis=1, how="any")
-        rets = sub.pct_change().mean(axis=1)
-        basket = (1 + rets).cumprod()
-        spy = df[df.ticker == "SPY"].set_index("date")["adj_close"]
-        spy = spy.loc[basket.index[0]:basket.index[-1]]
-        spy_c = spy / spy.iloc[0]
-        yrs = (basket.index[-1] - basket.index[0]).days / 365.25
-        b_cagr = basket.iloc[-1] ** (1 / yrs) - 1
-        s_cagr = spy_c.iloc[-1] ** (1 / yrs) - 1
-        corr = rets.corr(spy.pct_change().reindex(rets.index))
-        say(f"    basket ({sub.shape[1]} names) CAGR : {b_cagr*100:6.2f}%")
-        say(f"    SPY CAGR                     : {s_cagr*100:6.2f}%")
-        say(f"    daily return correlation     : {corr:.4f}")
-        ok = corr > 0.70  # 20 equal-wt names vs cap-wt 500: ~0.79 is normal
-        say(f"    {'PASS' if ok else 'CHECK'} - a broad large-cap basket should "
-            f"track SPY closely. Low correlation means adjustment is broken.")
-        return 0 if ok else 1
-    except Exception as e:
-        say(f"    could not run: {e}")
-        return 0
-
-
-
-
-def check_recycled_tickers(df):
-    """A ticker that LEFT the index but whose price history only STARTS after
-    it left is a different company wearing the same symbol. Yahoo purged the
-    original and reassigned the ticker. Joining these to the membership table
-    silently corrupts history. Real example found: STI (SunTrust Banks, merged
-    into Truist 2019) now returns a ~$6 microcap with data only from 2022."""
-    say("\n[7] RECYCLED TICKERS (symbol reassigned to a different company)")
-    try:
-        mem = pd.read_parquet(ROOT / "data" / "universe" / "members.parquet")
-        mem["date"] = pd.to_datetime(mem["date"])
-        last_seen = mem.groupby("ticker")["date"].max()
-        first_px = df.groupby("ticker")["date"].min()
-        j = pd.concat([last_seen.rename("left_index"),
-                       first_px.rename("price_starts")], axis=1).dropna()
-        bad = j[j.price_starts > j.left_index]
-        say(f"    QUARANTINE {len(bad)} tickers - price history begins AFTER "
-            f"they left the index")
-        for tk, r in bad.head(10).iterrows():
-            say(f"      {tk}: left {r.left_index.date()}, "
-                f"prices start {r.price_starts.date()}")
-        bad.to_csv(ROOT / "data" / "recycled_tickers.csv")
-        say("    -> written to data/recycled_tickers.csv; exclude these from "
-            "any point-in-time backtest.")
-    except Exception as e:
-        say(f"    could not run: {e}")
-    return 0
-
-
+# 2. Our adjustment vs Yahoo's own total-return series. Same vendor: tests OUR
+#    math, not Yahoo's record. Gate on error size, not correlation.
 def check_adjustment(df):
-    """Decisive test of our own adjustment math: compare our derived adj_close
-    total return against Yahoo's auto-adjusted series. Catches the classic
-    double-counted-split bug."""
-    say("\n[8] ADJUSTMENT RECONCILIATION (ours vs Yahoo total return)")
-    import yfinance as yf, warnings
-    warnings.filterwarnings("ignore")
-    fails = 0
-    for tk in ["AAPL", "KO", "SPY", "NVDA", "JPM", "MSFT"]:
+    say("\n[2] ADJUSTMENT RECONCILIATION (ours vs Yahoo auto-adjusted; tests our math only)")
+    try:
+        import yfinance as yf
+    except ImportError:
+        record("adjustment", "UNVERIFIED", "yfinance not installed"); return
+    for tk in ["AAPL", "KO", "SPY", "NVDA", "JPM", "MSFT", "GE", "WMT"]:
         try:
-            y = yf.download(tk, start="2005-01-01", auto_adjust=True,
-                            progress=False, threads=False)["Close"]
+            y = yf.download(tk, start="2005-01-01", auto_adjust=True, progress=False, threads=False)["Close"]
             y.index = pd.to_datetime(y.index).tz_localize(None)
-            o = df[df.ticker == tk].set_index("date")["adj_close"]
-            j = pd.concat([o.rename("a"), y.squeeze().rename("b")],
-                          axis=1, join="inner").dropna()
-            ra, rb = j.a.pct_change().dropna(), j.b.pct_change().dropna()
-            c = ra.corr(rb)
-            ok = c > 0.9999
-            fails += (not ok)
-            say(f"    {'PASS' if ok else 'FAIL'}  {tk}: corr {c:.6f}, "
-                f"max daily diff {(ra-rb).abs().max()*100:.4f}%")
         except Exception as e:
-            say(f"    ?  {tk}: {type(e).__name__}")
-    return fails
+            record("adjust " + tk, "UNVERIFIED", f"{tk}: Yahoo unreachable ({type(e).__name__})"); continue
+        o = df[df.ticker == tk].set_index("date")["adj_close"]
+        j = pd.concat([o.rename("a"), y.squeeze().rename("b")], axis=1, join="inner").dropna()
+        if len(j) < 250:
+            record("adjust " + tk, "UNVERIFIED", f"{tk}: only {len(j)} overlapping days"); continue
+        ra, rb = j.a.pct_change().dropna(), j.b.pct_change().dropna()
+        max_err = (ra - rb).abs().max() * 100
+        wealth_err = abs((j.a.iloc[-1] / j.a.iloc[0]) / (j.b.iloc[-1] / j.b.iloc[0]) - 1) * 100
+        record("adjust " + tk, "PASS" if (max_err < 0.05 and wealth_err < 0.5) else "FAIL",
+               f"{tk}: max daily error {max_err:.4f}pp, cumulative wealth error {wealth_err:.3f}%")
+
+
+# 3. Independent source. Unreachable -> UNVERIFIED, loudly.
+def check_cross_source(df):
+    say("\n[3] INDEPENDENT SOURCE (Stooq vs ours)")
+    for tk in ["SPY", "AAPL", "XOM", "JPM", "KO", "PG"]:
+        try:
+            url = f"https://stooq.com/q/d/l/?s={tk.lower()}.us&d1=20050101&d2={date.today():%Y%m%d}&i=d"
+            raw = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read().decode()
+            s = pd.read_csv(io.StringIO(raw))
+            if "Close" not in s.columns or len(s) < 250:
+                record("stooq " + tk, "UNVERIFIED", f"{tk}: Stooq returned no usable data"); continue
+        except Exception as e:
+            record("stooq " + tk, "UNVERIFIED", f"{tk}: Stooq unreachable ({type(e).__name__})"); continue
+        s["Date"] = pd.to_datetime(s["Date"])
+        m = df[df.ticker == tk][["date", "adj_close"]].merge(s[["Date", "Close"]], left_on="date", right_on="Date")
+        pct_off = ((m.adj_close.pct_change() - m.Close.pct_change()).abs() > 0.01).mean() * 100
+        record("stooq " + tk, "PASS" if pct_off < 2 else "FAIL", f"{tk}: {pct_off:.2f}% of days differ >1pp ({len(m):,} days)")
+
+
+# 4. Structure.
+def check_structure(df):
+    say("\n[4] STRUCTURE")
+    d = df.duplicated(["ticker", "date"]).sum()
+    record("duplicate keys", "PASS" if d == 0 else "FAIL", f"{d:,} duplicate (ticker, date) rows")
+    wk = (df.date.dt.dayofweek >= 5).sum()
+    record("weekend rows", "PASS" if wk == 0 else "FAIL", f"{wk:,} weekend rows")
+    np_ = ((df.close <= 0) | (df.adj_close <= 0)).sum()
+    record("non-positive prices", "PASS" if np_ == 0 else "FAIL", f"{np_:,} non-positive close/adj_close")
+    ohlc = ((df.high < df.close - 1e-6) | (df.low > df.close + 1e-6) | (df.high < df.open - 1e-6) | (df.low > df.open + 1e-6)).sum()
+    record("ohlc sanity", "PASS" if ohlc <= 5 else "FAIL", f"{ohlc:,} bars with open/close outside high-low (known: HUBB, UA 2021-05-05)")
+    spy = df[df.ticker == "SPY"].date
+    record("calendar", "PASS" if len(spy) > 7000 else "FAIL", f"SPY has {len(spy):,} trading days on file")
+
+
+# 5. Freshness: a weekday run must end within the last 4 days.
+def check_freshness(df):
+    say("\n[5] FRESHNESS")
+    last = df.date.max().date(); age = (date.today() - last).days
+    record("freshness", "PASS" if age <= (4 if date.today().weekday() < 5 else 6) else "FAIL", f"latest date {last}, {age} days old")
+    per = df.groupby("ticker").date.max()
+    stale = per[per < pd.Timestamp(last) - pd.Timedelta(days=30)]
+    record("stale tickers", "PASS", f"{len(stale)} tickers end >30 days before the latest date (acquired/delisted names expected): "
+           f"{', '.join(stale.index[:8])}{'...' if len(stale) > 8 else ''}")
+
+
+# 6. Membership events: effective dates from S&P DJI announcements.
+MEMBERSHIP_TESTS = [
+    ("AIV", "2020-12-18", True), ("AIV", "2020-12-21", False),
+    ("LNC", "2023-09-15", True), ("LNC", "2023-09-18", False), ("NWL", "2023-09-18", False),
+    ("AAL", "2024-09-20", True), ("AAL", "2024-09-23", False), ("ETSY", "2024-09-23", False), ("BIO", "2024-09-23", False),
+    ("EA", "2026-08-04", True), ("EA", "2026-08-05", False), ("FERG", "2026-08-05", True), ("FERG", "2026-08-04", False),
+    ("AVB", "2026-08-17", True), ("AVB", "2026-08-18", False), ("RDDT", "2026-08-18", True), ("RDDT", "2026-08-17", False),
+    ("BRK-B", "2026-09-18", True), ("FISV", "2026-09-18", True), ("META", "2026-09-18", True),
+    ("EA", "2010-06-30", True), ("AVB", "2015-12-31", True), ("FERG", "2020-01-01", False), ("RDDT", "2020-01-01", False),
+]
+
+
+def check_membership(iv):
+    say("\n[6] MEMBERSHIP EVENTS (effective dates from S&P announcements)")
+    def member(t, d):
+        d = pd.Timestamp(d); g = iv[iv.ticker == t]
+        return bool(((g.start <= d) & (g["end"].isna() | (g["end"] > d))).any())
+    bad = [(t, d, e) for t, d, e in MEMBERSHIP_TESTS if member(t, d) != e]
+    record("membership events", "PASS" if not bad else "FAIL",
+           f"{len(MEMBERSHIP_TESTS) - len(bad)}/{len(MEMBERSHIP_TESTS)} pass" + (f"; wrong: {bad}" if bad else ""))
+    for d in ["2000-01-03", "2008-09-15", "2015-12-31", "2026-09-18"]:
+        n = int(((iv.start <= pd.Timestamp(d)) & (iv["end"].isna() | (iv["end"] > pd.Timestamp(d)))).sum())
+        record("member count " + d, "PASS" if 495 <= n <= 510 else "FAIL", f"{n} members on {d}")
+
+
+# 7. Recycled tickers -> quarantine list consumed by build_db / query_remote / backtest.
+def check_recycled(df, iv):
+    say("\n[7] RECYCLED TICKERS")
+    last_end = iv.groupby("ticker")["end"].max()          # NaT if still a member
+    first_px = df.groupby("ticker").date.min()
+    j = pd.concat([last_end.rename("left"), first_px.rename("px_start")], axis=1).dropna()
+    bad = j[j.px_start > j.left]
+    bad.to_csv(ROOT / "data" / "recycled_tickers.csv")
+    record("recycled", "PASS", f"{len(bad)} quarantined (prices start after the security left the index): "
+           f"{', '.join(bad.index[:10])}{'...' if len(bad) > 10 else ''}")
+
+
+# 8. Coverage by date: the survivorship gap, measured. The most important number here.
+def check_coverage(df, iv):
+    say("\n[8] PRICE COVERAGE OF INDEX MEMBERS")
+    rec = set(pd.read_csv(ROOT / "data" / "recycled_tickers.csv").ticker)
+    have = df.groupby("ticker").date.agg(["min", "max"])
+    worst = 100
+    for d in ["1996-01-02", "2000-01-03", "2005-01-03", "2008-09-15", "2010-01-04", "2015-01-05", "2019-01-11", "2024-09-23", str(df.date.max().date())]:
+        ts = pd.Timestamp(d)
+        mem = set(iv[(iv.start <= ts) & (iv["end"].isna() | (iv["end"] > ts))].ticker) - rec
+        got = sum(1 for t in mem if t in have.index and have.loc[t, "min"] <= ts <= have.loc[t, "max"])
+        pct = got / max(len(mem), 1) * 100; worst = min(worst, pct)
+        say(f"    {d}  members {len(mem):3d}  with prices {got:3d}  coverage {pct:5.1f}%")
+    record("coverage", "PASS" if worst >= 30 else "FAIL", f"worst coverage {worst:.1f}% - pre-2005 results are not survivorship-safe")
 
 
 def main():
-    df = pd.read_parquet(PRICES)
-    df["date"] = pd.to_datetime(df["date"])
-    say("=" * 64)
-    say("DATA VERIFICATION REPORT")
-    say("=" * 64)
-    say(f"rows    : {len(df):,}")
-    say(f"tickers : {df.ticker.nunique():,}")
-    say(f"range   : {df.date.min().date()} -> {df.date.max().date()}")
-
-    fails = 0
-    fails += check_splits(df)
-    fails += check_cross_source(df)
-    fails += check_calendar(df)
-    fails += check_outliers(df)
-    fails += check_continuity(df)
-    fails += check_index_reconstruction(df)
-    fails += check_recycled_tickers(df)
-    fails += check_adjustment(df)
-
-    say("\n" + "=" * 64)
-    say(f"HARD FAILURES: {fails}")
-    say("=" * 64)
+    df = pd.read_parquet(PRICES); df["date"] = pd.to_datetime(df["date"])
+    iv = pd.read_parquet(INTERVALS); iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
+    say("=" * 70); say(f"DATA VERIFICATION REPORT  {date.today()}"); say("=" * 70)
+    say(f"rows {len(df):,}   tickers {df.ticker.nunique():,}   {df.date.min().date()} -> {df.date.max().date()}")
+    check_corporate_actions(df); check_adjustment(df); check_cross_source(df)
+    check_structure(df); check_freshness(df); check_membership(iv); check_recycled(df, iv); check_coverage(df, iv)
+    n = {s: sum(1 for _, st, _ in results if st == s) for s in ["PASS", "FAIL", "UNVERIFIED"]}
+    say("\n" + "=" * 70)
+    say(f"PASS {n['PASS']}   FAIL {n['FAIL']}   UNVERIFIED {n['UNVERIFIED']}")
+    if n["UNVERIFIED"]:
+        say("UNVERIFIED checks did not run. They are not passes.")
+    say("=" * 70)
     REPORT.write_text("\n".join(lines))
-    sys.exit(1 if fails else 0)
+    sys.exit(1 if n["FAIL"] else 0)
 
 
 if __name__ == "__main__":
