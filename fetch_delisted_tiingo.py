@@ -28,7 +28,9 @@ if not KEY:
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
 PROGRESS = ROOT / "data" / "tiingo_progress.json"
-PER_RUN = 40
+PER_RUN = 40                                        # per batch: under Tiingo's 50/hour
+BATCHES = int(os.environ.get("TIINGO_BATCHES", "1"))  # hourly job sets 4: GitHub's cron fires
+SLEEP_SEC = 61 * 60                                 # far less than hourly, so make each run count
 SUFFIX = re.compile(r"-(\d{6})$")
 
 
@@ -42,7 +44,11 @@ def candidates(progress):
     have = {p.stem for p in RAW.glob("*.parquet")}
     out = []
     for t, g in iv.groupby("ticker"):
-        if t in have or t in progress["tried"]:
+        if t in have:
+            continue
+        # A name marked "recovered" whose file is gone (an overlapping run
+        # overwrote the raw-data upload) must be retried, not skipped forever.
+        if t in progress["tried"] and progress["tried"][t] != "recovered":
             continue
         mo = SUFFIX.search(t)
         year = int(mo.group(1)[:4]) if mo else (g["end"].max().year if pd.notna(g["end"].max()) else 2100)
@@ -79,22 +85,23 @@ def accept(label, df, m_start, m_end):
     return True, "ok"
 
 
-def main():
-    prog = load_progress()
+def run_batch(prog):
     todo = candidates(prog)
-    print(f"{len(todo)} untried names remain; attempting up to {PER_RUN} this run", flush=True)
-    saved = 0
+    print(f"{len(todo)} untried names remain; attempting up to {PER_RUN} this batch", flush=True)
+    if not todo:
+        return 0, True
+    saved, throttled = 0, False
     for tk, sym, m_start, m_end in todo[:PER_RUN]:
         try:
             rows, err = fetch(sym)
         except urllib.error.HTTPError as e:
             if e.code in (429, 403):
-                print(f"  throttled at {tk} (HTTP {e.code}); stopping, will resume next run"); break
+                print(f"  throttled at {tk} (HTTP {e.code}); pausing"); throttled = True; break
             prog["tried"][tk] = f"http {e.code}"; continue
         except Exception as e:
             prog["tried"][tk] = f"error {type(e).__name__}"; continue
         if err == "throttled":
-            print(f"  throttled at {tk}; stopping, will resume next run"); break
+            print(f"  throttled at {tk}; pausing"); throttled = True; break
         if not rows or len(rows) < 20:
             prog["tried"][tk] = "no data"; continue
         df = pd.DataFrame(rows); df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
@@ -108,8 +115,22 @@ def main():
         prog["tried"][tk] = "recovered"; saved += 1
         time.sleep(0.3)
     PROGRESS.write_text(json.dumps(prog, indent=1))
+    return saved, False
+
+
+def main():
+    prog = load_progress()
+    total = 0
+    for b in range(BATCHES):
+        saved, done = run_batch(prog)
+        total += saved
+        if done:
+            print("nothing left to try"); break
+        if b < BATCHES - 1:
+            print(f"batch {b + 1}/{BATCHES} done ({saved} recovered); sleeping {SLEEP_SEC // 60} min for the hourly cap", flush=True)
+            time.sleep(SLEEP_SEC)
     tally = pd.Series(list(prog["tried"].values())).value_counts().to_dict() if prog["tried"] else {}
-    print(f"this run: {saved} recovered.  cumulative: {tally}")
+    print(f"this run: {total} recovered.  cumulative: {tally}")
 
 
 if __name__ == "__main__":
