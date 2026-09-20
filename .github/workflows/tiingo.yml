@@ -1,0 +1,33 @@
+name: Hourly delisted-name recovery (Tiingo)
+
+on:
+  schedule:
+    - cron: '17 * * * *'      # every hour; 40 requests per run stays inside the free tier
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q pandas pyarrow beautifulsoup4 lxml
+      - name: Restore current raw data and progress
+        run: |
+          gh release download data --pattern 'raw.tar.zst' --dir . || true
+          [ -f raw.tar.zst ] && tar --zstd -xf raw.tar.zst || true
+          gh release download data --pattern 'tiingo_progress.json' --dir data || true
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe || true
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python fetch_delisted_tiingo.py
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - name: Save progress and any recovered files
+        run: |
+          tar --zstd -cf raw.tar.zst data/raw
+          gh release upload data raw.tar.zst data/tiingo_progress.json --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }

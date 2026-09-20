@@ -23,6 +23,7 @@ jobs:
         run: |
           gh release download data --pattern 'raw.tar.zst' --dir . || true
           [ -f raw.tar.zst ] && tar --zstd -xf raw.tar.zst || true
+          gh release download data --pattern 'tiingo_progress.json' --dir data || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
       - run: python build_universe.py
@@ -50,4 +51,5 @@ jobs:
           gh release upload data data/prices.parquet data/universe/members.parquet \
              data/universe/membership_intervals.parquet data/verification_report.txt data/recycled_tickers.csv \
              data/no_data_tickers.txt data/delisted_suffix_tickers.txt data/universe/renames.csv raw.tar.zst --clobber
+          [ -f data/tiingo_progress.json ] && gh release upload data data/tiingo_progress.json --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
