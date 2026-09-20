@@ -39,6 +39,17 @@ ETFS = [
     "AGG", "LQD", "TLT", "IEF", "SHY", "TIP", "HYG",
     # Commodities / other
     "GLD", "SLV", "VTI", "VOO", "VEU", "VWO", "VNQ", "RSP", "DVY",
+    # iShares sector & industry ETFs (Fantastic Five sector-rotation research)
+    # core 33 tracked by the strategy:
+    "IYW", "IYG", "IYF", "IYZ", "IDU", "IYE", "IYR", "IYK", "IYC", "IYH", "ITA",
+    "IAI", "IAK", "IEZ", "IEO", "IHI", "IHE", "IHF", "ITB", "IAT", "IYT", "IFRA",
+    "SOXX", "IGV", "IGM", "IBB", "IETC", "TECB", "USRT", "REZ", "ICF", "REM", "IDGT",
+    # the rest of the iShares sector/industry lineup, plus the vendor's benchmark and non-sector holdings:
+    "ARTY", "DSI", "EFRA", "EMIF", "ERET", "ETEC", "EUFN", "EXI", "IBAT", "IBRN", "ICLN",
+    "ICOP", "IDNA", "IDRV", "IEDI", "IFGL", "IGE", "IGF", "IHAK", "ILIT", "IXC", "IXG",
+    "IXJ", "IXN", "IXP", "IYJ", "IYM", "JXI", "KXI", "LCTU", "MXI", "PABU", "PICK",
+    "POWR", "REET", "RING", "RXI", "SLVP", "THRO", "VEGI", "WOOD", "XT", "THRO", "DSI",
+    "PABU", "LCTU", "FVC",
 ]
 
 
