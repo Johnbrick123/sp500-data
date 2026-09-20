@@ -11,6 +11,7 @@ permissions:
 jobs:
   recover:
     runs-on: ubuntu-latest
+    timeout-minutes: 300      # 4 batches with an hour's wait between them
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,7 +26,9 @@ jobs:
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe || true
         env: { GH_TOKEN: "${{ github.token }}" }
       - run: python fetch_delisted_tiingo.py
-        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+        env:
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          TIINGO_BATCHES: "4"
       - name: Save progress and any recovered files
         run: |
           tar --zstd -cf raw.tar.zst data/raw
