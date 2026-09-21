@@ -20,6 +20,7 @@ import numpy as np
 
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
+ANOMALIES = []          # (ticker, date, prev_close, dividend, factor, action)
 
 
 def adjust_one(df):
@@ -35,16 +36,7 @@ def adjust_one(df):
     # known AAPL 7:1 - it produced a 7x jump in the adjusted series).
     # So we apply ONLY the dividend adjustment here. The splits column is
     # retained as an audit record and is used by verify.py.
-    # A dividend that equals or exceeds the prior close cannot be a cash
-    # distribution; it is a bad data row. Applying it would make the factor
-    # <= 0 and flip the entire earlier history negative. Skip it and say so,
-    # so verify.py flags one row rather than a thousand.
-    bogus = (prev_close > 0) & (div >= prev_close)
-    if bogus.any():
-        t = df["ticker"].iloc[0] if "ticker" in df.columns else "?"
-        for _, r in df[bogus].iterrows():
-            print(f"  WARN {t} {pd.Timestamp(r['date']).date()}: dividend {r['dividends']} >= prior close - ignored")
-    div_factor = np.where((prev_close > 0) & ~bogus, 1.0 - div / prev_close, 1.0)
+    div_factor = np.where(prev_close > 0, 1.0 - div / prev_close, 1.0)
     factor = pd.Series(div_factor, index=df.index)
     # Tiingo (delisted recovery) gives a truly UNADJUSTED close, so for those
     # rows the split ratio must be applied as well.
@@ -52,6 +44,20 @@ def adjust_one(df):
     if src == "tiingo":
         factor = factor / split
 
+    # An adjustment factor <= 0 is impossible: it means a recorded dividend
+    # exceeds the prior close, which happens when a provider books a spin-off
+    # on a post-split basis but omits the split (KSU / Stilwell, July 2000).
+    # Everything BEFORE such an event would come out negative, so the series
+    # is cut at the event and the earlier history is set aside for review.
+    bad = factor.index[(factor <= 0) & prev_close.notna()]
+    if len(bad):
+        cut = bad.max()
+        for i in bad:
+            ANOMALIES.append((df.ticker.iloc[0], df.date.iloc[i].date(), float(prev_close.iloc[i]),
+                              float(div.iloc[i]), float(factor.iloc[i]),
+                              f"history before {df.date.iloc[cut].date()} dropped"))
+        df = df.iloc[cut + 1:].reset_index(drop=True)
+        close, factor = df["close"].astype(float), factor.iloc[cut + 1:].reset_index(drop=True)
     # Back-adjust: each day's history is scaled by all FUTURE factors.
     cum = factor.iloc[::-1].shift(1).fillna(1.0).cumprod().iloc[::-1]
     df["adj_close"] = close * cum
@@ -82,6 +88,11 @@ def main():
     all_df.to_parquet(ROOT / "data" / "prices.parquet", index=False,
                       compression="zstd", row_group_size=100_000)   # small groups = fast remote ticker queries
 
+    pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
+        .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
+    if ANOMALIES:
+        print(f"\nADJUSTMENT ANOMALIES: {len(ANOMALIES)} (see data/adjustment_anomalies.csv)")
+        for a in ANOMALIES: print("   ", *a)
     mb = (ROOT / "data" / "prices.parquet").stat().st_size / 1e6
     print(f"\nrows      : {len(all_df):,}")
     print(f"tickers   : {all_df['ticker'].nunique():,}")
