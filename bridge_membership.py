@@ -222,8 +222,11 @@ def main():
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
     raw = ROOT / "data" / "raw"                       # move any price file saved under the bare label
     for bare, sfx in merge.items():
-        if (raw / f"{bare}.parquet").exists() and not (raw / f"{sfx}.parquet").exists():
-            (raw / f"{bare}.parquet").rename(raw / f"{sfx}.parquet")
+        if (raw / f"{bare}.parquet").exists():
+            if (raw / f"{sfx}.parquet").exists():
+                (raw / f"{bare}.parquet").unlink()          # same company twice: keep the canonical id
+            else:
+                (raw / f"{bare}.parquet").rename(raw / f"{sfx}.parquet")
     all_m = all_m.drop_duplicates().sort_values(["date", "ticker"])
     all_m.to_parquet(U / "members.parquet", index=False)
     iv = build_intervals(all_m)

@@ -21,10 +21,33 @@ import numpy as np
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
 ANOMALIES = []          # (ticker, date, prev_close, dividend, factor, action)
+OVERRIDES = ROOT / "corporate_action_overrides.csv"   # hand-verified fixes to provider records
+
+
+def apply_overrides(df):
+    """Provider records are sometimes wrong in known ways. This table is the
+    place to fix them explicitly, with a note, instead of code heuristics.
+    Columns: ticker, date, split_factor, dividend, note. Blank = leave as is."""
+    if not OVERRIDES.exists():
+        return df
+    ov = pd.read_csv(OVERRIDES, dtype={"ticker": str})
+    ov = ov[ov.ticker == df.ticker.iloc[0]]
+    if ov.empty:
+        return df
+    d = pd.to_datetime(df["date"]).dt.tz_localize(None)
+    for _, r in ov.iterrows():
+        m = d == pd.Timestamp(r["date"])
+        if not m.any():
+            continue
+        if pd.notna(r.get("split_factor")):
+            df.loc[m, "stock_splits"] = float(r["split_factor"])
+        if pd.notna(r.get("dividend")):
+            df.loc[m, "dividends"] = float(r["dividend"])
+    return df
 
 
 def adjust_one(df):
-    df = df.sort_values("date").reset_index(drop=True)
+    df = apply_overrides(df.sort_values("date").reset_index(drop=True))
     close = df["close"].astype(float)
     div = df.get("dividends", pd.Series(0.0, index=df.index)).fillna(0.0)
     split = df.get("stock_splits", pd.Series(0.0, index=df.index)).fillna(0.0)
@@ -36,13 +59,16 @@ def adjust_one(df):
     # known AAPL 7:1 - it produced a 7x jump in the adjusted series).
     # So we apply ONLY the dividend adjustment here. The splits column is
     # retained as an audit record and is used by verify.py.
-    div_factor = np.where(prev_close > 0, 1.0 - div / prev_close, 1.0)
-    factor = pd.Series(div_factor, index=df.index)
     # Tiingo (delisted recovery) gives a truly UNADJUSTED close, so for those
-    # rows the split ratio must be applied as well.
+    # rows the split ratio applies too. Yahoo rows: close is already
+    # split-adjusted, so the effective split is 1 (the column is audit-only).
     src = df["source"].iloc[0] if "source" in df.columns else "yahoo"
-    if src == "tiingo":
-        factor = factor / split
+    eff_split = split if src == "tiingo" else pd.Series(1.0, index=df.index)
+    # A dividend is paid per share ON the ex-date, i.e. on the post-split basis
+    # when a split lands the same day, while prev_close is pre-split. Put both
+    # on the same basis: prev_close_new = prev_close / split.
+    div_factor = np.where(prev_close > 0, 1.0 - div * eff_split / prev_close, 1.0)
+    factor = pd.Series(div_factor, index=df.index) / eff_split
 
     # An adjustment factor <= 0 is impossible: it means a recorded dividend
     # exceeds the prior close, which happens when a provider books a spin-off
