@@ -49,7 +49,7 @@ jobs:
           tar --zstd -cf raw.tar.zst data/raw
           gh release create data --title "Market dataset" --notes "auto" 2>/dev/null || true
           gh release upload data data/prices.parquet data/universe/members.parquet \
-             data/universe/membership_intervals.parquet data/verification_report.txt data/recycled_tickers.csv \
+             data/universe/membership_intervals.parquet data/verification_report.txt data/recycled_tickers.csv data/adjustment_anomalies.csv \
              data/no_data_tickers.txt data/delisted_suffix_tickers.txt data/universe/renames.csv raw.tar.zst --clobber
           [ -f data/tiingo_progress.json ] && gh release upload data data/tiingo_progress.json --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
