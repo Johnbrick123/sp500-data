@@ -36,6 +36,16 @@ jobs:
       - run: python compute_adjusted.py
       - run: python verify.py
 
+      # If verification refuses to publish, still publish the REASON, so it can
+      # be read without a GitHub login: releases/download/data/verification_report_FAILED.txt
+      - name: Publish failure report
+        if: failure()
+        run: |
+          [ -f data/verification_report.txt ] || exit 0
+          cp data/verification_report.txt data/verification_report_FAILED.txt
+          gh release upload data data/verification_report_FAILED.txt --clobber || true
+        env: { GH_TOKEN: "${{ github.token }}" }
+
       - name: Push to MotherDuck (optional - needs secret)
         if: ${{ env.motherduck_token != '' }}
         run: python load_motherduck.py
