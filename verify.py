@@ -83,22 +83,46 @@ def check_adjustment(df):
                f"{tk}: max daily error {max_err:.4f}pp, cumulative wealth error {wealth_err:.3f}%")
 
 
-# 3. Independent source. Unreachable -> UNVERIFIED, loudly.
+# 3. Independent source: Nasdaq's own historical API. This is the only check
+#    that tests Yahoo's RECORD rather than our arithmetic - everything else
+#    compares us against the vendor we sourced from. Nasdaq closes are
+#    unadjusted, so split days are excluded from the comparison.
 def check_cross_source(df):
-    say("\n[3] INDEPENDENT SOURCE (Stooq vs ours)")
-    for tk in ["SPY", "AAPL", "XOM", "JPM", "KO", "PG"]:
+    say("\n[3] INDEPENDENT SOURCE (Nasdaq historical API vs ours)")
+    import json, urllib.request
+    H = {"User-Agent": "Mozilla/5.0 (data verification)"}
+    # rotate the sample daily so coverage accumulates over time
+    pool = ["AAPL", "MSFT", "JPM", "XOM", "KO", "PG", "JNJ", "WMT", "CAT", "MRK",
+            "HD", "CVX", "PFE", "IBM", "DIS", "MCD", "BA", "GE", "T", "VZ"]
+    i = date.today().toordinal() % len(pool)
+    sample = [pool[(i + k) % len(pool)] for k in range(6)]
+    for tk in sample:
         try:
-            url = f"https://stooq.com/q/d/l/?s={tk.lower()}.us&d1=20050101&d2={date.today():%Y%m%d}&i=d"
-            raw = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read().decode()
-            s = pd.read_csv(io.StringIO(raw))
-            if "Close" not in s.columns or len(s) < 250:
-                record("stooq " + tk, "UNVERIFIED", f"{tk}: Stooq returned no usable data"); continue
+            u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass=stocks"
+                 f"&fromdate=2016-09-01&todate={date.today():%Y-%m-%d}&limit=9999")
+            d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
+            rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
+            if len(rows) < 250:
+                record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq returned {len(rows)} rows"); continue
         except Exception as e:
-            record("stooq " + tk, "UNVERIFIED", f"{tk}: Stooq unreachable ({type(e).__name__})"); continue
-        s["Date"] = pd.to_datetime(s["Date"])
-        m = df[df.ticker == tk][["date", "adj_close"]].merge(s[["Date", "Close"]], left_on="date", right_on="Date")
-        pct_off = ((m.adj_close.pct_change() - m.Close.pct_change()).abs() > 0.01).mean() * 100
-        record("stooq " + tk, "PASS" if pct_off < 2 else "FAIL", f"{tk}: {pct_off:.2f}% of days differ >1pp ({len(m):,} days)")
+            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq unreachable ({type(e).__name__})"); continue
+        n = pd.DataFrame(rows)
+        n["date"] = pd.to_datetime(n["date"], errors="coerce")
+        n["close"] = pd.to_numeric(n["close"].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce")
+        n = n.dropna(subset=["date", "close"]).sort_values("date")
+        o = df[df.ticker == tk][["date", "close", "stock_splits"]]
+        m = o.merge(n[["date", "close"]], on="date", suffixes=("_o", "_n")).sort_values("date")
+        # Yahoo's close is split-adjusted, Nasdaq's is not: compare daily RETURNS
+        # and drop days on or after a split, where the two bases differ.
+        m["r_o"] = m.close_o.pct_change(); m["r_n"] = m.close_n.pct_change()
+        sp = m.stock_splits.replace(0, 1).fillna(1)      # Yahoo writes 0.0 for "no split"
+        m = m[(sp == 1) & (sp.shift(-1).fillna(1) == 1)]
+        diff = (m.r_o - m.r_n).abs().dropna()
+        if len(diff) < 250:
+            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: only {len(diff)} comparable days"); continue
+        off = (diff > 0.005).mean() * 100
+        record("nasdaq " + tk, "PASS" if off < 1 else "FAIL",
+               f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp)")
 
 
 # 4. Structure.
@@ -170,7 +194,13 @@ def check_coverage(df, iv):
     rec = set(pd.read_csv(ROOT / "data" / "recycled_tickers.csv").ticker)
     have = df.groupby("ticker").date.agg(["min", "max"])
     worst = 100
-    for d in ["1996-01-02", "2000-01-03", "2005-01-03", "2008-09-15", "2010-01-04", "2015-01-05", "2019-01-11", "2024-09-23", str(df.date.max().date())]:
+    # the final probe uses the latest date carried by most tickers, not the
+    # newest date in the file: a single ticker with one extra bar would
+    # otherwise make coverage read ~0% and block the publish.
+    per_day = df.groupby("date").ticker.nunique()
+    broad = per_day[per_day >= 0.5 * per_day.max()]
+    latest = str((broad.index.max() if len(broad) else df.date.max()).date())
+    for d in ["1996-01-02", "2000-01-03", "2005-01-03", "2008-09-15", "2010-01-04", "2015-01-05", "2019-01-11", "2024-09-23", latest]:
         ts = pd.Timestamp(d)
         mem = set(iv[(iv.start <= ts) & (iv["end"].isna() | (iv["end"] > ts))].ticker) - rec
         got = sum(1 for t in mem if t in have.index and have.loc[t, "min"] <= ts <= have.loc[t, "max"])
@@ -179,13 +209,47 @@ def check_coverage(df, iv):
     record("coverage", "PASS" if worst >= 30 else "FAIL", f"worst coverage {worst:.1f}% - pre-2005 results are not survivorship-safe")
 
 
+# 9. End-to-end: rebuild the equal-weight S&P 500 from our own membership and
+#    adjusted prices, and compare it to RSP, the real equal-weight S&P 500 ETF.
+#    This is the only check that tests the whole pipeline at once - universe,
+#    point-in-time membership and total-return adjustment together - against an
+#    instrument priced by the market.
+def check_index_reconstruction(df, iv):
+    say("\n[9] INDEX RECONSTRUCTION (our equal-weight S&P 500 vs the RSP ETF, 2015+)")
+    try:
+        rec = set(pd.read_csv(ROOT / "data" / "recycled_tickers.csv").ticker)
+        px = df.pivot(index="date", columns="ticker", values="adj_close").loc["2015-01-01":]
+        if "RSP" not in px.columns:
+            record("index reconstruction", "UNVERIFIED", "RSP not in dataset"); return
+        me = px.resample("ME").last(); rets = me.pct_change()
+        rows = []
+        for i in range(1, len(me)):
+            prev, cur = me.index[i - 1], me.index[i]
+            mem = set(iv[(iv.start <= prev) & (iv["end"].isna() | (iv["end"] > prev))].ticker) - rec
+            hold = [t for t in mem if t in me.columns and pd.notna(me.at[prev, t])]
+            rows.append((cur, rets.loc[cur, hold].dropna().mean()))
+        b = pd.Series(dict(rows)).dropna()
+        rsp = me["RSP"].pct_change().reindex(b.index).dropna()
+        b = b.reindex(rsp.index)
+        corr = b.corr(rsp)
+        cagr_b = (1 + b).prod() ** (12 / len(b)) - 1
+        cagr_r = (1 + rsp).prod() ** (12 / len(rsp)) - 1
+        gap = (cagr_b - cagr_r) * 100
+        ok = corr > 0.99 and abs(gap) < 2.0
+        record("index reconstruction", "PASS" if ok else "FAIL",
+               f"corr {corr:.4f}, our CAGR {cagr_b*100:.2f}% vs RSP {cagr_r*100:.2f}% "
+               f"(gap {gap:+.2f}pp over {len(b)} months)")
+    except Exception as e:
+        record("index reconstruction", "UNVERIFIED", f"could not run: {type(e).__name__}: {e}")
+
+
 def main():
     df = pd.read_parquet(PRICES); df["date"] = pd.to_datetime(df["date"])
     iv = pd.read_parquet(INTERVALS); iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
     say("=" * 70); say(f"DATA VERIFICATION REPORT  {date.today()}"); say("=" * 70)
     say(f"rows {len(df):,}   tickers {df.ticker.nunique():,}   {df.date.min().date()} -> {df.date.max().date()}")
     check_corporate_actions(df); check_adjustment(df); check_cross_source(df)
-    check_structure(df); check_freshness(df); check_membership(iv); check_recycled(df, iv); check_coverage(df, iv)
+    check_structure(df); check_freshness(df); check_membership(iv); check_recycled(df, iv); check_coverage(df, iv); check_index_reconstruction(df, iv)
     n = {s: sum(1 for _, st, _ in results if st == s) for s in ["PASS", "FAIL", "UNVERIFIED"]}
     say("\n" + "=" * 70)
     say(f"PASS {n['PASS']}   FAIL {n['FAIL']}   UNVERIFIED {n['UNVERIFIED']}")
