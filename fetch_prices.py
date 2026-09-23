@@ -26,6 +26,7 @@ import re, sys, time, warnings
 from datetime import date
 from pathlib import Path
 import pandas as pd
+NY_TODAY = pd.Timestamp.now(tz="America/New_York").tz_localize(None).normalize()
 import yfinance as yf
 
 warnings.filterwarnings("ignore")
@@ -77,6 +78,15 @@ def main():
             # listing days and during outages); keep it out of the raw store
             if "Close" in sub.columns:
                 n0 = len(sub); sub = sub[sub["Close"] > 0]; dropped += n0 - len(sub)
+            # Never store the current New York session's bar. Yahoo serves it
+            # before it is final - open/high/low from different moments, so the
+            # open can sit outside the high-low range and the close moves between
+            # downloads. That failed nightly runs #5 and #6. It is picked up,
+            # finalized, on the next run.
+            n0 = len(sub)
+            idx = pd.to_datetime(sub.index)
+            idx = idx.tz_localize(None) if idx.tz is not None else idx
+            sub = sub[idx.normalize() < NY_TODAY]; dropped += n0 - len(sub)
             if len(sub) < 20:
                 empty.append(t); continue
             sub = sub.reset_index()

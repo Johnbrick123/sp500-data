@@ -73,6 +73,7 @@ def check_adjustment(df):
             record("adjust " + tk, "UNVERIFIED", f"{tk}: Yahoo unreachable ({type(e).__name__})"); continue
         o = df[df.ticker == tk].set_index("date")["adj_close"]
         j = pd.concat([o.rename("a"), y.squeeze().rename("b")], axis=1, join="inner").dropna()
+        j = j.iloc[:-1]      # the latest bar is a moving target between two downloads; compare finished days
         if len(j) < 250:
             record("adjust " + tk, "UNVERIFIED", f"{tk}: only {len(j)} overlapping days"); continue
         ra, rb = j.a.pct_change().dropna(), j.b.pct_change().dropna()
