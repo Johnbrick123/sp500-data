@@ -63,3 +63,20 @@ jobs:
              data/no_data_tickers.txt data/delisted_suffix_tickers.txt data/universe/renames.csv raw.tar.zst --clobber
           [ -f data/tiingo_progress.json ] && gh release upload data data/tiingo_progress.json --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
+
+      # Monthly immutable snapshot. The 'data' release is overwritten every
+      # night, so a result produced today cannot be reproduced later. On the
+      # first run of each month we also publish the dataset under a dated,
+      # never-overwritten tag: releases/download/snapshot-YYYY-MM/prices.parquet
+      # Pin a backtest to one of these when a number has to be reproducible.
+      - name: Monthly immutable snapshot
+        run: |
+          TAG="snapshot-$(date -u +%Y-%m)"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG already exists - nothing to do"; exit 0
+          fi
+          gh release create "$TAG" --title "Dataset snapshot $(date -u +%Y-%m)" \
+            --notes "Immutable copy of the dataset as published on $(date -u +%Y-%m-%d). Never overwritten." || true
+          gh release upload "$TAG" data/prices.parquet data/universe/membership_intervals.parquet \
+            data/universe/members.parquet data/verification_report.txt data/recycled_tickers.csv || true
+        env: { GH_TOKEN: "${{ github.token }}" }
