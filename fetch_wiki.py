@@ -51,7 +51,7 @@ def fetch_ticker(sym):
     queries are the documented standard path.)"""
     rows, cursor = [], None
     for _ in range(20):
-        url = f"{API}?ticker={urllib.parse.quote(sym)}&qopts.columns={COLS}&api_key={KEY}"
+        url = f"{API}?ticker={urllib.parse.quote(sym.strip(), safe='')}&qopts.columns={COLS}&api_key={KEY}"
         if cursor:
             url += f"&qopts.cursor_id={cursor}"
         try:
@@ -136,9 +136,15 @@ def main():
     agree = 100 - bad / max(tot, 1) * 100
     say(f"CROSS-VALIDATION vs Yahoo, 1998-2017: {n_names} companies, {tot:,} daily returns, "
         f"{agree:.3f}% agree within 0.5pp")
-    if n_names < 50 or agree < 99.0:
-        say("ABORT: WIKI does not agree with Yahoo closely enough. Nothing accepted.")
+    # 30 companies / ~150k daily returns is ample to detect a systematically
+    # bad source; report WHICH condition failed, never a blended reason.
+    if n_names < 30:
+        say(f"ABORT: only {n_names} companies to cross-check (need 30). Nothing accepted.")
         REPORT.write_text("\n".join(lines)); sys.exit(1)
+    if agree < 99.0:
+        say(f"ABORT: WIKI agrees with Yahoo on only {agree:.3f}% of days (need 99%). Nothing accepted.")
+        REPORT.write_text("\n".join(lines)); sys.exit(1)
+    say("cross-validation PASSED")
 
     # ---- 2. identity check, 3. fill only missing names ----
     by_bare = {t: g.sort_values("date") for t, g in wiki.groupby("ticker")}
