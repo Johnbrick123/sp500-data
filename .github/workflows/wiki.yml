@@ -1,0 +1,34 @@
+name: Recover dead companies from WIKI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow numpy
+      - name: Restore current dataset
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python fetch_wiki.py
+        env: { NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}" }
+      - name: Publish recovered files and the report (always, so the result is readable)
+        if: always()
+        run: |
+          [ -f data/wiki_report.txt ] && gh release upload data data/wiki_report.txt --clobber || true
+          tar --zstd -cf raw.tar.zst data/raw
+          gh release upload data raw.tar.zst --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
