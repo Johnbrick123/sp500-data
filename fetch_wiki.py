@@ -20,7 +20,7 @@ Needs NASDAQ_DATA_LINK_KEY (repo secret). Output: data/raw/<label>.parquet with
 source="wiki" (unadjusted close + ex-dividend + split ratio, like Tiingo), and
 data/wiki_report.txt.
 """
-import io, json, os, re, sys, time, urllib.request, zipfile
+import io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -40,20 +40,40 @@ def say(s=""):
     print(s, flush=True); lines.append(str(s))
 
 
-def download_wiki():
-    """Bulk export: ask for the file, wait until it is ready, download the zip."""
-    url = f"https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES?qopts.export=true&api_key={KEY}"
-    for attempt in range(30):
-        meta = json.load(urllib.request.urlopen(url, timeout=60))
-        f = meta["datatable_bulk_download"]["file"]
-        if f.get("status", "").lower() == "fresh" and f.get("link"):
-            say(f"bulk file ready ({f.get('data_snapshot_time', '?')})")
-            data = urllib.request.urlopen(f["link"], timeout=900).read()
-            say(f"downloaded {len(data)/1e6:.0f} MB")
-            z = zipfile.ZipFile(io.BytesIO(data))
-            return z.open(z.namelist()[0])
-        say(f"  export status '{f.get('status')}', waiting..."); time.sleep(20)
-    sys.exit("WIKI bulk export never became ready")
+API = "https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES.json"
+COLS = "ticker,date,open,high,low,close,volume,ex-dividend,split_ratio"
+ERRORS = {}
+
+
+def fetch_ticker(sym):
+    """Ordinary per-company datatable query, following cursor pagination.
+    (The bulk 'export' feature returned 404 for this account; per-company
+    queries are the documented standard path.)"""
+    rows, cursor = [], None
+    for _ in range(20):
+        url = f"{API}?ticker={urllib.parse.quote(sym)}&qopts.columns={COLS}&api_key={KEY}"
+        if cursor:
+            url += f"&qopts.cursor_id={cursor}"
+        try:
+            d = json.load(urllib.request.urlopen(url, timeout=60))
+        except urllib.error.HTTPError as e:
+            ERRORS[e.code] = ERRORS.get(e.code, 0) + 1
+            if e.code == 429:
+                time.sleep(15); continue
+            return None
+        except Exception as e:
+            ERRORS[type(e).__name__] = ERRORS.get(type(e).__name__, 0) + 1
+            return None
+        dt = d["datatable"]
+        rows += dt["data"]
+        cursor = (d.get("meta") or {}).get("next_cursor_id")
+        if not cursor:
+            break
+        time.sleep(0.2)
+    if not rows:
+        return None
+    cols = [c["name"] for c in d["datatable"]["columns"]]
+    return pd.DataFrame(rows, columns=cols)
 
 
 def main():
@@ -73,14 +93,32 @@ def main():
     yahoo = yahoo[yahoo.source == "yahoo"]
     val_names = set(yahoo.ticker.unique())
 
-    keep_cols = ["ticker", "date", "open", "high", "low", "close", "volume", "ex-dividend", "split_ratio"]
-    parts, val_parts = [], []
-    for chunk in pd.read_csv(download_wiki(), usecols=keep_cols, chunksize=1_000_000):
-        tk = chunk.ticker.astype(str)
-        parts.append(chunk[tk.isin(bare_needed)])
-        val_parts.append(chunk[tk.str.replace(".", "-", regex=False).isin(val_names)])
-    wiki = pd.concat(parts, ignore_index=True); wiki["date"] = pd.to_datetime(wiki["date"])
-    val = pd.concat(val_parts, ignore_index=True); val["date"] = pd.to_datetime(val["date"])
+    # one probe first, so an access problem is reported plainly instead of
+    # as hundreds of identical failures
+    probe = fetch_ticker("AAPL")
+    if probe is None:
+        say(f"ABORT: WIKI per-company query failed for AAPL. HTTP/errors seen: {ERRORS}")
+        say("This account cannot read WIKI/PRICES. Nothing accepted.")
+        REPORT.write_text("\n".join(lines)); sys.exit(1)
+    say(f"access OK: AAPL returned {len(probe):,} rows")
+
+    parts = []
+    for i, sym in enumerate(sorted(bare_needed)):
+        df = fetch_ticker(sym)
+        if df is not None:
+            parts.append(df)
+        if (i + 1) % 50 == 0:
+            say(f"  queried {i+1}/{len(bare_needed)} missing symbols, {len(parts)} returned data")
+        time.sleep(0.25)
+    # validation sample: 80 long-lived names we already hold from Yahoo
+    span = yahoo.groupby("ticker").date.agg(["min", "count"]) if "date" in yahoo else None
+    vsample = sorted(t for t in val_names if "-" not in t)[:400:5][:80]
+    vparts = [x for x in (fetch_ticker(t) for t in vsample) if x is not None]
+    wiki = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=COLS.split(","))
+    wiki["date"] = pd.to_datetime(wiki["date"])
+    val = pd.concat(vparts, ignore_index=True) if vparts else pd.DataFrame(columns=COLS.split(","))
+    val["date"] = pd.to_datetime(val["date"])
+    say(f"errors seen while querying: {ERRORS or 'none'}")
     say(f"WIKI rows for missing members: {len(wiki):,} across {wiki.ticker.nunique()} symbols")
 
     # ---- 1. cross-validation against Yahoo on names both sources carry ----
@@ -134,4 +172,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as e:
+        say(f"CRASHED: {type(e).__name__}: {e}")
+        REPORT.write_text("\n".join(lines)); raise
