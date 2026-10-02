@@ -20,7 +20,7 @@ import numpy as np
 
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
-ANOMALIES = []          # (ticker, date, prev_close, dividend, factor, action)
+ANOMALIES = []          # (ticker, date, prev_close, dividend, factor_or_close, action)
 OVERRIDES = ROOT / "corporate_action_overrides.csv"   # hand-verified fixes to provider records
 
 
@@ -63,11 +63,44 @@ def adjust_one(df):
     # rows the split ratio applies too. Yahoo rows: close is already
     # split-adjusted, so the effective split is 1 (the column is audit-only).
     src = df["source"].iloc[0] if "source" in df.columns else "yahoo"
-    eff_split = split if src == "tiingo" else pd.Series(1.0, index=df.index)
+    eff_split = split if src in ("tiingo", "wiki") else pd.Series(1.0, index=df.index)
     # A dividend is paid per share ON the ex-date, i.e. on the post-split basis
     # when a split lands the same day, while prev_close is pre-split. Put both
     # on the same basis: prev_close_new = prev_close / split.
-    div_factor = np.where(prev_close > 0, 1.0 - div * eff_split / prev_close, 1.0)
+    # Two conventions, used where each is right:
+    #   ordinary dividends -> f = 1 - D/P_prev, the same formula Yahoo uses, so
+    #     our series stays exactly reconcilable with an independent copy.
+    #   large distributions (>5% of the prior close: spin-offs, special
+    #     dividends) -> f = P_t/(P_t + D), the total-return convention. The
+    #     Yahoo formula divides by (P_prev - D) and overstates the event-day
+    #     return as D approaches P_prev: measured at up to 15.7pp (Danaher /
+    #     Fortive 2016), and it is what made KSU's factor go negative.
+    d_eff = div * eff_split
+    # NOTE: div is per POST-split share, as is close, so the large-distribution
+    # factor uses div (not d_eff); the split is applied once, below.
+    # A real distribution of D makes the price fall by roughly D. When a vendor
+    # records a large distribution but the price did NOT fall (the series is
+    # already adjusted for it), applying it again invents a huge one-day gain -
+    # Danaher/Fortive 2016 came out at +39% instead of ~+3%. Those records are
+    # internally inconsistent: ignore the distribution and log the day.
+    is_large = (d_eff > 0.05 * prev_close.fillna(np.inf)) & (prev_close > 0)
+    expected_drop = np.divide(d_eff, prev_close, out=np.zeros(len(df)), where=prev_close > 0)
+    actual_drop = 1.0 - np.divide(close * eff_split, prev_close, out=np.ones(len(df)), where=prev_close > 0)
+    # Only the unambiguous case: a distribution worth more than 20% of the
+    # price, where essentially no drop occurred. A moderate dividend on a day
+    # the stock happened to rise is NOT this, and must not be stripped.
+    inconsistent = (d_eff > 0.20 * prev_close.fillna(np.inf)) & (prev_close > 0) \
+                   & (actual_drop < 0.25 * expected_drop)
+    for i in np.flatnonzero(inconsistent):
+        ANOMALIES.append((df.ticker.iloc[0], df.date.iloc[i].date(), float(prev_close.iloc[i]),
+                          float(div.iloc[i]), float(close.iloc[i]),
+                          "distribution recorded but price did not fall - ignored (already in the price)"))
+    div = div.where(~inconsistent, 0.0); d_eff = d_eff.where(~inconsistent, 0.0)
+    small = 1.0 - np.divide(d_eff, prev_close, out=np.zeros(len(df)), where=prev_close > 0)
+    denom = close + div
+    large = np.divide(close, denom, out=np.ones(len(df)), where=denom > 0)
+    use_large = is_large & ~inconsistent
+    div_factor = np.where(use_large, large, np.where(prev_close > 0, small, 1.0))
     factor = pd.Series(div_factor, index=df.index) / eff_split
 
     # An adjustment factor <= 0 is impossible: it means a recorded dividend
