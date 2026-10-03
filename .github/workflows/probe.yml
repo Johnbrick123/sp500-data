@@ -13,8 +13,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: python probe_datalink.py
-        env: { NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}" }
+      - run: python probe_tiingo.py
+        continue-on-error: true
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
       - if: always()
-        run: gh release upload data data/datalink_probe.txt --clobber || true
+        run: gh release upload data data/tiingo_perma_probe.txt --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
