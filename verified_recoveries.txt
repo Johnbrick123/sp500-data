@@ -1,0 +1,7 @@
+# Genuine recoveries that a stricter listing-end-date rule would reject, kept
+# after a manual price-level check against the real company's known closes.
+DD-201708    # 80.71 on 2017-06-30, original DuPont ~78-85
+NVLS-201206  # 36.14 on 2011-06-30, Novellus ~35-40
+XTO-201006   # 47.18 on 2010-03-31, XTO Energy ~42-50
+CCU-200807   # 37.82 on 2007-06-29, Clear Channel ~35-40
+USB-200102   # 19.25 on 2000-06-30, old U.S. Bancorp ~15-30

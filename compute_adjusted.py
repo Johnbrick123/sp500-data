@@ -125,7 +125,12 @@ def adjust_one(df):
 
 
 def main():
-    files = sorted(RAW.glob("*.parquet"))
+    # Labels whose stored history belongs to a different company that later
+    # reused the ticker are never published (see quarantine_tickers.txt).
+    qf = ROOT / "quarantine_tickers.txt"
+    quarantined = {l.split("#")[0].strip() for l in qf.read_text().splitlines()} - {""} if qf.exists() else set()
+    files = sorted(f for f in RAW.glob("*.parquet") if f.stem not in quarantined)
+    print(f"quarantined labels skipped: {len(quarantined)}")
     out = []
     for i, f in enumerate(files):
         try:

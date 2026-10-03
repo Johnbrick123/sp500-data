@@ -1,0 +1,24 @@
+# Labels whose stored history belongs to a DIFFERENT company that later reused
+# the ticker. compute_adjusted.py skips these; they are never published.
+# Found 2026-10-03: Tiingo v2 requests were date-bounded, so asking for "AGN"
+# up to 2015 returned today's owner of AGN (Actavis), cut off at 2015.
+# Evidence: daily returns 90-100% identical to the current owner, and/or price
+# levels inconsistent with the real company.
+JCI-201609   # returned new Johnson Controls (Tyco) history
+AGN-201503   # returned Actavis, not the original Allergan
+PLD-201106   # returned AMB/Prologis merged entity
+TT-200806    # returned Trane/Ingersoll history
+T-200511     # returned SBC, not the original AT&T Corp
+JPM-200012   # returned Chase, not the original J.P. Morgan & Co
+HON-199912   # returned AlliedSignal, not the original Honeywell
+CB-201601    # 49% identical to ACE - not trustworthy
+GENZ-201104  # $22.71 in 2010; Genzyme traded ~$50-70
+WEN-200809   # returned Triarc, not Wendy's International
+EP-201205    # $0.02 in Dec 2011; El Paso traded ~$26
+CSR-200006   # returned today's CSR (Centerspace)
+AIT-199910   # returned Applied Industrial Technologies, not Ameritech
+TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
+GAS-201112   # returned AGL Resources, not Nicor
+KMG-200608   # $8.57 in 2006 = KMG Chemicals, not Kerr-McGee
+MIL-201007   # $13 in 2010; Millipore traded ~$105
+LSI-201405   # $64.79 in 2013; LSI Corp traded ~$7
