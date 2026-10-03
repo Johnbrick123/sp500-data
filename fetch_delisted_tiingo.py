@@ -48,8 +48,11 @@ def candidates(progress):
             continue
         # A name marked "recovered" whose file is gone (an overlapping run
         # overwrote the raw-data upload) must be retried, not skipped forever.
-        if t in progress["tried"] and progress["tried"][t] != "recovered":
-            continue
+        prior = progress["tried"].get(t)
+        if prior is not None and prior != "recovered":
+            # one retry under the v2 rules for anything rejected or empty
+            if t in progress.get("retried_v2", {}) or prior not in ("rejected", "no data", "http 404"):
+                continue
         mo = SUFFIX.search(t)
         year = int(mo.group(1)[:4]) if mo else (g["end"].max().year if pd.notna(g["end"].max()) else 2100)
         out.append((0 if year >= 2014 else 1, -year, t, SUFFIX.sub("", t), g.start.min(), g["end"].max()))
@@ -57,8 +60,9 @@ def candidates(progress):
     return [o[2:] for o in out]
 
 
-def fetch(sym):
-    url = f"https://api.tiingo.com/tiingo/daily/{sym}/prices?startDate=1995-01-01&format=json&token={KEY}"
+def fetch(sym, end=None):
+    end_q = f"&endDate={end:%Y-%m-%d}" if end is not None and pd.notna(end) else ""
+    url = f"https://api.tiingo.com/tiingo/daily/{sym}/prices?startDate=1995-01-01{end_q}&format=json&token={KEY}"
     req = urllib.request.Request(url, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
         body = r.read().decode()
@@ -75,8 +79,14 @@ def accept(label, df, m_start, m_end):
     first, last = df.date.min(), df.date.max()
     if pd.notna(m_end) and first > m_end:
         return False, "starts after the security left the index (recycled symbol)"
-    if first > m_start + pd.Timedelta(days=400):
-        return False, "starts long after the membership period began"
+    # Require a real OVERLAP with the membership period. The old rule rejected any
+    # history starting after the company joined, which threw away genuine partial
+    # histories (Tiingo's dead-company archive mostly begins 2007): Merrill Lynch,
+    # Heinz, Rohm & Haas, Medco and others.
+    m_stop = m_end if pd.notna(m_end) else pd.Timestamp.today()
+    overlap = (df.date >= max(first, m_start)) & (df.date <= min(last, m_stop))
+    if overlap.sum() < 250:
+        return False, f"only {int(overlap.sum())} trading days overlap the index membership"
     mo = SUFFIX.search(label)
     if mo:
         delisted = pd.Timestamp(mo.group(1)[:4] + "-" + mo.group(1)[4:] + "-01")
@@ -92,8 +102,16 @@ def run_batch(prog):
         return 0, True
     saved, throttled = 0, False
     for tk, sym, m_start, m_end in todo[:PER_RUN]:
+        prog.setdefault("retried_v2", {})
+        if tk in prog["tried"]:
+            prog["retried_v2"][tk] = True
+        # ask for the dead company's own window, so a reused ticker returns the
+        # old company rather than today's owner of the symbol (old Dow, Constellation)
+        mo = SUFFIX.search(tk)
+        end = (pd.Timestamp(mo.group(1)[:4] + "-" + mo.group(1)[4:] + "-01") + pd.Timedelta(days=60)) if mo \
+              else (m_end + pd.Timedelta(days=60) if pd.notna(m_end) else None)
         try:
-            rows, err = fetch(sym)
+            rows, err = fetch(sym, end)
         except urllib.error.HTTPError as e:
             if e.code in (429, 403):
                 print(f"  throttled at {tk} (HTTP {e.code}); pausing"); throttled = True; break
