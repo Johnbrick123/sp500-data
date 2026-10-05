@@ -102,6 +102,19 @@ KNOWN_RENAMES = {
 }
 
 
+# Tickers REUSED by a different company after the original delisted. The
+# original's membership rows (before the cutoff) get a dated label so its
+# recovered prices (fetch_perma.py) never collide with today's owner.
+#   bare ticker: (dated label, first date that belongs to the NEW owner)
+RELABEL = {
+    "NFX":  ("NFX-201902",  "2019-03-01"),   # Newfield Exploration -> now an ETF
+    "S":    ("S-202004",    "2020-05-01"),   # Sprint -> SentinelOne
+    "STI":  ("STI-201912",  "2020-01-01"),   # SunTrust -> reused 2024
+    "APC":  ("APC-201908",  "2019-09-01"),   # Anadarko -> reused 2026
+    "INFO": ("INFO-202203", "2022-03-01"),   # IHS Markit -> reused 2024
+}
+
+
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
 MANUAL_CHANGES = [
@@ -205,6 +218,9 @@ def main():
 
     all_m = pd.concat([members, replayed, final], ignore_index=True)
     all_m["ticker"] = all_m["ticker"].map(lambda t: renames.get(t, t))
+    for bare, (lab, cutoff) in RELABEL.items():
+        old_rows = (all_m.ticker == bare) & (all_m.date < pd.Timestamp(cutoff))
+        all_m.loc[old_rows, "ticker"] = lab
     # The upstream file switches some delisted names to a 'TICKER-YYYYMM' label
     # partway through (e.g. AET until 2018-09, AET-201811 from 2016-01). Merge
     # the bare label into the suffixed one when the bare label never appears
