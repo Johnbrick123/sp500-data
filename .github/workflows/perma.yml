@@ -1,0 +1,33 @@
+name: Recover reused-ticker companies via permaTicker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - name: Restore current dataset
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python fetch_perma.py
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - name: Publish recovered files and the report
+        if: always()
+        run: |
+          [ -f data/perma_report.txt ] && gh release upload data data/perma_report.txt --clobber || true
+          tar --zstd -cf raw.tar.zst data/raw
+          gh release upload data raw.tar.zst --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
