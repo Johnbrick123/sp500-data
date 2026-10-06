@@ -24,6 +24,7 @@ jobs:
           gh release download data --pattern 'raw.tar.zst' --dir . || true
           [ -f raw.tar.zst ] && tar --zstd -xf raw.tar.zst || true
           gh release download data --pattern 'tiingo_progress.json' --dir data || true
+          gh release download data --pattern 'relabels.csv' --dir data || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
       - run: python build_universe.py
