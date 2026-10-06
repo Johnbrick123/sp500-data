@@ -106,12 +106,13 @@ KNOWN_RENAMES = {
 # original's membership rows (before the cutoff) get a dated label so its
 # recovered prices (fetch_perma.py) never collide with today's owner.
 #   bare ticker: (dated label, first date that belongs to the NEW owner)
-RELABEL = {
-    "NFX":  ("NFX-201902",  "2019-03-01"),   # Newfield Exploration -> now an ETF
-    "S":    ("S-202004",    "2020-05-01"),   # Sprint -> SentinelOne
-    "STI":  ("STI-201912",  "2020-01-01"),   # SunTrust -> reused 2024
-    "APC":  ("APC-201908",  "2019-09-01"),   # Anadarko -> reused 2026
-    "INFO": ("INFO-202203", "2022-03-01"),   # IHS Markit -> reused 2024
+RELABEL = {   # bare ticker: list of (dated label, first date, first date of the NEXT owner)
+    "S":    [("S-200503",   "1900-01-01", "2005-08-01"),    # Sears Roebuck (merged into Kmart 2005)
+             ("S-202004",   "2005-08-01", "2020-05-01")],   # Sprint Nextel / Sprint -> SentinelOne
+    "NFX":  [("NFX-201902", "1900-01-01", "2019-03-01")],   # Newfield Exploration -> now an ETF
+    "STI":  [("STI-201912", "1900-01-01", "2020-01-01")],   # SunTrust -> reused 2024
+    "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
+    "INFO": [("INFO-202203","1900-01-01", "2022-03-01")],   # IHS Markit -> reused 2024
 }
 
 
@@ -218,9 +219,16 @@ def main():
 
     all_m = pd.concat([members, replayed, final], ignore_index=True)
     all_m["ticker"] = all_m["ticker"].map(lambda t: renames.get(t, t))
-    for bare, (lab, cutoff) in RELABEL.items():
-        old_rows = (all_m.ticker == bare) & (all_m.date < pd.Timestamp(cutoff))
-        all_m.loc[old_rows, "ticker"] = lab
+    # data/relabels.csv: entries fetch_perma.py adds as it recovers dead companies
+    relabel = {k: list(v) for k, v in RELABEL.items()}
+    rl = ROOT / "data" / "relabels.csv"
+    if rl.exists():
+        for r in pd.read_csv(rl).itertuples():
+            relabel.setdefault(r.bare, []).append((r.label, str(r.start), str(r.cutoff)))
+    for bare, spans in relabel.items():
+        for lab, start, cutoff in spans:
+            rows = (all_m.ticker == bare) & (all_m.date >= pd.Timestamp(start)) & (all_m.date < pd.Timestamp(cutoff))
+            all_m.loc[rows, "ticker"] = lab
     # The upstream file switches some delisted names to a 'TICKER-YYYYMM' label
     # partway through (e.g. AET until 2018-09, AET-201811 from 2016-01). Merge
     # the bare label into the suffixed one when the bare label never appears
