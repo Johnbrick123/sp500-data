@@ -9,7 +9,7 @@ permissions:
 jobs:
   recover:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 300      # up to 4 batches with an hour's wait between them
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,13 +21,19 @@ jobs:
           gh release download data --pattern 'raw.tar.zst' --dir . --clobber
           tar --zstd -xf raw.tar.zst
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+          gh release download data --pattern 'perma_progress.json' --dir data || true
+          gh release download data --pattern 'relabels.csv' --dir data || true
         env: { GH_TOKEN: "${{ github.token }}" }
       - run: python fetch_perma.py
-        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
-      - name: Publish recovered files and the report
+        env:
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          PERMA_BATCHES: "4"
+      - name: Publish recovered files, progress, relabels and the report
         if: always()
         run: |
-          [ -f data/perma_report.txt ] && gh release upload data data/perma_report.txt --clobber || true
+          for f in data/perma_report.txt data/perma_progress.json data/relabels.csv; do
+            [ -f "$f" ] && gh release upload data "$f" --clobber || true
+          done
           tar --zstd -cf raw.tar.zst data/raw
           gh release upload data raw.tar.zst --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
