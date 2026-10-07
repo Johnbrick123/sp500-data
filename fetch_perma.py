@@ -131,7 +131,7 @@ def main():
         if relabels:
             pd.DataFrame([(k, v[0], v[1], v[2]) for k, v in relabels.items()], columns=["bare", "label", "start", "cutoff"]).to_csv(RELABELS, index=False)
         if b < BATCHES - 1 and any(t[0] not in prog["done"] for t in todo):
-            say(f"batch {b+1}/{BATCHES} done; sleeping 61 min for the hourly cap", flush=True); time.sleep(61 * 60)
+            say(f"batch {b+1}/{BATCHES} done; sleeping 61 min for the hourly cap"); time.sleep(61 * 60)
     say(f"\nthis run: {n} recovered. cumulative recovered: {len(prog['recovered'])}")
     (ROOT / "data" / "perma_report.txt").write_text("\n".join(lines))
 
