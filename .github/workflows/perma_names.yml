@@ -1,12 +1,8 @@
-name: Recover reused-ticker companies via permaTicker
+name: Recover missing members via permaTicker (name match)
 
 on:
   workflow_dispatch:
     inputs:
-      only:
-        description: "Comma-separated labels to (re)try, e.g. S-202004,STI-201912 (blank = all missing)"
-        required: false
-        default: ""
       batches:
         description: "Hourly batches to run (45 names each)"
         required: false
@@ -22,7 +18,7 @@ concurrency:
 jobs:
   recover:
     runs-on: ubuntu-latest
-    timeout-minutes: 300      # up to 4 batches with an hour's wait between them
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,21 +30,19 @@ jobs:
           gh release download data --pattern 'raw.tar.zst' --dir . --clobber
           tar --zstd -xf raw.tar.zst
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
-          gh release download data --pattern 'perma_progress.json' --dir data || true
+          gh release download data --pattern 'perma_names_progress.json' --dir data || true
           gh release download data --pattern 'relabels.csv' --dir data || true
         env: { GH_TOKEN: "${{ github.token }}" }
-      - run: python fetch_perma.py
+      - run: python fetch_perma_names.py
         env:
           TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}"
           PERMA_BATCHES: "${{ github.event.inputs.batches || '4' }}"
-          PERMA_ONLY: "${{ github.event.inputs.only }}"
       - name: Publish recovered files, progress, relabels and the report
         if: always()
         run: |
-          # GitHub's release API returned HTTP 500 on 2026-10-07 and a full
-          # 4-hour sweep was lost, so every upload retries with backoff.
           up() { for i in 1 2 3 4 5 6; do gh release upload data "$1" --clobber && return 0; echo "upload $1 failed (try $i)"; sleep $((i*30)); done; return 1; }
-          for f in data/perma_report.txt data/perma_progress.json data/relabels.csv; do
+          for f in data/perma_names_report.txt data/perma_names_progress.json data/relabels.csv; do
             [ -f "$f" ] && up "$f" || true
           done
           tar --zstd -cf raw.tar.zst data/raw

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: raw-store          # never run alongside another job that rewrites raw.tar.zst
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
