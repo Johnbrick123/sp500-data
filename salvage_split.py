@@ -127,6 +127,8 @@ def main():
         time.sleep(0.3)
 
     # ---- Tiingo (by permaTicker) ----------------------------------------
+    for k in [k for k, v in prog["done"].items() if v.startswith("tiingo: ") and "request failed" in v and "RECOVERED" not in v]:
+        prog["done"].pop(k)
     tr = {k: v for k, v in tiingo_rejects().items() if k not in have and k not in prog["done"]}
     say(f"\nTiingo: {len(tr)} rejected-for-running-on labels to re-examine")
     cands = {}
@@ -143,6 +145,17 @@ def main():
         except Exception as e:
             say(f"  (name matching unavailable: {type(e).__name__})")
     calls = 0
+    paused = [False]
+    def tiingo_get(url):
+        """One Tiingo request; on an HTTP error (usually the hourly cap) wait an hour once and retry."""
+        import urllib.error
+        for attempt in (1, 2):
+            try:
+                return fp.get(url)
+            except urllib.error.HTTPError as e:
+                if attempt == 1 and not paused[0]:
+                    say(f"  Tiingo HTTP {e.code} - pausing 61 min for the hourly cap"); paused[0] = True; time.sleep(61 * 60); continue
+                raise
     for lab in sorted(tr):
         bare = SUFFIX.sub("", lab)
         verdicts = []
@@ -150,7 +163,7 @@ def main():
             if calls >= 45:
                 say("  hourly Tiingo cap reached - the rest waits for the next run"); break
             try:
-                rows = fp.get(f"https://api.tiingo.com/tiingo/daily/{pid}/prices?startDate=1990-01-01&format=json&token={fp.KEY}"); calls += 1
+                rows = tiingo_get(f"https://api.tiingo.com/tiingo/daily/{pid}/prices?startDate=1990-01-01&format=json&token={fp.KEY}"); calls += 1
             except Exception as e:
                 verdicts.append(f"{name}: request failed {type(e).__name__}"); continue
             if not rows or len(rows) < 250:
@@ -172,6 +185,8 @@ def main():
             break
         else:
             if calls < 45:
+                if verdicts and all("request failed" in v for v in verdicts):
+                    say(f"  retry later {lab} (Tiingo): " + "; ".join(verdicts)); continue   # not recorded: retried next run
                 prog["done"][lab] = "tiingo: " + ("; ".join(verdicts) or "no directory match")
                 say(f"  reject {lab} (Tiingo): " + ("; ".join(verdicts) or "no directory match"))
             continue
