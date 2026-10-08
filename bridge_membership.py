@@ -114,14 +114,21 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "STI":  [("STI-201912", "1900-01-01", "2020-01-01")],   # SunTrust -> reused 2024
     "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
     "INFO": [("INFO-202203","1900-01-01", "2022-03-01")],   # IHS Markit -> reused 2024
+    "IR":   [("TT",         "1900-01-01", "2020-03-02")],   # Ingersoll-Rand plc renamed Trane Technologies; a NEW Ingersoll Rand Inc took IR on 2020-03-02
 }
 
 
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
-MANUAL_CHANGES = [
+MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements, for changes after the Wikipedia log ends
     ("2026-08-05", "FERG", "EA"),     # Ferguson replaces Electronic Arts
-    ("2026-08-18", "RDDT", "AVB"),    # Reddit replaces AvalonBay
+    ("2026-08-18", "RDDT", "AVB"),    # Reddit replaces AvalonBay (merged into Equity Residential -> Vivmark, VMRK)
+    ("2026-09-21", "BE",   "TAP"),    # quarterly rebalance: Bloom Energy, Everpure, Illumina replace Molson Coors, Trade Desk, Builders FirstSource
+    ("2026-09-21", "P",    "TTD"),
+    ("2026-09-21", "ILMN", "BLDR"),
+    ("2026-10-01", "VYLR", ""),       # Vylor added on its spin-off from Corteva
+    ("2026-10-06", "",     "CTVA"),   # Corteva removed (Vylor replaces it)
+    ("2026-10-06", "TWLO", "WBD"),    # Twilio replaces Warner Bros. Discovery (acquired by Paramount Skydance)
 ]
 
 
@@ -245,6 +252,33 @@ def main():
                 merge[bare] = sfx
     all_m["ticker"] = all_m["ticker"].map(lambda t: merge.get(t, t))
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
+    # A current member that the snapshots or the replay lost without any change-log
+    # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
+    # it is held continuously from its last appearance through today.
+    today_ = all_m.date.max()
+    cur_set = set(all_m[all_m.date == today_].ticker)
+    all_dates = sorted(all_m.date.unique())
+    removed_on = {}
+    for _, r in ch.iterrows():
+        t = str(r.removed_ticker).strip()
+        if t and t != "nan":
+            removed_on.setdefault(t, []).append(r.date)
+    bridged = []
+    for t in sorted(cur_set):
+        seen = sorted(all_m[all_m.ticker == t].date.unique())
+        if len(seen) < 2:
+            continue
+        last_before_today = max(d for d in seen if d < today_) if any(d < today_ for d in seen) else None
+        if last_before_today is None:
+            continue
+        gap = [d for d in all_dates if last_before_today < d < today_]
+        if not gap:
+            continue
+        if any(last_before_today < pd.Timestamp(x) <= today_ for x in removed_on.get(t, [])):
+            continue                                   # a real removal explains the gap
+        all_m = pd.concat([all_m, pd.DataFrame({"date": gap, "ticker": t})], ignore_index=True)
+        bridged.append(f"{t} {pd.Timestamp(last_before_today).date()}->today")
+    print(f"bridged {len(bridged)} current members across unlogged gaps: {bridged}")
     raw = ROOT / "data" / "raw"                       # move any price file saved under the bare label
     for bare, sfx in merge.items():
         if (raw / f"{bare}.parquet").exists():
