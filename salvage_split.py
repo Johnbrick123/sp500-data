@@ -44,6 +44,12 @@ def split_at_label(df, lab):
         return None, "bare label, nothing to split on"
     cut = dl + pd.offsets.MonthEnd(0) + pd.Timedelta(days=15)
     pre, post = df[df.date <= cut], df[df.date > cut]
+    # stale filler (zero-volume days) at the end of the kept part belongs to the tail
+    v = pd.to_numeric(pre.volume, errors="coerce").fillna(0).to_numpy()
+    k = len(v)
+    while k > 1 and v[k - 1] == 0:
+        k -= 1
+    post = pd.concat([pre.iloc[k:], post]); pre = pre.iloc[:k]
     if len(pre) < 250:
         return None, f"only {len(pre)} days before the label month"
     if pre.date.max() < dl - pd.Timedelta(days=45):
