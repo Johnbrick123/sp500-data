@@ -1,0 +1,25 @@
+name: Audit one year against Nasdaq
+on:
+  workflow_dispatch:
+    inputs:
+      year: { description: "Calendar year", required: true, default: "2023" }
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python audit_year.py "${{ github.event.inputs.year }}"
+      - run: gh release upload data "data/audit_${{ github.event.inputs.year }}.txt" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
