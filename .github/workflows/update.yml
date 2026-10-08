@@ -42,6 +42,7 @@ jobs:
         env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
       - run: python compute_adjusted.py
       - run: python verify.py
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
 
       # If verification refuses to publish, still publish the REASON, so it can
       # be read without a GitHub login: releases/download/data/verification_report_FAILED.txt

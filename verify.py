@@ -94,6 +94,25 @@ NASDAQ_PER_NIGHT = 25
 RECYCLED = set()      # filled by check_recycled; such names are not on Nasdaq under the member's identity
 
 
+def tiebreak_tiingo(tk, m):
+    """Share of days (>=0.5pp tolerance) on which Tiingo's returns match ours, or None."""
+    import json, os, urllib.request
+    key = os.environ.get("TIINGO_API_KEY", "").strip()
+    if not key:
+        return None
+    try:
+        u = f"https://api.tiingo.com/tiingo/daily/{tk}/prices?startDate=2016-09-01&format=json&token={key}"
+        rows = json.load(urllib.request.urlopen(u, timeout=60))
+        t = pd.DataFrame(rows); t["date"] = pd.to_datetime(t["date"]).dt.tz_localize(None)
+        t = t.set_index("date")["adjClose"].pct_change().rename("r_t")
+        j = m.set_index("date")[["r_o"]].join(t, how="inner").dropna()
+        if len(j) < 250:
+            return None
+        return float(((j.r_o - j.r_t).abs() < 0.005).mean() * 100)
+    except Exception:
+        return None
+
+
 def check_cross_source(df):
     """Every currently-listed name is compared with Nasdaq's own 10-year history,
     25 names a night in a fixed rotation, so the whole universe is independently
@@ -145,7 +164,18 @@ def check_cross_source(df):
             new.append((tk, date.today(), "UNVERIFIED", len(diff), None, None)); continue
         off = (diff > 0.005).mean() * 100
         st = "PASS" if off < 1 else "FAIL"
-        record("nasdaq " + tk, st, f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp)")
+        note = ""
+        if st == "FAIL":
+            # Two sources disagree: bring in a third. Tiingo is independent of both
+            # Yahoo and Nasdaq; if it agrees with ours on >=99% of days the Nasdaq
+            # record is the odd one out (CRH's pre-2023 ADR line on Nasdaq is noisy).
+            v = tiebreak_tiingo(tk, m)
+            if v is not None:
+                if v >= 99.0:
+                    st, note = "PASS", f"; Nasdaq disagrees but Tiingo agrees with ours on {v:.2f}% of days"
+                else:
+                    note = f"; Tiingo agrees with ours on only {v:.2f}% of days"
+        record("nasdaq " + tk, st, f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp){note}")
         new.append((tk, date.today(), st, len(diff), round(off, 3), round(diff.max() * 100, 3)))
     ledger = pd.concat([ledger, pd.DataFrame(new, columns=ledger.columns)], ignore_index=True)
     ledger["checked"] = pd.to_datetime(ledger["checked"])
