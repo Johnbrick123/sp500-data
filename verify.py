@@ -130,6 +130,8 @@ def check_cross_source(df):
     rest = [t for t in live if t not in anchors]
     i = (date.today().toordinal() * (NASDAQ_PER_NIGHT - len(anchors))) % max(len(rest), 1)
     sample = anchors + [rest[(i + k) % len(rest)] for k in range(NASDAQ_PER_NIGHT - len(anchors))] if rest else anchors
+    # names that failed earlier are re-checked every night until they clear
+    sample += [t for t in ledger[ledger.status == "FAIL"].ticker if t in live and t not in sample]
     new = []
     for tk in sample:
         rows = []
