@@ -79,6 +79,7 @@ KNOWN_RENAMES = {
     "CDAY": "DAY",   # Ceridian -> Dayforce
     "COG": "CTRA",   # Cabot Oil & Gas -> Coterra
     "CTL": "LUMN",   # CenturyLink -> Lumen
+    "EQR": "VMRK",   # Equity Residential -> Vivmark Residential (AvalonBay merger closed 2026-08-17; EQR is the surviving issuer)
     "FB": "META",
     "FLT": "CPAY",   # FleetCor -> Corpay
     "FBHS": "FBIN",  # Fortune Brands
@@ -186,8 +187,8 @@ def main():
     # --- close the final gap vs today's list ---
     missed_add = current - held
     missed_rem = held - current
-    print(f"vs today: +{len(missed_add)} not in replay, "
-          f"-{len(missed_rem)} in replay but not current")
+    print(f"vs today: +{len(missed_add)} not in replay {sorted(missed_add)}, "
+          f"-{len(missed_rem)} in replay but not current {sorted(missed_rem)}")
     today = pd.Timestamp.today().normalize()
     rows = [(today, t) for t in sorted(current)]
     final = pd.DataFrame(rows, columns=["date", "ticker"])
