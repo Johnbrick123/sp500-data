@@ -103,6 +103,12 @@ def main():
         say(f"AAPL around the 2014 split: {a.iloc[0]:.2f} -> {a.iloc[-1]:.2f} ({'split-adjusted' if a.iloc[0] / a.iloc[-1] < 2 else 'RAW'} close)")
     validate(arch, ours)
     prog = json.loads(PROG.read_text()) if PROG.exists() else {"done": {}, "recovered": []}
+    for lab in [x.strip().upper() for x in os.environ.get("KAGGLE_REDO", "").split(",") if x.strip()]:
+        prog["done"].pop(lab, None)
+        if lab in prog["recovered"]: prog["recovered"].remove(lab)
+        if (RAW / f"{lab}.parquet").exists() and pd.read_parquet(RAW / f"{lab}.parquet", columns=["source"])["source"].iloc[0] != "kaggle":
+            (RAW / f"{lab}.parquet").unlink()
+        have.discard(lab); say(f"redo requested for {lab}")
     n = 0
     missing = span[~span.index.isin(have)]
     for lab, r in missing.iterrows():

@@ -7,6 +7,10 @@ on:
         description: "Kaggle dataset slug"
         required: false
         default: "ehallmar/daily-historical-stock-prices-1970-2018"
+      redo:
+        description: "Comma-separated labels to re-fetch even if already recorded"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -43,6 +47,7 @@ jobs:
         env:
           TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
           NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}"
+          KAGGLE_REDO: "${{ github.event.inputs.redo }}"
       - name: Publish recovered files, progress and the report
         if: always()
         run: |

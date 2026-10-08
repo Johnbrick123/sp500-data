@@ -1,0 +1,5 @@
+# Raw files deleted at the start of every nightly fetch when their SOURCE matches.
+# Format: LABEL SOURCE  # note.  Use for a file that holds the WRONG company; the
+# recovery passes will not recreate it because their identity checks now cover the case.
+ARNC tiingo   # 2026-10-08: Tiingo's ARNC is Arconic Corp (2020-23), not the index member Arconic Inc; the Kaggle copy is right
+CA tiingo     # 2026-10-08: Tiingo's CA (2023-) is a new owner of the symbol, not CA Inc (acquired 2018)

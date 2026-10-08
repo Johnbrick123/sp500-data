@@ -67,6 +67,19 @@ def tiingo_fetch(t):
                          "ticker": t, "source": "tiingo"})
 
 
+def membership_spans():
+    """label -> (first membership date, last membership date or NaT if current)."""
+    f = ROOT / "data" / "universe" / "membership_intervals.parquet"
+    if not f.exists():
+        return {}
+    iv = pd.read_parquet(f); iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
+    g = iv.groupby("ticker")
+    return {t: (a, b) for t, a, b in zip(g.start.min().index, g.start.min(), g["end"].max())}
+
+
+DROP_F = ROOT / "drop_raw_files.txt"      # one-off cleanups: labels whose raw file must be deleted
+
+
 def guard_truncation(t, sub):
     """Yahoo occasionally serves a live name as a stub (AVB: six weeks of 30 years).
     Overwriting the raw file with that destroys history. If the new series starts
@@ -107,6 +120,17 @@ def main():
           f"{len(dead)} known-dead ({'re-checking' if recheck_dead else 'skipped until Monday'}), "
           f"{len(live)} to pull fresh", flush=True)
 
+    if DROP_F.exists():
+        for line in DROP_F.read_text().splitlines():
+            parts = line.split("#")[0].split()
+            if len(parts) != 2:
+                continue
+            lab, src = parts
+            f = RAW / f"{lab}.parquet"
+            if f.exists():
+                cur = pd.read_parquet(f, columns=["source"])["source"].iloc[0] if "source" in pd.read_parquet(f).columns else "yahoo"
+                if str(cur) == src:          # only the offending file, so a later correct recovery survives
+                    f.unlink(); print(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt", flush=True)
     saved, empty, dropped, truncated = 0, [], 0, []
     for i in range(0, len(live), BATCH):
         batch = live[i:i + BATCH]
@@ -148,25 +172,52 @@ def main():
         time.sleep(PAUSE)
 
     # Live names Yahoo would not serve: try Tiingo before giving up on them.
-    rescued = []
+    # Only names whose membership window the file on disk does not already cover
+    # are worth a request, current members first; and a Tiingo series is accepted
+    # only when it overlaps that membership window (a reused ticker's new owner
+    # does not) and agrees with any file we hold on overlapping days.
+    rescued, refused = [], []
     if TIINGO and empty:
-        for t in [t for t in empty if not SUFFIX.search(t)][:TIINGO_MAX]:
+        span = membership_spans()
+        def need(t):
+            if SUFFIX.search(t) or t not in span:
+                return None
+            m_start, m_end = span[t]
+            f = RAW / f"{t}.parquet"
+            if f.exists():
+                last = pd.to_datetime(pd.read_parquet(f, columns=["date"])["date"]).max()
+                stop = m_end if pd.notna(m_end) else NY_TODAY
+                if last >= stop - pd.Timedelta(days=30):
+                    return None                       # file already covers the membership
+            return (0 if pd.isna(m_end) else 1, t)     # current members first
+        todo = sorted(filter(None, (need(t) for t in empty)))[:TIINGO_MAX]
+        for _, t in todo:
             try:
                 df = tiingo_fetch(t)
             except Exception as e:
                 print(f"    tiingo {t}: {type(e).__name__}", flush=True); continue
             if df is None:
                 continue
+            m_start, m_end = span[t]
+            stop = m_end if pd.notna(m_end) else NY_TODAY
+            ov = int(((df["date"] >= max(df["date"].min(), m_start)) & (df["date"] <= min(df["date"].max(), stop))).sum())
+            window = max(1, int(((stop - m_start).days) * 252 / 365))
+            if ov < min(250, int(0.6 * window)):
+                refused.append(f"{t} (only {ov} days inside its membership window - reused ticker?)"); continue
             f = RAW / f"{t}.parquet"
             if f.exists():      # must agree with what we hold on overlapping days (same company?)
                 old = pd.read_parquet(f); old["date"] = pd.to_datetime(old["date"]).dt.tz_localize(None)
                 j = old.set_index("date")["close"].rename("o").to_frame().join(df.set_index("date")["close"].rename("n"), how="inner").dropna()
                 if len(j) >= 50 and ((j.o.pct_change() - j.n.pct_change()).abs() < 0.005).mean() < 0.95:
-                    print(f"    tiingo {t}: disagrees with the file we hold - not replaced", flush=True); continue
+                    refused.append(f"{t} (disagrees with the file we hold)"); continue
+                if len(j) < 50 and len(old) >= 250 and old["date"].max() < df["date"].min():
+                    refused.append(f"{t} (Tiingo series starts after our file ends - reused ticker?)"); continue
             df.to_parquet(f, index=False); rescued.append(t); saved += 1
             time.sleep(0.5)
         empty = [t for t in empty if t not in rescued]
-        print(f"  Tiingo fallback: {len(rescued)} live names rescued {rescued}", flush=True)
+        print(f"  Tiingo fallback: {len(rescued)} names rescued {rescued}", flush=True)
+        for r in refused:
+            print(f"    refused {r}", flush=True)
     if truncated:
         print(f"  truncation guard kept older history for {len(truncated)}: {truncated}", flush=True)
     # a previously-live ticker that returned nothing today keeps yesterday's file
