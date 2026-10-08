@@ -1,0 +1,18 @@
+name: Probe Stooq with a headless browser
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas playwright && python -m playwright install --with-deps chromium
+      - run: mkdir -p data && python probe_stooq_browser.py
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with: { name: stooq_probe, path: data/stooq_probe.txt }
