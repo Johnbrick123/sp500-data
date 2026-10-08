@@ -113,6 +113,10 @@ def tiebreak_tiingo(tk, m):
         return None
 
 
+OPEN_MEMBERS = set()   # filled in main(): names whose index membership is current
+MEMBERS_EVER = set()
+
+
 def check_cross_source(df):
     """Every currently-listed name is compared with Nasdaq's own 10-year history,
     25 names a night in a fixed rotation, so the whole universe is independently
@@ -121,8 +125,10 @@ def check_cross_source(df):
     import json, time, urllib.request
     H = {"User-Agent": "Mozilla/5.0 (data verification)"}
     last = df.groupby("ticker").date.max()
+    members_ever = set(MEMBERS_EVER)
     live = sorted(t for t, d in last.items() if d >= df.date.max() - pd.Timedelta(days=10)
-                  and "-" not in t and t.isalpha() and t not in RECYCLED)
+                  and "-" not in t and t.isalpha() and t not in RECYCLED
+                  and (t in OPEN_MEMBERS or t not in members_ever))   # current members and ETFs; not ex-members' OTC tails
     ledger = pd.read_csv(LEDGER, parse_dates=["checked"]) if LEDGER.exists() else \
         pd.DataFrame(columns=["ticker", "checked", "status", "days", "pct_off", "max_pp"])
     # anchors every night (large, long-lived names) plus a rotating slice of the rest
@@ -146,7 +152,8 @@ def check_cross_source(df):
             except Exception as e:
                 rows = []; err = type(e).__name__
             time.sleep(0.7)
-        if len(rows) < 250:
+        need_days = min(250, int(0.8 * int((df.ticker == tk).sum())))
+        if len(rows) < max(60, need_days):
             record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq returned {len(rows)} rows")
             new.append((tk, date.today(), "UNVERIFIED", len(rows), None, None)); continue
         n = pd.DataFrame(rows)
@@ -161,7 +168,7 @@ def check_cross_source(df):
         sp = m.stock_splits.replace(0, 1).fillna(1)      # Yahoo writes 0.0 for "no split"
         m = m[(sp == 1) & (sp.shift(-1).fillna(1) == 1)]
         diff = (m.r_o - m.r_n).abs().dropna()
-        if len(diff) < 250:
+        if len(diff) < max(60, need_days):
             record("nasdaq " + tk, "UNVERIFIED", f"{tk}: only {len(diff)} comparable days")
             new.append((tk, date.today(), "UNVERIFIED", len(diff), None, None)); continue
         off = (diff > 0.005).mean() * 100
@@ -316,6 +323,7 @@ def main():
     say("=" * 70); say(f"DATA VERIFICATION REPORT  {date.today()}"); say("=" * 70)
     say(f"rows {len(df):,}   tickers {df.ticker.nunique():,}   {df.date.min().date()} -> {df.date.max().date()}")
     check_corporate_actions(df); check_adjustment(df)
+    OPEN_MEMBERS.update(iv[iv["end"].isna()].ticker); MEMBERS_EVER.update(iv.ticker)
     check_recycled(df, iv)                       # first: its quarantine list keeps recycled symbols out of the Nasdaq sample
     check_cross_source(df)
     check_structure(df); check_freshness(df); check_membership(iv); check_coverage(df, iv); check_index_reconstruction(df, iv)
