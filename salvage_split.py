@@ -127,6 +127,19 @@ def main():
         time.sleep(0.3)
 
     # ---- Tiingo (by permaTicker) ----------------------------------------
+    paused = [False]
+    _orig_get = fp.get
+    def tiingo_get(url):
+        """One Tiingo request; on an HTTP error (usually the hourly cap) wait an hour once and retry."""
+        import urllib.error
+        for attempt in (1, 2):
+            try:
+                return _orig_get(url)
+            except urllib.error.HTTPError as e:
+                if "tiingo.com" in url and attempt == 1 and not paused[0]:
+                    say(f"  Tiingo HTTP {e.code} - pausing 61 min for the hourly cap"); paused[0] = True; time.sleep(61 * 60); continue
+                raise
+    fp.get = tiingo_get; fpn.get = tiingo_get
     for k in [k for k, v in prog["done"].items() if v.startswith("tiingo: ") and "request failed" in v and "RECOVERED" not in v]:
         prog["done"].pop(k)
     tr = {k: v for k, v in tiingo_rejects().items() if k not in have and k not in prog["done"]}
@@ -145,17 +158,6 @@ def main():
         except Exception as e:
             say(f"  (name matching unavailable: {type(e).__name__})")
     calls = 0
-    paused = [False]
-    def tiingo_get(url):
-        """One Tiingo request; on an HTTP error (usually the hourly cap) wait an hour once and retry."""
-        import urllib.error
-        for attempt in (1, 2):
-            try:
-                return fp.get(url)
-            except urllib.error.HTTPError as e:
-                if attempt == 1 and not paused[0]:
-                    say(f"  Tiingo HTTP {e.code} - pausing 61 min for the hourly cap"); paused[0] = True; time.sleep(61 * 60); continue
-                raise
     for lab in sorted(tr):
         bare = SUFFIX.sub("", lab)
         verdicts = []
