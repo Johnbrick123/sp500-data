@@ -175,6 +175,43 @@ def main():
         print(f"  {i + len(batch):>5}/{len(live)}  saved={saved}  empty={len(empty)}", flush=True)
         time.sleep(PAUSE)
 
+    # Names whose history Tiingo keeps under another symbol (tiingo_aliases.csv:
+    # FRC -> FRCB) or where Yahoo only has an OTC tail (SBNY). Same acceptance
+    # rules as the fallback below: must overlap the membership window and agree
+    # with the file we hold on overlapping days.
+    ALIAS_F = ROOT / "tiingo_aliases.csv"
+    if TIINGO and ALIAS_F.exists():
+        span = membership_spans()
+        for r in pd.read_csv(ALIAS_F).itertuples():
+            lab, sym = str(r.label).strip(), str(r.tiingo_symbol).strip()
+            if lab not in span:
+                continue
+            m_start, m_end = span[lab]; stop = m_end if pd.notna(m_end) else NY_TODAY
+            f = RAW / f"{lab}.parquet"
+            if f.exists():
+                old = pd.read_parquet(f); old["date"] = pd.to_datetime(old["date"]).dt.tz_localize(None)
+                if old["date"].min() <= m_start + pd.Timedelta(days=30) and old["date"].max() >= stop - pd.Timedelta(days=30):
+                    continue                                    # already covers the membership
+            try:
+                df = tiingo_fetch(sym)
+            except Exception as e:
+                print(f"    alias {lab}<-{sym}: {type(e).__name__}", flush=True); continue
+            if df is None:
+                print(f"    alias {lab}<-{sym}: no data", flush=True); continue
+            df["ticker"] = lab
+            ov = int(((df["date"] >= max(df["date"].min(), m_start)) & (df["date"] <= min(df["date"].max(), stop))).sum())
+            window = max(1, int(((stop - m_start).days) * 252 / 365))
+            if ov < min(250, int(0.6 * window)):
+                print(f"    alias {lab}<-{sym}: only {ov} days inside the membership window - not used", flush=True); continue
+            if f.exists():
+                j = old.set_index("date")["close"].rename("o").to_frame().join(df.set_index("date")["close"].rename("n"), how="inner").dropna()
+                if len(j) >= 50 and ((j.o.pct_change() - j.n.pct_change()).abs() < 0.005).mean() < 0.95:
+                    print(f"    alias {lab}<-{sym}: disagrees with the file we hold - not used", flush=True); continue
+            df.to_parquet(f, index=False); saved += 1
+            empty = [t for t in empty if t != lab]
+            print(f"    alias {lab}<-{sym}: {len(df):,} rows {df.date.min().date()}..{df.date.max().date()} saved", flush=True)
+            time.sleep(0.5)
+
     # Live names Yahoo would not serve: try Tiingo before giving up on them.
     # Only names whose membership window the file on disk does not already cover
     # are worth a request, current members first; and a Tiingo series is accepted
