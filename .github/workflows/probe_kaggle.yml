@@ -1,0 +1,43 @@
+name: Probe a Kaggle delisted-stocks dataset against our missing members
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: "Kaggle dataset slug (owner/name)"
+        required: false
+        default: "rodas86/arandkei-historical-delisted-assets-archive"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow kaggle
+      - name: Restore membership and the raw store (to know what is missing)
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - name: Download the dataset from Kaggle
+        run: |
+          mkdir -p kag
+          kaggle datasets download -d "${{ github.event.inputs.dataset || 'rodas86/arandkei-historical-delisted-assets-archive' }}" -p kag --unzip
+          du -sh kag; find kag -type f | head -50
+        env:
+          KAGGLE_USERNAME: "${{ secrets.KAGGLE_USERNAME }}"
+          KAGGLE_KEY: "${{ secrets.KAGGLE_KEY }}"
+      - run: python probe_kaggle.py
+        continue-on-error: true
+      - name: Publish the probe report
+        if: always()
+        run: '[ -f data/kaggle_probe.txt ] && gh release upload data data/kaggle_probe.txt --clobber || true'
+        env: { GH_TOKEN: "${{ github.token }}" }
