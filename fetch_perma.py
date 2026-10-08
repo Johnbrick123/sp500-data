@@ -32,6 +32,8 @@ PROG = ROOT / "data" / "perma_progress.json"
 RELABELS = ROOT / "data" / "relabels.csv"
 PER_RUN = int(os.environ.get("PERMA_PER_RUN", "45"))
 BATCHES = int(os.environ.get("PERMA_BATCHES", "4"))
+# PERMA_ONLY="S-202004,STI-201912" limits a run to those labels (and retries them even if done)
+ONLY = {x.strip().upper() for x in os.environ.get("PERMA_ONLY", "").split(",") if x.strip()}
 SUFFIX = re.compile(r"-(\d{6})$")
 lines = []
 def say(s=""): print(s, flush=True); lines.append(s)
@@ -91,7 +93,14 @@ def main():
     iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
     have = {p.stem for p in RAW.glob("*.parquet")}
     prog = json.loads(PROG.read_text()) if PROG.exists() else {"done": {}, "recovered": []}
+    if ONLY:
+        for lab in ONLY:
+            prog["done"].pop(lab, None)
+        have = have - ONLY
     todo = candidates(iv, have, prog)
+    if ONLY:
+        todo = [t for t in todo if t[0] in ONLY]
+        say(f"PERMA_ONLY: limiting this run to {sorted(ONLY)}")
     say(f"{len(todo)} directory matches to try for missing members")
     relabels = {}
     if RELABELS.exists():
@@ -106,9 +115,9 @@ def main():
             try:
                 rows = get(f"https://api.tiingo.com/tiingo/daily/{pid}/prices?startDate=1995-01-01&format=json&token={KEY}")
             except Exception as e:
-                prog["done"][lab] = f"request failed {type(e).__name__}"; continue
+                prog["done"][lab] = f"request failed {type(e).__name__}"; say(f"  failed {lab} ({name}): {type(e).__name__}"); continue
             if not rows or len(rows) < 250:
-                prog["done"][lab] = "no data"; continue
+                prog["done"][lab] = "no data"; say(f"  no data {lab} ({name}): {len(rows or [])} rows"); continue
             df = pd.DataFrame(rows); df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
             ok, why = accept(lab, df, m_start, m_end, bare)
             if not ok:
