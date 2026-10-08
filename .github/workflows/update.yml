@@ -35,6 +35,7 @@ jobs:
       - run: python build_universe.py
       - run: python bridge_membership.py
       - run: python fetch_prices.py
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
       - name: Recover delisted names from Tiingo (optional - needs secret)
         if: ${{ env.TIINGO_API_KEY != '' }}
         run: python fetch_delisted_tiingo.py
