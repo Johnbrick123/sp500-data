@@ -91,6 +91,9 @@ LEDGER = ROOT / "data" / "cross_source_ledger.csv"
 NASDAQ_PER_NIGHT = 25
 
 
+RECYCLED = set()      # filled by check_recycled; such names are not on Nasdaq under the member's identity
+
+
 def check_cross_source(df):
     """Every currently-listed name is compared with Nasdaq's own 10-year history,
     25 names a night in a fixed rotation, so the whole universe is independently
@@ -100,7 +103,7 @@ def check_cross_source(df):
     H = {"User-Agent": "Mozilla/5.0 (data verification)"}
     last = df.groupby("ticker").date.max()
     live = sorted(t for t, d in last.items() if d >= df.date.max() - pd.Timedelta(days=10)
-                  and "-" not in t and t.isalpha())
+                  and "-" not in t and t.isalpha() and t not in RECYCLED)
     ledger = pd.read_csv(LEDGER, parse_dates=["checked"]) if LEDGER.exists() else \
         pd.DataFrame(columns=["ticker", "checked", "status", "days", "pct_off", "max_pp"])
     # anchors every night (large, long-lived names) plus a rotating slice of the rest
@@ -214,6 +217,7 @@ def check_recycled(df, iv):
     j = pd.concat([last_end.rename("left"), first_px.rename("px_start")], axis=1).dropna()
     bad = j[j.px_start > j.left]
     bad.to_csv(ROOT / "data" / "recycled_tickers.csv")
+    RECYCLED.update(bad.index)
     record("recycled", "PASS", f"{len(bad)} quarantined (prices start after the security left the index): "
            f"{', '.join(bad.index[:10])}{'...' if len(bad) > 10 else ''}")
 
@@ -278,8 +282,10 @@ def main():
     iv = pd.read_parquet(INTERVALS); iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
     say("=" * 70); say(f"DATA VERIFICATION REPORT  {date.today()}"); say("=" * 70)
     say(f"rows {len(df):,}   tickers {df.ticker.nunique():,}   {df.date.min().date()} -> {df.date.max().date()}")
-    check_corporate_actions(df); check_adjustment(df); check_cross_source(df)
-    check_structure(df); check_freshness(df); check_membership(iv); check_recycled(df, iv); check_coverage(df, iv); check_index_reconstruction(df, iv)
+    check_corporate_actions(df); check_adjustment(df)
+    check_recycled(df, iv)                       # first: its quarantine list keeps recycled symbols out of the Nasdaq sample
+    check_cross_source(df)
+    check_structure(df); check_freshness(df); check_membership(iv); check_coverage(df, iv); check_index_reconstruction(df, iv)
     n = {s: sum(1 for _, st, _ in results if st == s) for s in ["PASS", "FAIL", "UNVERIFIED"]}
     say("\n" + "=" * 70)
     say(f"PASS {n['PASS']}   FAIL {n['FAIL']}   UNVERIFIED {n['UNVERIFIED']}")

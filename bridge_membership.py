@@ -75,7 +75,7 @@ KNOWN_RENAMES = {
     "BHI": "BKR", "BHGE": "BKR",   # Baker Hughes
     "BK": "BNY",     # Bank of New York Mellon
     "BLL": "BALL",   # Ball Corp
-    "CBS": "PSKY", "VIAC": "PSKY", "PARA": "PSKY",   # CBS -> ViacomCBS -> Paramount -> Paramount Skydance
+    "CBS": "SKYD", "VIAC": "SKYD", "PARA": "SKYD", "PSKY": "SKYD",   # CBS -> ViacomCBS -> Paramount -> Paramount Skydance (PSKY, then SKYD from Oct 2026)
     "CDAY": "DAY",   # Ceridian -> Dayforce
     "COG": "CTRA",   # Cabot Oil & Gas -> Coterra
     "CTL": "LUMN",   # CenturyLink -> Lumen
