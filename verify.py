@@ -179,9 +179,10 @@ def check_cross_source(df):
                     note = f"; Tiingo agrees with ours on only {v:.2f}% of days"
         record("nasdaq " + tk, st, f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp){note}")
         new.append((tk, date.today(), st, len(diff), round(off, 3), round(diff.max() * 100, 3)))
-    ledger = pd.concat([ledger, pd.DataFrame(new, columns=ledger.columns)], ignore_index=True)
+    done = {r[0] for r in new}
+    ledger = pd.concat([ledger[~ledger.ticker.isin(done)], pd.DataFrame(new, columns=ledger.columns)], ignore_index=True)
     ledger["checked"] = pd.to_datetime(ledger["checked"])
-    ledger = ledger.sort_values("checked").drop_duplicates("ticker", keep="last")
+    ledger = ledger[ledger.ticker.isin(live)]          # drop names that left the listed universe (recycled/delisted)
     ledger.to_csv(LEDGER, index=False)
     recent = ledger[ledger.checked >= pd.Timestamp(date.today()) - pd.Timedelta(days=120)]
     nf = int((recent.status == "FAIL").sum())
