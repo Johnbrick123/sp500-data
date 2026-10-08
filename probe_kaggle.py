@@ -28,6 +28,13 @@ span = iv.groupby("ticker").agg(m_start=("start", "min"), m_end=("end", "max"))
 missing = span[~span.index.isin(have)]
 say(f"\nour missing index members: {len(missing)}")
 
+def to_dt(x):
+    x = pd.Series(x)
+    if pd.api.types.is_numeric_dtype(x) and x.dropna().between(19000101, 21000101).all():
+        return pd.to_datetime(x.astype("Int64").astype(str), format="%Y%m%d", errors="coerce")
+    return pd.to_datetime(x, errors="coerce")
+
+
 def load_any(f, nrows=None):
     ext = os.path.splitext(f)[1].lower()
     if ext == ".parquet": return pd.read_parquet(f)
@@ -44,7 +51,7 @@ for f in files:
         say(f"  cannot read {f}: {type(e).__name__}"); continue
     if df is None: continue
     cols = [c.lower() for c in df.columns]
-    say(f"  {os.path.basename(f)[:50]:50s} cols: {cols[:12]}")
+    if len(tables) < 8: say(f"  {os.path.basename(f)[:50]:50s} cols: {cols[:12]}")
     tables.append((f, cols))
 
 tick_col = {"ticker", "symbol", "tic", "code"}
@@ -58,9 +65,9 @@ if big:
         tc = next(c for c in df.columns if c.lower() in tick_col)
         dc = next((c for c in df.columns if c.lower() in ("date", "datetime", "timestamp", "time")), None)
         df[tc] = df[tc].astype(str).str.upper().str.replace(".", "-", regex=False)
-        if dc: df[dc] = pd.to_datetime(df[dc], errors="coerce")
+        if dc: df[dc] = to_dt(df[dc])
         g = df.groupby(tc)[dc].agg(["min", "max", "count"]) if dc else df.groupby(tc).size().to_frame("count")
-        say(f"  {os.path.basename(f)}: {len(df):,} rows, {len(g):,} tickers" + (f", {g['min'].min().date()}..{g['max'].max().date()}" if dc else ""))
+        if len(big) <= 10: say(f"  {os.path.basename(f)}: {len(df):,} rows, {len(g):,} tickers" + (f", {g['min'].min().date()}..{g['max'].max().date()}" if dc and g['min'].notna().any() else ""))
         for t, r in g.iterrows():
             coverage[t] = (r.get("min"), r.get("max"), int(r["count"]))
 if per_file:
@@ -71,7 +78,7 @@ if per_file:
         try:
             df = load_any(f)
             dc = next((c for c in df.columns if c.lower() in ("date", "datetime", "timestamp", "time")), df.columns[0])
-            d = pd.to_datetime(df[dc], errors="coerce")
+            d = to_dt(df[dc])
             coverage[t] = (d.min(), d.max(), len(df))
         except Exception:
             coverage[t] = (None, None, 0)
