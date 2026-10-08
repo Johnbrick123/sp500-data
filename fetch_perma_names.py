@@ -69,6 +69,14 @@ def sharadar_tickers():
 
 def names_for_missing(iv, have, done, shar):
     """label -> (bare, membership start/end, list of Sharadar names that owned the ticker then)."""
+    # index every listing under its ticker, the ticker without a bankruptcy Q /
+    # trailing digits, and each related ticker
+    idx = {}
+    for i, r in enumerate(shar.itertuples()):
+        keys = {r.tk, re.sub(r"Q$", "", r.tk), re.sub(r"-?\d{1,2}Q?$", "", r.tk)}
+        keys |= {t for t in re.split(r"[ ,]+", str(r.relatedtickers or "").upper()) if t and t != "NAN" and t != "NONE"}
+        for k in keys:
+            idx.setdefault(k, []).append(i)
     out = {}
     for lab, g in iv.groupby("ticker"):
         if lab in have or lab in done:
@@ -76,16 +84,15 @@ def names_for_missing(iv, have, done, shar):
         bare = SUFFIX.sub("", lab)
         m_start, m_end = g.start.min(), g["end"].max()
         stop = m_end if pd.notna(m_end) else pd.Timestamp.today()
-        cand = shar[(shar.tk == bare) | (shar.tk.str.match(rf"^{re.escape(bare)}Q?$")) |
-                    (shar.tk.str.match(rf"^{re.escape(bare)}-?\d{{0,2}}Q?$")) |
-                    shar.relatedtickers.astype(str).str.upper().str.split(r"[ ,]+").apply(lambda l: bare in l)]
         names = []
-        for r in cand.itertuples():
+        for i in idx.get(bare, []):
+            r = shar.iloc[i]
             if pd.isna(r.firstpricedate) or pd.isna(r.lastpricedate):
                 continue
             ov = (min(r.lastpricedate, stop) - max(r.firstpricedate, m_start)).days
-            if ov >= 60:
-                names.append((str(r.name), r.tk, str(r.firstpricedate.date()), str(r.lastpricedate.date())))
+            # a listing that began long after the membership did is the ticker's NEXT owner
+            if ov >= 60 and r.firstpricedate <= m_start + pd.Timedelta(days=400):
+                names.append((str(r["name"]), r.tk, str(r.firstpricedate.date()), str(r.lastpricedate.date())))
         if names:
             out[lab] = (bare, m_start, m_end, names)
     return out
