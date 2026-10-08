@@ -69,7 +69,8 @@ if big:
         g = df.groupby(tc)[dc].agg(["min", "max", "count"]) if dc else df.groupby(tc).size().to_frame("count")
         if len(big) <= 10: say(f"  {os.path.basename(f)}: {len(df):,} rows, {len(g):,} tickers" + (f", {g['min'].min().date()}..{g['max'].max().date()}" if dc and g['min'].notna().any() else ""))
         for t, r in g.iterrows():
-            coverage[t] = (r.get("min"), r.get("max"), int(r["count"]))
+            if dc or t not in coverage:        # a dateless reference table never overrides price coverage
+                coverage[t] = (r.get("min"), r.get("max"), int(r["count"]))
 if per_file:
     say(f"\n{len(per_file)} per-ticker file(s) - inventorying by file name")
     for f in per_file:
@@ -83,10 +84,9 @@ if per_file:
         except Exception:
             coverage[t] = (None, None, 0)
 say(f"\ndataset tickers: {len(coverage):,}")
-if coverage:
-    allmin = min(v[0] for v in coverage.values() if v[0] is not None and pd.notna(v[0]))
-    allmax = max(v[1] for v in coverage.values() if v[1] is not None and pd.notna(v[1]))
-    say(f"overall date range: {allmin.date()}..{allmax.date()}")
+dated = [v for v in coverage.values() if v[0] is not None and pd.notna(v[0])]
+if dated:
+    say(f"overall date range: {min(v[0] for v in dated).date()}..{max(v[1] for v in dated).date()}")
 
 # match our missing labels by bare ticker + date overlap
 hits = []
