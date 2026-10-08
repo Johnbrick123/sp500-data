@@ -1,0 +1,45 @@
+name: Salvage dead companies from reused-ticker series (WIKI + Tiingo)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raw-store
+  cancel-in-progress: false
+
+jobs:
+  salvage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow numpy
+      - name: Restore current dataset and the earlier sweeps' reports
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+          for f in wiki_report.txt perma_progress.json perma_names_progress.json salvage_progress.json relabels.csv; do
+            gh release download data --pattern "$f" --dir data || true
+          done
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python salvage_split.py
+        env:
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}"
+      - name: Publish recovered files, progress and the report
+        if: always()
+        run: |
+          up() { for i in 1 2 3 4 5 6; do gh release upload data "$1" --clobber && return 0; echo "upload $1 failed (try $i)"; sleep $((i*30)); done; return 1; }
+          for f in data/salvage_report.txt data/salvage_progress.json; do
+            [ -f "$f" ] && up "$f" || true
+          done
+          tar --zstd -cf raw.tar.zst data/raw
+          up raw.tar.zst
+        env: { GH_TOKEN: "${{ github.token }}" }
