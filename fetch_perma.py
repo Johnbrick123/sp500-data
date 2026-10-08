@@ -25,7 +25,7 @@ import json, os, re, sys, time, urllib.request
 from pathlib import Path
 import pandas as pd
 
-KEY = os.environ.get("TIINGO_API_KEY") or sys.exit("TIINGO_API_KEY not set")
+KEY = (os.environ.get("TIINGO_API_KEY") or sys.exit("TIINGO_API_KEY not set")).strip()
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
 PROG = ROOT / "data" / "perma_progress.json"

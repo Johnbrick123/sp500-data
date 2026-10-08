@@ -19,12 +19,12 @@ Free tier: 50 Tiingo requests/hour, so 45 names per batch with an hour
 between batches. Progress persists in data/perma_names_progress.json.
 Needs TIINGO_API_KEY and NASDAQ_DATA_LINK_KEY.
 """
-import difflib, json, os, re, sys, time, urllib.request, urllib.error
+import difflib, json, os, re, sys, time, urllib.parse, urllib.request, urllib.error
 from pathlib import Path
 import pandas as pd
 import fetch_perma as fp                     # shares KEY, RAW, accept(), say()
 
-NDL = os.environ.get("NASDAQ_DATA_LINK_KEY") or sys.exit("NASDAQ_DATA_LINK_KEY not set")
+NDL = (os.environ.get("NASDAQ_DATA_LINK_KEY") or sys.exit("NASDAQ_DATA_LINK_KEY not set")).strip()
 ROOT = fp.ROOT
 RAW = fp.RAW
 PROG = ROOT / "data" / "perma_names_progress.json"
@@ -52,7 +52,7 @@ def sharadar_tickers():
     cols = "ticker,name,exchange,isdelisted,firstpricedate,lastpricedate,relatedtickers,permaticker"
     rows, cur = [], None
     for _ in range(40):
-        url = base + f"&qopts.columns={cols}&api_key={NDL}" + (f"&qopts.cursor_id={cur}" if cur else "")
+        url = base + f"&qopts.columns={cols}&api_key={urllib.parse.quote(NDL)}" + (f"&qopts.cursor_id={urllib.parse.quote(str(cur))}" if cur else "")
         d = get(url); dt = d["datatable"]
         names = [c["name"] for c in dt["columns"]]
         rows += [dict(zip(names, r)) for r in dt["data"]]
