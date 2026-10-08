@@ -1,0 +1,55 @@
+name: Recover missing members from the Kaggle 1970-2018 price archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: "Kaggle dataset slug"
+        required: false
+        default: "ehallmar/daily-historical-stock-prices-1970-2018"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raw-store
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow numpy 'kaggle>=1.8.0'
+      - name: Restore current dataset
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+          gh release download data --pattern 'kaggle_progress.json' --dir data || true
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - name: Download the archive from Kaggle
+        run: |
+          mkdir -p kag
+          kaggle datasets download -d "${{ github.event.inputs.dataset || 'ehallmar/daily-historical-stock-prices-1970-2018' }}" -p kag --unzip
+        env:
+          KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}"
+      - run: python fetch_kaggle.py
+        env:
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}"
+      - name: Publish recovered files, progress and the report
+        if: always()
+        run: |
+          up() { for i in 1 2 3 4 5 6; do gh release upload data "$1" --clobber && return 0; echo "upload $1 failed (try $i)"; sleep $((i*30)); done; return 1; }
+          for f in data/kaggle_report.txt data/kaggle_progress.json; do
+            [ -f "$f" ] && up "$f" || true
+          done
+          tar --zstd -cf raw.tar.zst data/raw
+          up raw.tar.zst
+        env: { GH_TOKEN: "${{ github.token }}" }
