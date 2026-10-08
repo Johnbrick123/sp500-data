@@ -131,6 +131,7 @@ def main():
                 cur = pd.read_parquet(f, columns=["source"])["source"].iloc[0] if "source" in pd.read_parquet(f).columns else "yahoo"
                 if str(cur) == src:          # only the offending file, so a later correct recovery survives
                     f.unlink(); print(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt", flush=True)
+    open_members = {t for t, (a, b) in membership_spans().items() if pd.isna(b)}
     saved, empty, dropped, truncated = 0, [], 0, []
     for i in range(0, len(live), BATCH):
         batch = live[i:i + BATCH]
@@ -156,7 +157,10 @@ def main():
             idx = pd.to_datetime(sub.index)
             idx = idx.tz_localize(None) if idx.tz is not None else idx
             sub = sub[idx.normalize() < NY_TODAY]; dropped += n0 - len(sub)
-            if len(sub) < 20:
+            # a stub is suspicious (Yahoo outages serve 1-2 rows) unless the name is
+            # a brand-new listing that is a current member (Vylor joined 2026-10-01
+            # with four sessions on tape)
+            if len(sub) < 20 and not (t in open_members and len(sub) >= 2):
                 empty.append(t); continue
             sub = sub.reset_index()
             sub.columns = [str(c).lower().replace(" ", "_") for c in sub.columns]
