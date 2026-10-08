@@ -22,7 +22,11 @@ for t in TEST:
             df = pd.read_csv(io.StringIO(txt))
             say(f"  {t:7s} {len(df):6,} rows {df.Date.min()}..{df.Date.max()}  last close {df.Close.iloc[-1]}")
         else:
-            say(f"  {t:7s} -> {txt[:80]!r}")
+            import html as _h
+            body = re.sub(r"<script.*?</script>|<style.*?</style>", " ", txt, flags=re.S)
+            body = _h.unescape(re.sub(r"<[^>]+>", " ", body)); body = re.sub(r"\s+", " ", body).strip()
+            say(f"  {t:7s} -> HTML: {body[:300]!r}")
+            if t == TEST[1]: break
     except Exception as e:
         say(f"  {t:7s} error {type(e).__name__}: {str(e)[:80]}")
     time.sleep(1.5)
