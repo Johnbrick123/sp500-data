@@ -1,0 +1,26 @@
+name: Search Kaggle datasets
+
+on:
+  workflow_dispatch:
+    inputs:
+      queries:
+        description: "Search terms, separated by |"
+        required: true
+        default: "delisted stocks|survivorship bias|historical stock prices daily|nyse nasdaq daily prices|us stocks 1990|quandl wiki prices|crsp"
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q 'kaggle>=1.8.0'
+      - run: |
+          IFS='|' read -ra QS <<< "${{ github.event.inputs.queries }}"
+          for q in "${QS[@]}"; do
+            echo "=================== $q"
+            kaggle datasets list -s "$q" --sort-by votes --page-size 25 || true
+          done
+        env:
+          KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}"
