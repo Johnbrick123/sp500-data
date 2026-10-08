@@ -28,7 +28,7 @@ have = set(yr.ticker)
 missing = [t for t in members if t not in have]
 say(f"members with no {YEAR} prices on file: {len(missing)} {missing}")
 
-agree, disagree, unavailable, thin = [], [], [], []
+agree, disagree, unavailable, thin, errs = [], [], [], [], []
 for i, tk in enumerate(members):
     if tk not in have:
         continue
@@ -36,14 +36,19 @@ for i, tk in enumerate(members):
     rows = []
     for ac in ("stocks", "etf"):
         try:
+            # same request shape the nightly check uses (a bounded past window returned nothing)
             u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass={ac}"
-                 f"&fromdate={YEAR}-01-01&todate={YEAR}-12-31&limit=400")
+                 f"&fromdate={YEAR - 1}-12-15&todate={date.today():%Y-%m-%d}&limit=9999")
             d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
             rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
             if len(rows) >= 20:
                 break
-        except Exception:
+            if len(errs) < 3:
+                errs.append(f"{tk}/{ac}: {str(d)[:160]}")
+        except Exception as e:
             rows = []
+            if len(errs) < 3:
+                errs.append(f"{tk}/{ac}: {type(e).__name__} {str(e)[:100]}")
         time.sleep(0.4)
     if len(rows) < 20:
         unavailable.append((tk, str(o.source.iloc[0]), len(o)))
@@ -51,6 +56,7 @@ for i, tk in enumerate(members):
     n = pd.DataFrame(rows); n["date"] = pd.to_datetime(n["date"], errors="coerce")
     n["close"] = pd.to_numeric(n["close"].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce")
     n = n.dropna(subset=["date", "close"]).sort_values("date")
+    n = n[(n.date >= y0 - pd.Timedelta(days=20)) & (n.date <= y1)]
     m = o.merge(n[["date", "close"]], on="date", suffixes=("_o", "_n")).sort_values("date")
     m["r_o"] = m.close_o.pct_change(); m["r_n"] = m.close_n.pct_change()
     sp = m.stock_splits.replace(0, 1).fillna(1)
@@ -77,4 +83,6 @@ if unavailable:
     for u in unavailable: say(f"  {u}")
 if thin:
     say(f"\nTHIN: {thin}")
+if errs:
+    say(f"\nfirst request errors: {errs}")
 (ROOT / "data" / f"audit_{YEAR}.txt").write_text("\n".join(out))
