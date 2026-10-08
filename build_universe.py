@@ -66,7 +66,26 @@ def main():
                 rows.append((d, t))
     members = pd.DataFrame(rows, columns=["date", "ticker"])
 
-    curr = pd.read_csv(CURR_URL)
+    # Today's list comes from Wikipedia's live constituents table (id="constituents"),
+    # which tracks S&P DJI announcements within days. The upstream sp500.csv is the
+    # fallback only: in Oct 2026 it was two months stale (missing BE, ILMN, P, TWLO).
+    curr = None
+    try:
+        import io, urllib.request
+        html = urllib.request.urlopen(urllib.request.Request(
+            "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+            headers={"User-Agent": "sp500-data nightly build (github.com/Johnbrick123/sp500-data)"}), timeout=60).read().decode()
+        tabs = pd.read_html(io.StringIO(html), attrs={"id": "constituents"})
+        w = tabs[0]
+        if "Symbol" in w.columns and 480 <= len(w) <= 520:
+            curr = w.rename(columns={"Security": "Name"})
+            print(f"current list: Wikipedia constituents table, {len(curr)} rows")
+        else:
+            print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - using upstream sp500.csv")
+    except Exception as e:
+        print(f"current list: Wikipedia unavailable ({type(e).__name__}) - using upstream sp500.csv")
+    if curr is None:
+        curr = pd.read_csv(CURR_URL)
     current_tickers = sorted(set(curr["Symbol"].astype(str).str.strip()))
 
     ever = sorted(set(members["ticker"]) | set(current_tickers))
