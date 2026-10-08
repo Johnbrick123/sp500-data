@@ -1,0 +1,18 @@
+name: Probe free web sources for dead-company prices
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: mkdir -p data && python probe_sources.py
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with: { name: sources_probe, path: data/sources_probe.txt }
