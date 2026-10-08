@@ -87,25 +87,44 @@ def check_adjustment(df):
 #    that tests Yahoo's RECORD rather than our arithmetic - everything else
 #    compares us against the vendor we sourced from. Nasdaq closes are
 #    unadjusted, so split days are excluded from the comparison.
+LEDGER = ROOT / "data" / "cross_source_ledger.csv"
+NASDAQ_PER_NIGHT = 25
+
+
 def check_cross_source(df):
+    """Every currently-listed name is compared with Nasdaq's own 10-year history,
+    25 names a night in a fixed rotation, so the whole universe is independently
+    re-verified every ~2 months. Results accumulate in data/cross_source_ledger.csv."""
     say("\n[3] INDEPENDENT SOURCE (Nasdaq historical API vs ours)")
-    import json, urllib.request
+    import json, time, urllib.request
     H = {"User-Agent": "Mozilla/5.0 (data verification)"}
-    # rotate the sample daily so coverage accumulates over time
-    pool = ["AAPL", "MSFT", "JPM", "XOM", "KO", "PG", "JNJ", "WMT", "CAT", "MRK",
-            "HD", "CVX", "PFE", "IBM", "DIS", "MCD", "BA", "GE", "T", "VZ"]
-    i = date.today().toordinal() % len(pool)
-    sample = [pool[(i + k) % len(pool)] for k in range(6)]
+    last = df.groupby("ticker").date.max()
+    live = sorted(t for t, d in last.items() if d >= df.date.max() - pd.Timedelta(days=10)
+                  and "-" not in t and t.isalpha())
+    ledger = pd.read_csv(LEDGER, parse_dates=["checked"]) if LEDGER.exists() else \
+        pd.DataFrame(columns=["ticker", "checked", "status", "days", "pct_off", "max_pp"])
+    # anchors every night (large, long-lived names) plus a rotating slice of the rest
+    anchors = [t for t in ["AAPL", "MSFT", "JPM", "XOM", "SPY"] if t in live]
+    rest = [t for t in live if t not in anchors]
+    i = (date.today().toordinal() * (NASDAQ_PER_NIGHT - len(anchors))) % max(len(rest), 1)
+    sample = anchors + [rest[(i + k) % len(rest)] for k in range(NASDAQ_PER_NIGHT - len(anchors))] if rest else anchors
+    new = []
     for tk in sample:
-        try:
-            u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass=stocks"
-                 f"&fromdate=2016-09-01&todate={date.today():%Y-%m-%d}&limit=9999")
-            d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
-            rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
-            if len(rows) < 250:
-                record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq returned {len(rows)} rows"); continue
-        except Exception as e:
-            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq unreachable ({type(e).__name__})"); continue
+        rows = []
+        for ac in ("stocks", "etf"):
+            try:
+                u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass={ac}"
+                     f"&fromdate=2016-09-01&todate={date.today():%Y-%m-%d}&limit=9999")
+                d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
+                rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
+                if len(rows) >= 250:
+                    break
+            except Exception as e:
+                rows = []; err = type(e).__name__
+            time.sleep(0.7)
+        if len(rows) < 250:
+            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: Nasdaq returned {len(rows)} rows")
+            new.append((tk, date.today(), "UNVERIFIED", len(rows), None, None)); continue
         n = pd.DataFrame(rows)
         n["date"] = pd.to_datetime(n["date"], errors="coerce")
         n["close"] = pd.to_numeric(n["close"].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce")
@@ -119,10 +138,21 @@ def check_cross_source(df):
         m = m[(sp == 1) & (sp.shift(-1).fillna(1) == 1)]
         diff = (m.r_o - m.r_n).abs().dropna()
         if len(diff) < 250:
-            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: only {len(diff)} comparable days"); continue
+            record("nasdaq " + tk, "UNVERIFIED", f"{tk}: only {len(diff)} comparable days")
+            new.append((tk, date.today(), "UNVERIFIED", len(diff), None, None)); continue
         off = (diff > 0.005).mean() * 100
-        record("nasdaq " + tk, "PASS" if off < 1 else "FAIL",
-               f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp)")
+        st = "PASS" if off < 1 else "FAIL"
+        record("nasdaq " + tk, st, f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp)")
+        new.append((tk, date.today(), st, len(diff), round(off, 3), round(diff.max() * 100, 3)))
+    ledger = pd.concat([ledger, pd.DataFrame(new, columns=ledger.columns)], ignore_index=True)
+    ledger["checked"] = pd.to_datetime(ledger["checked"])
+    ledger = ledger.sort_values("checked").drop_duplicates("ticker", keep="last")
+    ledger.to_csv(LEDGER, index=False)
+    recent = ledger[ledger.checked >= pd.Timestamp(date.today()) - pd.Timedelta(days=120)]
+    nf = int((recent.status == "FAIL").sum())
+    record("nasdaq ledger", "PASS" if nf == 0 else "FAIL",
+           f"ledger: {int((recent.status == 'PASS').sum())} of {len(live)} listed names verified against Nasdaq "
+           f"in the last 120 days, {nf} failed, {int((recent.status == 'UNVERIFIED').sum())} unverified")
 
 
 # 4. Structure.
