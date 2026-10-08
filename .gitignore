@@ -6,3 +6,9 @@ data/*.duckdb.wal
 raw.tar.zst
 __pycache__/
 .env
+data/universe/*.parquet
+data/*.parquet
+data/*.json
+data/*.txt
+data/*.csv
+kag/
