@@ -133,6 +133,37 @@ TRIMMED = []
 PATCHES_F = ROOT / "price_patches.csv"
 PATCHES = pd.read_csv(PATCHES_F, parse_dates=["date"]) if PATCHES_F.exists() else pd.DataFrame()
 PATCHED = []
+PLACEHOLDERS = []
+MEMBER_LABELS = set()
+_ivf = ROOT / "data" / "universe" / "membership_intervals.parquet"
+if _ivf.exists():
+    MEMBER_LABELS = set(pd.read_parquet(_ivf, columns=["ticker"]).ticker)
+
+
+def drop_placeholders(df, stem):
+    """Remove mid-series placeholder bars from index stocks: zero volume and
+    open = high = low = close = the previous close. Yahoo emits these on days
+    it has no record (Crown Castle 2020-07-31: the real bar closed $166.70 on
+    3.3M shares). They carry no trade, so dropping one never changes a
+    multi-day return; price_patches.csv then supplies the real bar where a
+    second source has it. ETFs are left alone (thin ones can genuinely have
+    no trades on a day). The last row is never touched (trim_filler's job)."""
+    if stem not in MEMBER_LABELS or len(df) < 3:
+        return df
+    df = df.sort_values("date").reset_index(drop=True)
+    pc = df["close"].shift()
+    vol = pd.to_numeric(df.get("volume", pd.Series(0, index=df.index)), errors="coerce").fillna(0)
+    bad = (vol == 0) & (df["open"] == df["high"]) & (df["high"] == df["low"]) & (df["low"] == df["close"]) & (df["close"] == pc)
+    bad &= df["dividends"].fillna(0).eq(0) if "dividends" in df else True
+    bad.iloc[-1] = False
+    if bad.any():
+        d = pd.to_datetime(df.loc[bad, "date"])
+        for x in (d.dt.tz_localize(None) if d.dt.tz is not None else d):
+            PLACEHOLDERS.append((stem, str(x.date()), str(df["source"].iloc[0]) if "source" in df else "?"))
+        df = df[~bad].reset_index(drop=True)
+    return df
+
+
 SPLICES_F = ROOT / "series_splices.csv"
 SPLICES = pd.read_csv(SPLICES_F, parse_dates=["before"]) if SPLICES_F.exists() else pd.DataFrame(columns=["label", "prefix", "before"])
 SPLICED = []
@@ -232,7 +263,7 @@ def main():
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(trim_filler(apply_patches(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem)))
+            out.append(adjust_one(trim_filler(apply_patches(drop_placeholders(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -252,6 +283,8 @@ def main():
 
     pd.DataFrame(TRIMMED, columns=["ticker", "source", "rows_dropped", "last_trade", "last_filler", "dividends_dropped"]) \
         .to_csv(ROOT / "data" / "trimmed_filler.csv", index=False)
+    pd.DataFrame(PLACEHOLDERS, columns=["ticker", "date", "source"]).to_csv(ROOT / "data" / "dropped_placeholders.csv", index=False)
+    print(f"placeholder bars dropped (zero volume, flat at prior close): {len(PLACEHOLDERS):,} (data/dropped_placeholders.csv)")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")

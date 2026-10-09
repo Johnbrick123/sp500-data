@@ -73,6 +73,7 @@ jobs:
           [ -f data/tiingo_progress.json ] && gh release upload data data/tiingo_progress.json --clobber || true
           [ -f data/cross_source_ledger.csv ] && gh release upload data data/cross_source_ledger.csv --clobber || true
           [ -f data/trimmed_filler.csv ] && gh release upload data data/trimmed_filler.csv --clobber || true
+          [ -f data/dropped_placeholders.csv ] && gh release upload data data/dropped_placeholders.csv --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
       # Monthly immutable snapshot. The 'data' release is overwritten every

@@ -217,6 +217,12 @@ def check_structure(df):
         if a.open == a.high == a.low == a.close == b.close:
             stale += 1
     record("stale tails", "PASS" if stale == 0 else "FAIL", f"{stale} dead series end in flat filler bars (should be trimmed by compute_adjusted.py)")
+    mem = set(pd.read_parquet(INTERVALS, columns=["ticker"]).ticker)
+    z = df[df.ticker.isin(mem)].sort_values(["ticker", "date"])
+    pc = z.groupby("ticker").close.shift()
+    ph = int(((z.volume.fillna(0) == 0) & (z.open == z.high) & (z.high == z.low) & (z.low == z.close) & (z.close == pc)
+              & z.groupby("ticker").date.shift(-1).notna()).sum())
+    record("placeholder bars", "PASS" if ph == 0 else "FAIL", f"{ph} zero-volume flat bars inside index stocks' series (dropped by compute_adjusted.py)")
     spy = df[df.ticker == "SPY"].date
     record("calendar", "PASS" if len(spy) > 7000 else "FAIL", f"SPY has {len(spy):,} trading days on file")
 
