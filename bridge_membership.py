@@ -70,6 +70,8 @@ def norm_name(s):
 # corporate renames. Chains are collapsed to the terminal symbol.
 KNOWN_RENAMES = {
     "ABC": "COR",    # AmerisourceBergen -> Cencora
+    "ADS": "BFH",    # Alliance Data Systems -> Bread Financial (2022, same company); BFH carries ADS's history back to 2001
+    "ARNC": "HWM",   # Alcoa Inc. -> Arconic Inc. (2016) -> Howmet Aerospace (2020-04-01), one legal company; pre-2016-11 history spliced in from the Kaggle archive (series_splices.csv)
     "ANTM": "ELV",   # Anthem -> Elevance
     "BBT": "TFC",    # BB&T -> Truist
     "BHI": "BKR", "BHGE": "BKR",   # Baker Hughes

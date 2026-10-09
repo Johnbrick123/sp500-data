@@ -6,3 +6,4 @@ CA tiingo     # 2026-10-08: Tiingo's CA (2023-) is a new owner of the symbol, no
 DISCA wiki    # 2026-10-09: superseded by the DISCA->WBD rename; WBD holds the full Series A lineage
 GPS wiki      # 2026-10-09: superseded by the GPS->GAP rename; GAP holds the full history
 HFC wiki      # 2026-10-09: superseded by the HFC->DINO rename; DINO holds HollyFrontier's full history
+ADS wiki      # 2026-10-09: superseded by the ADS->BFH rename; BFH holds Alliance Data's full history

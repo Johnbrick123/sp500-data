@@ -1,0 +1,2 @@
+label,prefix,before,note
+HWM,ARNC,2016-11-01,"Alcoa Inc. -> Arconic Inc. (2016-11-01) -> Howmet Aerospace (2020-04-01), one legal company. Yahoo's HWM starts 2016-11-01 and matches the Kaggle 1970-2018 ARNC archive on 100% of overlapping days at a constant price ratio (1.304, Yahoo's adjustment for the 2020 Arconic Corp spin-off). Earlier history comes from the archive, scaled by the measured ratio."

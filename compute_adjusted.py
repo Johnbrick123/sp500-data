@@ -64,7 +64,7 @@ def adjust_one(df):
     # split-adjusted, so the effective split is 1 (the column is audit-only).
     if "source" in df.columns:
         srcs = df["source"].astype(str)
-        base = srcs[~srcs.str.endswith("-patch")]          # hand-verified patch rows never set the series' basis
+        base = srcs[~srcs.str.endswith(("-patch", "-splice"))]   # patch / splice rows never set the series' basis
         src = base.mode().iloc[0] if len(base) else srcs.iloc[0]
     else:
         src = "yahoo"
@@ -133,6 +133,41 @@ TRIMMED = []
 PATCHES_F = ROOT / "price_patches.csv"
 PATCHES = pd.read_csv(PATCHES_F, parse_dates=["date"]) if PATCHES_F.exists() else pd.DataFrame()
 PATCHED = []
+SPLICES_F = ROOT / "series_splices.csv"
+SPLICES = pd.read_csv(SPLICES_F, parse_dates=["before"]) if SPLICES_F.exists() else pd.DataFrame(columns=["label", "prefix", "before"])
+SPLICED = []
+
+
+def apply_splice(df, stem):
+    """Join a company's earlier history, held under another raw file, in front
+    of its current series (series_splices.csv: HWM <- ARNC before 2016-11-01).
+    The prefix is rescaled to the current series' price basis by the median
+    close ratio over overlapping days; the splice is refused unless there are
+    >= 60 overlapping days and the ratio is constant to within 0.5%."""
+    rows = SPLICES[SPLICES.label == stem]
+    if rows.empty:
+        return df
+    r = rows.iloc[0]
+    pf = RAW / f"{r.prefix}.parquet"
+    if not pf.exists():
+        print(f"  splice {stem} <- {r.prefix}: prefix file missing"); return df
+    pre = pd.read_parquet(pf)
+    for x in (df, pre):
+        d = pd.to_datetime(x["date"]); x["date"] = d.dt.tz_localize(None) if d.dt.tz is not None else d
+    j = df[["date", "close"]].merge(pre[["date", "close"]], on="date", suffixes=("", "_p")).dropna()
+    ratio = (j.close / j.close_p)
+    if len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > 0.005:
+        print(f"  splice {stem} <- {r.prefix}: REFUSED ({len(j)} overlapping days, ratio spread {(ratio.quantile(0.95)-ratio.quantile(0.05))/ratio.median():.4f})")
+        return df
+    k = float(ratio.median())
+    add = pre[(pre.date < r.before) & (~pre.date.isin(set(df.date)))].copy()
+    for col in ("open", "high", "low", "close", "dividends"):
+        if col in add:
+            add[col] = add[col] * k
+    add["ticker"] = stem
+    add["source"] = str(pre["source"].iloc[0]) + "-splice"
+    SPLICED.append((stem, r.prefix, len(add), round(k, 4), len(j)))
+    return pd.concat([add[df.columns.intersection(add.columns)], df], ignore_index=True).sort_values("date").reset_index(drop=True)
 
 
 def apply_patches(df, stem):
@@ -191,12 +226,13 @@ def main():
     # reused the ticker are never published (see quarantine_tickers.txt).
     qf = ROOT / "quarantine_tickers.txt"
     quarantined = {l.split("#")[0].strip() for l in qf.read_text().splitlines()} - {""} if qf.exists() else set()
-    files = sorted(f for f in RAW.glob("*.parquet") if f.stem not in quarantined)
+    prefixes = set(SPLICES.prefix) if not SPLICES.empty else set()     # merged into their label, not published on their own
+    files = sorted(f for f in RAW.glob("*.parquet") if f.stem not in quarantined and f.stem not in prefixes)
     print(f"quarantined labels skipped: {len(quarantined)}")
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(trim_filler(apply_patches(pd.read_parquet(f), f.stem), f.stem)))
+            out.append(adjust_one(trim_filler(apply_patches(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -217,6 +253,7 @@ def main():
     pd.DataFrame(TRIMMED, columns=["ticker", "source", "rows_dropped", "last_trade", "last_filler", "dividends_dropped"]) \
         .to_csv(ROOT / "data" / "trimmed_filler.csv", index=False)
     print(f"hand-verified patch rows added: {PATCHED}")
+    print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
         .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
