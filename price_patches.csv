@@ -1,0 +1,3 @@
+ticker,date,open,high,low,close,volume,dividends,stock_splits,source,note
+VLTO,2023-10-02,83.11,89.00,81.53,85.12,23045074,0,1,tiingo-patch,"Veralto's first two regular-way days (S&P 500 add 2023-10-02); Yahoo's history starts 2023-10-04. Tiingo's 2023-10-04..10 rows match ours to the cent."
+VLTO,2023-10-03,82.65,83.25,76.0115,77.05,12671218,0,1,tiingo-patch,"see above"

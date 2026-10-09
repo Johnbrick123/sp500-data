@@ -62,7 +62,12 @@ def adjust_one(df):
     # Tiingo (delisted recovery) gives a truly UNADJUSTED close, so for those
     # rows the split ratio applies too. Yahoo rows: close is already
     # split-adjusted, so the effective split is 1 (the column is audit-only).
-    src = df["source"].iloc[0] if "source" in df.columns else "yahoo"
+    if "source" in df.columns:
+        srcs = df["source"].astype(str)
+        base = srcs[~srcs.str.endswith("-patch")]          # hand-verified patch rows never set the series' basis
+        src = base.mode().iloc[0] if len(base) else srcs.iloc[0]
+    else:
+        src = "yahoo"
     eff_split = split if src in ("tiingo", "wiki") else pd.Series(1.0, index=df.index)
     # A dividend is paid per share ON the ex-date, i.e. on the post-split basis
     # when a split lands the same day, while prev_close is pre-split. Put both
@@ -125,6 +130,28 @@ def adjust_one(df):
 
 
 TRIMMED = []
+PATCHES_F = ROOT / "price_patches.csv"
+PATCHES = pd.read_csv(PATCHES_F, parse_dates=["date"]) if PATCHES_F.exists() else pd.DataFrame()
+PATCHED = []
+
+
+def apply_patches(df, stem):
+    """Hand-verified rows (price_patches.csv) for days a source is missing, e.g.
+    Veralto's first two trading days. Only fills dates the file does not have;
+    never overwrites a row. Values must already be on the series' price basis."""
+    if PATCHES.empty or stem not in set(PATCHES.ticker):
+        return df
+    d = pd.to_datetime(df["date"])
+    if d.dt.tz is not None:
+        d = d.dt.tz_localize(None)
+    df = df.assign(date=d)
+    add = PATCHES[(PATCHES.ticker == stem) & (~PATCHES.date.isin(set(d)))]
+    if add.empty:
+        return df
+    cols = [c for c in ("date", "open", "high", "low", "close", "volume", "dividends", "stock_splits", "source") if c in add.columns]
+    rows = add[cols].assign(ticker=stem)
+    PATCHED.append((stem, len(rows)))
+    return pd.concat([df, rows], ignore_index=True).sort_values("date").reset_index(drop=True)
 
 
 def trim_filler(df, stem):
@@ -169,7 +196,7 @@ def main():
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(trim_filler(pd.read_parquet(f), f.stem)))
+            out.append(adjust_one(trim_filler(apply_patches(pd.read_parquet(f), f.stem), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -189,6 +216,7 @@ def main():
 
     pd.DataFrame(TRIMMED, columns=["ticker", "source", "rows_dropped", "last_trade", "last_filler", "dividends_dropped"]) \
         .to_csv(ROOT / "data" / "trimmed_filler.csv", index=False)
+    print(f"hand-verified patch rows added: {PATCHED}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
         .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
