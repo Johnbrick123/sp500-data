@@ -101,7 +101,10 @@ KNOWN_RENAMES = {
     "TMK": "GL",     # Torchmark -> Globe Life
     "UTX": "RTX",
     "WLTW": "WTW",
-    "WRK": "SW",     # WestRock -> Smurfit WestRock
+    # NOT "WRK": "SW". Smurfit Kappa acquired WestRock (2024-07-05); SW's history
+    # before then is Smurfit Kappa's, not WestRock's (a 2021 second-source check
+    # found 85% of days differing). WestRock keeps its own label and series and
+    # hands its index slot to SW on 2024-07-08 - see MANUAL_CHANGES.
     "DWDP": "DD",    # DowDuPont -> DuPont
 }
 
@@ -124,6 +127,7 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
 MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements, for changes after the Wikipedia log ends
+    ("2024-07-08", "SW",   "WRK"),    # Smurfit WestRock takes WestRock's slot (S&P: WestRock is the surviving entity for index purposes; merger closed 2024-07-05, SW first traded 2024-07-08)
     ("2026-08-05", "FERG", "EA"),     # Ferguson replaces Electronic Arts
     ("2026-08-18", "RDDT", "AVB"),    # Reddit replaces AvalonBay (merged into Equity Residential -> Vivmark, VMRK)
     ("2026-09-21", "BE",   "TAP"),    # quarterly rebalance: Bloom Energy, Everpure, Illumina replace Molson Coors, Trade Desk, Builders FirstSource
