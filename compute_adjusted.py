@@ -9,6 +9,9 @@ Method (standard total-return back-adjustment):
   For each day t, the adjustment factor applied to all prior history is
       f_t = (1 - div_t / close_{t-1}) / split_ratio_t
   Cumulative product of future factors, applied backwards, gives adj_close.
+  Large distributions (>5% of the price) use f_t = close_t / (close_t + div_t).
+  Spin-off ex-dates listed in spinoffs.csv get the holder's actual return:
+  (parent close + spun-off shares x their first regular-way close) / prior close.
 
 Outputs:
   data/prices.parquet   one tidy table: date, ticker, o/h/l/c, volume,
@@ -108,6 +111,48 @@ def adjust_one(df):
     div_factor = np.where(use_large, large, np.where(prev_close > 0, small, 1.0))
     factor = pd.Series(div_factor, index=df.index) / eff_split
 
+    # Spin-offs (spinoffs.csv): the ex-date return is set to what a holder of
+    # the parent actually had at that day's close - the parent's close plus the
+    # spun-off shares at THEIR first regular-way close - which is how S&P has
+    # booked spin-offs since October 2015 (the spin-off joins the index at a
+    # zero price and its value appears at that close). Yahoo instead scales the
+    # parent's history by the spin-off's when-issued price the day before, which
+    # leaves the spin-off's first-day move out of the parent's return (e.g.
+    # Arconic 2020-04-01: Yahoo +7.2%, actual -7.0%). The closes in the table
+    # are the published closes; the row is refused (and logged) unless our
+    # stored ex-date close matches the table's to within 1%.
+    tk = str(df["ticker"].iloc[0]) if "ticker" in df.columns else ""
+    ev = SPINS[SPINS.ticker == tk] if len(SPINS) else SPINS
+    if len(ev):
+        dts = pd.to_datetime(df["date"])
+        if dts.dt.tz is not None:
+            dts = dts.dt.tz_localize(None)
+        later = split[::-1].cumprod()[::-1].shift(-1).fillna(1.0)      # product of split/spin factors after each day
+        for exd, g in ev.groupby("ex_date"):
+            hit = np.flatnonzero((dts == exd).to_numpy())
+            if len(hit) != 1 or hit[0] == 0:
+                SPUN.append((tk, str(exd.date()), None, None, None, "REFUSED: ex-date not in the series")); continue
+            i = int(hit[0])
+            p0, p1 = float(g.parent_prev_close.iloc[0]), float(g.parent_close.iloc[0])
+            target = (p1 + float((g.ratio.astype(float) * g.spinco_close.astype(float)).sum())) / p0
+            c0, c1 = float(close.iloc[i - 1]), float(close.iloc[i])
+            scale = 1.0 if src in ("tiingo", "wiki") else float(later.iloc[i])
+            if abs(c1 * scale / p1 - 1) > 0.01:
+                SPUN.append((tk, str(exd.date()), None, None, None,
+                             f"REFUSED: stored ex-date close {c1 * scale:.4f} does not match the table's {p1}")); continue
+            note = ""
+            if float(div.iloc[i]) != 0:
+                if src in ("tiingo", "wiki", "kaggle"):
+                    note = f"; replaces the vendor's distribution of {float(div.iloc[i]):.4f}"
+                else:
+                    SPUN.append((tk, str(exd.date()), None, None, None, "REFUSED: a cash dividend is booked on the ex-date")); continue
+            implied = (c1 / c0) / (p1 / p0)      # the factor the stored history already carries for this event
+            if not 0.99 <= implied <= 100:
+                SPUN.append((tk, str(exd.date()), None, None, None, f"REFUSED: implied factor {implied:.4f}")); continue
+            old = c1 / (c0 * float(factor.iloc[i])) - 1
+            factor.iloc[i] = c1 / (c0 * target)
+            SPUN.append((tk, str(exd.date()), round(old * 100, 3), round((target - 1) * 100, 3), round(implied, 4), "applied" + note))
+
     # An adjustment factor <= 0 is impossible: it means a recorded dividend
     # exceeds the prior close, which happens when a provider books a spin-off
     # on a post-split basis but omits the split (KSU / Stilwell, July 2000).
@@ -128,6 +173,10 @@ def adjust_one(df):
     df["adj_factor"] = cum
     return df
 
+
+SPINS_F = ROOT / "spinoffs.csv"
+SPINS = pd.read_csv(SPINS_F, parse_dates=["ex_date"]) if SPINS_F.exists() else pd.DataFrame(columns=["ticker", "ex_date"])
+SPUN = []               # (ticker, ex-date, old event-day return %, new %, implied factor, outcome)
 
 TRIMMED = []
 PATCHES_F = ROOT / "price_patches.csv"
@@ -346,6 +395,9 @@ def main():
     print(f"end-of-membership no-trade bars kept (halt / deal closed before removal): {CARRIED}")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
+    print("spin-off ex-dates set to the holder's actual return (ticker, ex-date, old %, new %, factor already in history, outcome):")
+    for x in SPUN:
+        print(f"    {x}")
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \

@@ -128,7 +128,13 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
 
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
-MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements, for changes after the Wikipedia log ends
+MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements: changes after the Wikipedia log ends,
+                     # and spin-offs the log leaves out. Since Oct 2015 S&P adds every spin-off to its parent's index at a
+                     # zero price after the close before the ex-date; one that does not qualify stays until S&P moves it.
+    ("2020-04-01", "ARNC-202308", ""),   # Arconic Corp (spun off by Arconic Inc./Howmet) - S&P 500 until it moved to the SmallCap 600
+    ("2020-04-06", "", "ARNC-202308"),   #   before the 2020-04-06 open (S&P DJI release 2020-04-01)
+    ("2020-12-15", "AIRC", ""),          # Apartment Income REIT (spun off by Aimco) - S&P 500 until it moved to the MidCap 400
+    ("2020-12-21", "", "AIRC"),          #   before the 2020-12-21 open, when Tesla replaced AIV (S&P DJI release 2020-12-11)
     ("2024-07-08", "SW",   "WRK"),    # Smurfit WestRock takes WestRock's slot (S&P: WestRock is the surviving entity for index purposes; merger closed 2024-07-05, SW first traded 2024-07-08)
     ("2026-08-05", "FERG", "EA"),     # Ferguson replaces Electronic Arts
     ("2026-08-18", "RDDT", "AVB"),    # Reddit replaces AvalonBay (merged into Equity Residential -> Vivmark, VMRK)

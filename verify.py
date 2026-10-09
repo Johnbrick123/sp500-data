@@ -55,6 +55,25 @@ def check_corporate_actions(df):
             record("div " + tk, "FAIL", f"{tk} {d}: no row in dataset"); continue
         got = float(sub.dividends.iloc[0])
         record("div " + tk, "PASS" if abs(got - amt) < 0.005 else "FAIL", f"{tk} {d} dividend {got:.4f} (expected {amt})")
+    # Spin-off ex-dates (spinoffs.csv): our total return that day must equal the
+    # holder's actual return - parent close plus spun-off shares at their close.
+    sf = ROOT / "spinoffs.csv"
+    if sf.exists():
+        sp = pd.read_csv(sf, parse_dates=["ex_date"])
+        bad, n = [], 0
+        for (tk, d), g in sp.groupby(["ticker", "ex_date"]):
+            x = df[df.ticker == tk].sort_values("date").reset_index(drop=True)
+            i = x.index[x.date == d]
+            if len(i) != 1 or i[0] == 0:
+                bad.append(f"{tk} {d.date()}: no ex-date row"); continue
+            want = (g.parent_close.iloc[0] + (g.ratio * g.spinco_close).sum()) / g.parent_prev_close.iloc[0] - 1
+            got = x.adj_close.iloc[i[0]] / x.adj_close.iloc[i[0] - 1] - 1
+            n += 1
+            if abs(got - want) > 1e-6:
+                bad.append(f"{tk} {d.date()}: {got * 100:.3f}% vs {want * 100:.3f}%")
+        record("spin-off ex-dates", "PASS" if not bad else "FAIL",
+               f"{n} spin-off ex-dates carry the holder's actual return (parent + spun-off shares at their first close)"
+               + (f"; WRONG: {bad[:5]}" if bad else ""))
 
 
 # 2. Our adjustment vs Yahoo's own total-return series. Same vendor: tests OUR
@@ -77,8 +96,12 @@ def check_adjustment(df):
         if len(j) < 250:
             record("adjust " + tk, "UNVERIFIED", f"{tk}: only {len(j)} overlapping days"); continue
         ra, rb = j.a.pct_change().dropna(), j.b.pct_change().dropna()
+        sf = ROOT / "spinoffs.csv"
+        if sf.exists():       # spin-off ex-dates are booked at the holder's actual return, not Yahoo's (see [1])
+            skip = set(pd.read_csv(sf, parse_dates=["ex_date"]).query("ticker == @tk").ex_date)
+            ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
         max_err = (ra - rb).abs().max() * 100
-        wealth_err = abs((j.a.iloc[-1] / j.a.iloc[0]) / (j.b.iloc[-1] / j.b.iloc[0]) - 1) * 100
+        wealth_err = abs((1 + ra).prod() / (1 + rb).prod() - 1) * 100
         record("adjust " + tk, "PASS" if (max_err < 0.05 and wealth_err < 0.5) else "FAIL",
                f"{tk}: max daily error {max_err:.4f}pp, cumulative wealth error {wealth_err:.3f}%")
 

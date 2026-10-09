@@ -1,4 +1,6 @@
 label,tiingo_symbol,note
-FRC,FRCB,"First Republic Bank: seized 2023-05-01; Tiingo carries the full 2010-2023 lineage under the post-delisting OTC symbol FRCB"
+FRC,FRCB,First Republic Bank: seized 2023-05-01; Tiingo carries the full 2010-2023 lineage under the post-delisting OTC symbol FRCB
 SBNY,SBNY,"Signature Bank: closed 2023-03-12; Yahoo only has the OTC tail from 2024, Tiingo's SBNY runs from 2004"
 WRK,US000000010670,"WestRock Company (Tiingo permaTicker; by-ticker returns nothing): 2015-06-24..2024-07-05, last close 51.51 = 1 SW + $5.00 cash"
+ARNC-202308,ARNC,"Arconic Corp (spun off from Arconic Inc./Howmet 2020-04-01, taken private by Apollo 2023-08); Tiingo's ARNC is this company. Its ticker had belonged to Arconic Inc., whose history is under HWM."
+AIRC,AIRC,"Apartment Income REIT (spun off from Aimco 2020-12-15, acquired by Blackstone 2024-06); Yahoo no longer serves it."
