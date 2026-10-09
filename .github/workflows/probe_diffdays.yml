@@ -1,0 +1,24 @@
+name: Probe days where ours and Nasdaq disagree (Tiingo as third source)
+on:
+  workflow_dispatch:
+    inputs:
+      ticker: { description: "Ticker", required: true, default: "GM" }
+      year: { description: "Year", required: true, default: "2021" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: mkdir -p data && gh release download data --pattern 'prices.parquet' --dir data --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python probe_diffdays.py "${{ github.event.inputs.ticker }}" "${{ github.event.inputs.year }}"
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: gh release upload data "data/diffdays_${{ github.event.inputs.ticker }}_${{ github.event.inputs.year }}.txt" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
