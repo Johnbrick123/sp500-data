@@ -1,0 +1,31 @@
+name: Second-source check of one year against any Kaggle price archive
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "owner/dataset", required: true, default: "jacksoncrow/stock-market-dataset" }
+      year: { description: "Calendar year", required: true, default: "2020" }
+      watch: { description: "Comma-separated labels to report individually", required: false, default: "" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow 'kaggle>=1.8.0'
+      - run: |
+          mkdir -p data/universe kag
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+          gh release download data --pattern 'renames.csv' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python crosscheck_dataset.py "${{ github.event.inputs.slug }}" "${{ github.event.inputs.year }}" "${{ github.event.inputs.watch }}"
+      - name: Publish the report
+        if: always()
+        run: for f in data/xcheck_*.txt; do [ -f "$f" ] && gh release upload data "$f" --clobber; done || true
+        env: { GH_TOKEN: "${{ github.token }}" }
