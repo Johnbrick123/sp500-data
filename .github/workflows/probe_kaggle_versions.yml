@@ -1,0 +1,22 @@
+name: Probe Kaggle dataset versions
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "owner/dataset", required: true, default: "andrewmvd/sp-500-stocks" }
+      versions: { description: "space-separated version numbers to try", required: false, default: "1 50 100" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: python probe_kaggle_versions.py "${{ github.event.inputs.slug }}" ${{ github.event.inputs.versions }}
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: gh release upload data data/kaggle_versions_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
