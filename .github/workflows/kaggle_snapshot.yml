@@ -1,0 +1,45 @@
+name: Recover a member from an old Kaggle dataset version
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "owner/dataset", required: true, default: "andrewmvd/sp-500-stocks" }
+      version: { description: "dataset version number", required: true, default: "71" }
+      pairs: { description: "label:symbol pairs, comma-separated", required: true, default: "INFO-202203:INFO" }
+permissions:
+  contents: write
+concurrency:
+  group: raw-store
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow numpy
+      - name: Restore current dataset
+        run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python fetch_kaggle_snapshot.py
+        env:
+          KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}"
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}"
+          KAGGLE_SLUG: "${{ github.event.inputs.slug }}"
+          KAGGLE_VERSION: "${{ github.event.inputs.version }}"
+          KAGGLE_PAIRS: "${{ github.event.inputs.pairs }}"
+      - name: Publish
+        if: always()
+        run: |
+          up() { for i in 1 2 3 4 5 6; do gh release upload data "$1" --clobber && return 0; sleep $((i*30)); done; return 1; }
+          [ -f data/kaggle_snapshot_report.txt ] && up data/kaggle_snapshot_report.txt || true
+          tar --zstd -cf raw.tar.zst data/raw
+          up raw.tar.zst
+        env: { GH_TOKEN: "${{ github.token }}" }
