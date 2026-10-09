@@ -209,21 +209,33 @@ def check_structure(df):
     record("non-positive prices", "PASS" if np_ == 0 else "FAIL", f"{np_:,} non-positive close/adj_close")
     ohlc = ((df.high < df.close - 1e-6) | (df.low > df.close + 1e-6) | (df.high < df.open - 1e-6) | (df.low > df.open + 1e-6)).sum()
     record("ohlc sanity", "PASS" if ohlc <= 5 else "FAIL", f"{ohlc:,} bars with open/close outside high-low (known: HUBB, UA 2021-05-05)")
-    latest = df.date.max(); stale = 0
+    latest = df.date.max(); stale = []
     for tk, g in df[["ticker", "date", "open", "high", "low", "close"]].groupby("ticker", sort=False):
-        if len(g) < 3 or g.date.iloc[-1] >= latest - pd.Timedelta(days=30):
+        if len(g) < 3:
             continue
-        a, b = g.iloc[-1], g.iloc[-2]
-        if a.open == a.high == a.low == a.close == b.close:
-            stale += 1
-    record("stale tails", "PASS" if stale == 0 else "FAIL", f"{stale} dead series end in flat filler bars (should be trimmed by compute_adjusted.py)")
-    mem = set(pd.read_parquet(INTERVALS, columns=["ticker"]).ticker)
+        o, h, l, c = (g[x].to_numpy() for x in ("open", "high", "low", "close"))
+        k = len(g)
+        while k > 1 and o[k-1] == h[k-1] == l[k-1] == c[k-1] == c[k-2]:
+            k -= 1
+        # trailing flat bars after a last REAL bar that is over 30 days old =
+        # filler on a dead series (also when the filler runs up to today)
+        if k < len(g) and g.date.iloc[k - 1] < latest - pd.Timedelta(days=30):
+            stale.append(tk)
+    record("stale tails", "PASS" if not stale else "FAIL", f"{len(stale)} dead series end in flat filler bars (should be trimmed by compute_adjusted.py) {stale[:10]}")
+    ivx = pd.read_parquet(INTERVALS, columns=["ticker", "start", "end"])
+    mem = set(ivx.ticker)
     z = df[df.ticker.isin(mem)].sort_values(["ticker", "date"])
     pc = z.groupby("ticker").close.shift()
     ev = z.dividends.fillna(0).ne(0) | z.stock_splits.fillna(1).replace(0, 1).ne(1)    # dividend/split rows are events, kept on purpose
-    ph = int(((z.volume.fillna(0) == 0) & (z.open == z.high) & (z.high == z.low) & (z.low == z.close) & (z.close == pc)
-              & ~ev & z.groupby("ticker").date.shift(-1).notna()).sum())
-    record("placeholder bars", "PASS" if ph == 0 else "FAIL", f"{ph} zero-volume flat bars inside index stocks' series (dropped by compute_adjusted.py; rows carrying a dividend or split are kept)")
+    flag = ((z.volume.fillna(0) == 0) & (z.open == z.high) & (z.high == z.low) & (z.low == z.close) & (z.close == pc)
+            & ~ev & z.groupby("ticker").date.shift(-1).notna())
+    f = z.loc[flag, ["ticker", "date"]]
+    # a no-trade bar in the last 7 days before S&P removed the name (halt, or a
+    # deal that closed first) is the index's carry row: kept on purpose
+    e = f.merge(ivx.dropna(subset=["end"]).assign(end=lambda x: pd.to_datetime(x["end"])), on="ticker")
+    carry = e[(e.date < e["end"]) & (e.date >= e["end"] - pd.Timedelta(days=7))][["ticker", "date"]].drop_duplicates()
+    ph = len(f) - len(carry)
+    record("placeholder bars", "PASS" if ph == 0 else "FAIL", f"{ph} zero-volume flat bars inside index stocks' series (dropped by compute_adjusted.py; rows carrying a dividend or split, and {len(carry)} end-of-membership carry rows, are kept)")
     spy = df[df.ticker == "SPY"].date
     record("calendar", "PASS" if len(spy) > 7000 else "FAIL", f"SPY has {len(spy):,} trading days on file")
 

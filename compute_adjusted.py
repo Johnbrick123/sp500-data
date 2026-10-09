@@ -136,9 +136,15 @@ PATCHED = []
 REPLACED = []
 PLACEHOLDERS = []
 MEMBER_LABELS = set()
+MEMBER_ENDS = {}            # label -> membership end dates (S&P removal days)
+CARRIED = []                # end-of-membership no-trade days kept on purpose
 _ivf = ROOT / "data" / "universe" / "membership_intervals.parquet"
 if _ivf.exists():
-    MEMBER_LABELS = set(pd.read_parquet(_ivf, columns=["ticker"]).ticker)
+    _iv = pd.read_parquet(_ivf, columns=["ticker", "start", "end"])
+    MEMBER_LABELS = set(_iv.ticker)
+    for _t, _e in zip(_iv.ticker, pd.to_datetime(_iv["end"])):
+        if pd.notna(_e):
+            MEMBER_ENDS.setdefault(_t, []).append(_e)
 
 
 def drop_placeholders(df, stem):
@@ -148,7 +154,12 @@ def drop_placeholders(df, stem):
     3.3M shares). They carry no trade, so dropping one never changes a
     multi-day return; price_patches.csv then supplies the real bar where a
     second source has it. ETFs are left alone (thin ones can genuinely have
-    no trades on a day). The last row is never touched (trim_filler's job)."""
+    no trades on a day). The last row is never touched (trim_filler's job).
+    Kept on purpose: a no-trade bar in the last 7 days before S&P removed the
+    name (Signature Bank 2023-03-14 and First Republic 2023-05-02, halted;
+    Ansys 2025-07-17, deal closed the day before removal). The index carried
+    those stocks at their last price until removal, so the flat bar is the
+    right row for that member-day (logged as CARRIED)."""
     if stem not in MEMBER_LABELS or len(df) < 3:
         return df
     df = df.sort_values("date").reset_index(drop=True)
@@ -160,6 +171,17 @@ def drop_placeholders(df, stem):
     if "stock_splits" in df:
         bad &= df["stock_splits"].fillna(1).replace(0, 1).eq(1)
     bad.iloc[-1] = False
+    ends = MEMBER_ENDS.get(stem)
+    if ends and bad.any():
+        dd = pd.to_datetime(df["date"])
+        if dd.dt.tz is not None:
+            dd = dd.dt.tz_localize(None)
+        carry = pd.Series(False, index=df.index)
+        for e in ends:
+            carry |= (dd < e) & (dd >= e - pd.Timedelta(days=7))
+        for x in dd[bad & carry]:
+            CARRIED.append((stem, str(x.date())))
+        bad &= ~carry
     if bad.any():
         d = pd.to_datetime(df.loc[bad, "date"])
         for x in (d.dt.tz_localize(None) if d.dt.tz is not None else d):
@@ -256,8 +278,9 @@ def trim_filler(df, stem):
     with flat bars after their last trade (open = high = low = close = the final
     close, near-zero volume) - for days, sometimes a year (Pepsi Bottling: 258).
     They change no return but they are not trades, and they put a company on
-    the tape after it stopped trading. Only trailing rows of a series that ended
-    more than 30 days ago are touched, and never past a split. A dividend
+    the tape after it stopped trading. Only trailing rows of a series whose last
+    real (non-flat) bar is more than 30 days old are touched, and never past a
+    split. A dividend
     booked on a filler day (Baxalta, St. Jude, XL, Pepsi Bottling, Constellation:
     the next scheduled dividend, dated after the company had stopped trading)
     is dropped with the row and logged - a security that no longer trades
@@ -266,8 +289,7 @@ def trim_filler(df, stem):
     d = pd.to_datetime(df["date"])
     if d.dt.tz is not None:
         d = d.dt.tz_localize(None)
-    last = d.max()
-    if last >= pd.Timestamp.today().normalize() - pd.Timedelta(days=30) or len(df) < 3:
+    if len(df) < 3:
         return df
     o, h, l, c = (df[x].to_numpy(dtype=float) for x in ("open", "high", "low", "close"))
     dv = df["dividends"].fillna(0).to_numpy(dtype=float) if "dividends" in df else [0.0] * len(df)
@@ -275,6 +297,11 @@ def trim_filler(df, stem):
     k = len(df)
     while k > 1 and o[k-1] == h[k-1] == l[k-1] == c[k-1] == c[k-2] and sp[k-1] == 1:
         k -= 1
+    # dead = the last REAL bar is more than 30 days old. Judged on the last
+    # non-flat row, not the last row: Tiingo keeps padding some acquired
+    # companies with a flat bar every day up to today (Ansys after 2025-07-16).
+    if d.iloc[k - 1] >= pd.Timestamp.today().normalize() - pd.Timedelta(days=30):
+        return df
     if k < len(df):
         TRIMMED.append((stem, str(df.get("source", pd.Series(["?"])).iloc[0]), len(df) - k,
                         str(pd.to_datetime(df["date"].iloc[k-1]).date()), str(pd.to_datetime(df["date"].iloc[-1]).date()),
@@ -316,6 +343,7 @@ def main():
         .to_csv(ROOT / "data" / "trimmed_filler.csv", index=False)
     pd.DataFrame(PLACEHOLDERS, columns=["ticker", "date", "source"]).to_csv(ROOT / "data" / "dropped_placeholders.csv", index=False)
     print(f"placeholder bars dropped (zero volume, flat at prior close): {len(PLACEHOLDERS):,} (data/dropped_placeholders.csv)")
+    print(f"end-of-membership no-trade bars kept (halt / deal closed before removal): {CARRIED}")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
