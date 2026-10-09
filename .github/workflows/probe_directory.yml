@@ -1,0 +1,23 @@
+name: Probe Tiingo directory by company name
+on:
+  workflow_dispatch:
+    inputs:
+      names: { description: "Name fragments separated by |", required: true, default: "IHS MARKIT" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: |
+          IFS='|' read -ra NS <<< "${{ github.event.inputs.names }}"
+          python probe_directory.py "${NS[@]}"
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: gh release upload data data/directory_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
