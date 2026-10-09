@@ -124,6 +124,41 @@ def adjust_one(df):
     return df
 
 
+TRIMMED = []
+
+
+def trim_filler(df, stem):
+    """Drop fake rows at the end of a DEAD series. Tiingo pads delisted companies
+    with flat bars after their last trade (open = high = low = close = the final
+    close, near-zero volume) - for days, sometimes a year (Pepsi Bottling: 258).
+    They change no return but they are not trades, and they put a company on
+    the tape after it stopped trading. Only trailing rows of a series that ended
+    more than 30 days ago are touched, and never past a split. A dividend
+    booked on a filler day (Baxalta, St. Jude, XL, Pepsi Bottling, Constellation:
+    the next scheduled dividend, dated after the company had stopped trading)
+    is dropped with the row and logged - a security that no longer trades
+    cannot go ex-dividend."""
+    df = df.sort_values("date").reset_index(drop=True)
+    d = pd.to_datetime(df["date"])
+    if d.dt.tz is not None:
+        d = d.dt.tz_localize(None)
+    last = d.max()
+    if last >= pd.Timestamp.today().normalize() - pd.Timedelta(days=30) or len(df) < 3:
+        return df
+    o, h, l, c = (df[x].to_numpy(dtype=float) for x in ("open", "high", "low", "close"))
+    dv = df["dividends"].fillna(0).to_numpy(dtype=float) if "dividends" in df else [0.0] * len(df)
+    sp = df["stock_splits"].fillna(1).replace(0, 1).to_numpy(dtype=float) if "stock_splits" in df else [1.0] * len(df)
+    k = len(df)
+    while k > 1 and o[k-1] == h[k-1] == l[k-1] == c[k-1] == c[k-2] and sp[k-1] == 1:
+        k -= 1
+    if k < len(df):
+        TRIMMED.append((stem, str(df.get("source", pd.Series(["?"])).iloc[0]), len(df) - k,
+                        str(pd.to_datetime(df["date"].iloc[k-1]).date()), str(pd.to_datetime(df["date"].iloc[-1]).date()),
+                        round(float(sum(dv[k:])), 4)))
+        df = df.iloc[:k]
+    return df
+
+
 def main():
     # Labels whose stored history belongs to a different company that later
     # reused the ticker are never published (see quarantine_tickers.txt).
@@ -134,7 +169,7 @@ def main():
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(pd.read_parquet(f)))
+            out.append(adjust_one(trim_filler(pd.read_parquet(f), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -152,6 +187,9 @@ def main():
     all_df.to_parquet(ROOT / "data" / "prices.parquet", index=False,
                       compression="zstd", row_group_size=100_000)   # small groups = fast remote ticker queries
 
+    pd.DataFrame(TRIMMED, columns=["ticker", "source", "rows_dropped", "last_trade", "last_filler", "dividends_dropped"]) \
+        .to_csv(ROOT / "data" / "trimmed_filler.csv", index=False)
+    print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
         .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
     if ANOMALIES:

@@ -209,6 +209,14 @@ def check_structure(df):
     record("non-positive prices", "PASS" if np_ == 0 else "FAIL", f"{np_:,} non-positive close/adj_close")
     ohlc = ((df.high < df.close - 1e-6) | (df.low > df.close + 1e-6) | (df.high < df.open - 1e-6) | (df.low > df.open + 1e-6)).sum()
     record("ohlc sanity", "PASS" if ohlc <= 5 else "FAIL", f"{ohlc:,} bars with open/close outside high-low (known: HUBB, UA 2021-05-05)")
+    latest = df.date.max(); stale = 0
+    for tk, g in df[["ticker", "date", "open", "high", "low", "close"]].groupby("ticker", sort=False):
+        if len(g) < 3 or g.date.iloc[-1] >= latest - pd.Timedelta(days=30):
+            continue
+        a, b = g.iloc[-1], g.iloc[-2]
+        if a.open == a.high == a.low == a.close == b.close:
+            stale += 1
+    record("stale tails", "PASS" if stale == 0 else "FAIL", f"{stale} dead series end in flat filler bars (should be trimmed by compute_adjusted.py)")
     spy = df[df.ticker == "SPY"].date
     record("calendar", "PASS" if len(spy) > 7000 else "FAIL", f"SPY has {len(spy):,} trading days on file")
 
@@ -277,7 +285,7 @@ def check_coverage(df, iv):
     for d in ["1996-01-02", "2000-01-03", "2005-01-03", "2008-09-15", "2010-01-04", "2015-01-05", "2019-01-11", "2024-09-23", latest]:
         ts = pd.Timestamp(d)
         mem = set(iv[(iv.start <= ts) & (iv["end"].isna() | (iv["end"] > ts))].ticker) - rec
-        got = sum(1 for t in mem if t in have.index and have.loc[t, "min"] <= ts <= have.loc[t, "max"])
+        got = sum(1 for t in mem if t in have.index and have.loc[t, "min"] <= ts <= have.loc[t, "max"] + pd.Timedelta(days=7))
         pct = got / max(len(mem), 1) * 100; worst = min(worst, pct)
         say(f"    {d}  members {len(mem):3d}  with prices {got:3d}  coverage {pct:5.1f}%")
     record("coverage", "PASS" if worst >= 30 else "FAIL", f"worst coverage {worst:.1f}% - pre-2005 results are not survivorship-safe")
