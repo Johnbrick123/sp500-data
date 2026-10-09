@@ -79,6 +79,7 @@ KNOWN_RENAMES = {
     "CDAY": "DAY",   # Ceridian -> Dayforce
     "DISCA": "WBD",  # Discovery Series A -> Warner Bros. Discovery (2022-04-11); WBD's series is the Series A lineage. DISCK stays its own class.
     "GPS": "GAP",    # Gap Inc changed its ticker 2024-08-22
+    "HFC": "DINO",   # HollyFrontier -> HF Sinclair (2022-03-14, one-for-one); DINO carries HollyFrontier's history back to 1992
     "COG": "CTRA",   # Cabot Oil & Gas -> Coterra
     "CTL": "LUMN",   # CenturyLink -> Lumen
     "EQR": "VMRK",   # Equity Residential -> Vivmark Residential (AvalonBay merger closed 2026-08-17; EQR is the surviving issuer)
