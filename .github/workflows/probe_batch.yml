@@ -1,0 +1,21 @@
+name: Probe several tickers' rows (Tiingo raw vs Nasdaq)
+on:
+  workflow_dispatch:
+    inputs:
+      items: { description: "Comma list of TICKER:START:END", required: true, default: "AAPL:2020-08-27:2020-09-02" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: python probe_batch.py "${{ github.event.inputs.items }}"
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: gh release upload data data/batch_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
