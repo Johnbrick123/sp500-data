@@ -77,6 +77,8 @@ KNOWN_RENAMES = {
     "BLL": "BALL",   # Ball Corp
     "CBS": "SKYD", "VIAC": "SKYD", "PARA": "SKYD", "PSKY": "SKYD",   # CBS -> ViacomCBS -> Paramount -> Paramount Skydance (PSKY, then SKYD from Oct 2026)
     "CDAY": "DAY",   # Ceridian -> Dayforce
+    "DISCA": "WBD",  # Discovery Series A -> Warner Bros. Discovery (2022-04-11); WBD's series is the Series A lineage. DISCK stays its own class.
+    "GPS": "GAP",    # Gap Inc changed its ticker 2024-08-22
     "COG": "CTRA",   # Cabot Oil & Gas -> Coterra
     "CTL": "LUMN",   # CenturyLink -> Lumen
     "EQR": "VMRK",   # Equity Residential -> Vivmark Residential (AvalonBay merger closed 2026-08-17; EQR is the surviving issuer)

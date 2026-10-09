@@ -19,8 +19,11 @@ for u in [f"https://www.kaggle.com/api/v1/datasets/view/{slug}",
         keys = list(j)[:25] if isinstance(j, dict) else f"list[{len(j)}]"
         say(f"{u.split('/v1/')[1]} -> {st} keys {keys}")
         if isinstance(j, dict):
-            for k in ("currentVersionNumber", "lastUpdated", "totalBytes", "versions"):
+            for k in ("currentVersionNumber", "lastUpdated", "totalBytes"):
                 if k in j: say(f"   {k}: {str(j[k])[:300]}")
+            if "versions" in j:
+                vs = [(v.get("versionNumber"), str(v.get("creationDate", ""))[:10]) for v in j["versions"]]
+                say(f"   versions listed: {len(vs)}; " + " ".join(f"{n}@{d}" for n, d in vs[:400]))
     except Exception as e:
         say(f"{u.split('/v1/')[1]} -> {type(e).__name__} {str(e)[:120]}")
 # try a few explicit versions
@@ -30,7 +33,7 @@ for v in [int(x) for x in sys.argv[2:]] or [1, 50, 100]:
         st, b, h = get(u)
         z = zipfile.ZipFile(io.BytesIO(b)); names = z.namelist()
         info = f"version {v}: {len(b)/1e6:.1f} MB, files {names[:5]}"
-        f = next((n for n in names if n.endswith(".csv")), None)
+        f = next((n for n in names if "stock" in n.lower() and n.endswith(".csv")), next((n for n in names if n.endswith(".csv")), None))
         if f:
             df = pd.read_csv(z.open(f), nrows=5); info += f" cols {list(df.columns)[:8]}"
             full = pd.read_csv(z.open(f), usecols=lambda c: c.lower() in ("date", "symbol", "ticker"))
