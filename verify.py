@@ -220,9 +220,10 @@ def check_structure(df):
     mem = set(pd.read_parquet(INTERVALS, columns=["ticker"]).ticker)
     z = df[df.ticker.isin(mem)].sort_values(["ticker", "date"])
     pc = z.groupby("ticker").close.shift()
+    ev = z.dividends.fillna(0).ne(0) | z.stock_splits.fillna(1).replace(0, 1).ne(1)    # dividend/split rows are events, kept on purpose
     ph = int(((z.volume.fillna(0) == 0) & (z.open == z.high) & (z.high == z.low) & (z.low == z.close) & (z.close == pc)
-              & z.groupby("ticker").date.shift(-1).notna()).sum())
-    record("placeholder bars", "PASS" if ph == 0 else "FAIL", f"{ph} zero-volume flat bars inside index stocks' series (dropped by compute_adjusted.py)")
+              & ~ev & z.groupby("ticker").date.shift(-1).notna()).sum())
+    record("placeholder bars", "PASS" if ph == 0 else "FAIL", f"{ph} zero-volume flat bars inside index stocks' series (dropped by compute_adjusted.py; rows carrying a dividend or split are kept)")
     spy = df[df.ticker == "SPY"].date
     record("calendar", "PASS" if len(spy) > 7000 else "FAIL", f"SPY has {len(spy):,} trading days on file")
 

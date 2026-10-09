@@ -154,7 +154,10 @@ def drop_placeholders(df, stem):
     pc = df["close"].shift()
     vol = pd.to_numeric(df.get("volume", pd.Series(0, index=df.index)), errors="coerce").fillna(0)
     bad = (vol == 0) & (df["open"] == df["high"]) & (df["high"] == df["low"]) & (df["low"] == df["close"]) & (df["close"] == pc)
-    bad &= df["dividends"].fillna(0).eq(0) if "dividends" in df else True
+    if "dividends" in df:                       # a row carrying a dividend or a split is an event: keep it
+        bad &= df["dividends"].fillna(0).eq(0)
+    if "stock_splits" in df:
+        bad &= df["stock_splits"].fillna(1).replace(0, 1).eq(1)
     bad.iloc[-1] = False
     if bad.any():
         d = pd.to_datetime(df.loc[bad, "date"])
