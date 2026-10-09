@@ -133,6 +133,7 @@ TRIMMED = []
 PATCHES_F = ROOT / "price_patches.csv"
 PATCHES = pd.read_csv(PATCHES_F, parse_dates=["date"]) if PATCHES_F.exists() else pd.DataFrame()
 PATCHED = []
+REPLACED = []
 PLACEHOLDERS = []
 MEMBER_LABELS = set()
 _ivf = ROOT / "data" / "universe" / "membership_intervals.parquet"
@@ -205,16 +206,43 @@ def apply_splice(df, stem):
 
 
 def apply_patches(df, stem):
-    """Hand-verified rows (price_patches.csv) for days a source is missing, e.g.
-    Veralto's first two trading days. Only fills dates the file does not have;
-    never overwrites a row. Values must already be on the series' price basis."""
+    """Hand-verified rows (price_patches.csv). Values must already be on the
+    series' price basis.
+      action=fill (the default): adds a day the source is missing, e.g.
+        Veralto's first two trading days. Never touches an existing row.
+      action=replace: overwrites open/high/low/close/volume of an existing day
+        that two independent sources show to be wrong (Vontier 2020-10-09:
+        Nasdaq, Tiingo and Fortive's Form 8937 against Yahoo). The row keeps its
+        dividend and split. Refused, and logged, when the date is not in the
+        series or the existing close is more than 5% away from the patch (that
+        would mean the series' price basis moved and the patch needs redoing)."""
     if PATCHES.empty or stem not in set(PATCHES.ticker):
         return df
     d = pd.to_datetime(df["date"])
     if d.dt.tz is not None:
         d = d.dt.tz_localize(None)
-    df = df.assign(date=d)
-    add = PATCHES[(PATCHES.ticker == stem) & (~PATCHES.date.isin(set(d)))]
+    df = df.assign(date=d).reset_index(drop=True)
+    mine = PATCHES[PATCHES.ticker == stem]
+    act = (mine["action"].fillna("fill").astype(str).str.strip().str.lower()
+           if "action" in mine.columns else pd.Series("fill", index=mine.index))
+    for _, p in mine[act.eq("replace")].iterrows():
+        hit = df.index[df["date"] == p["date"]]
+        if len(hit) != 1:
+            REPLACED.append((stem, str(p["date"].date()), None, float(p["close"]), "REFUSED: date not in series"))
+            continue
+        i = hit[0]
+        old = float(df.at[i, "close"])
+        if not abs(old / float(p["close"]) - 1) <= 0.05:
+            REPLACED.append((stem, str(p["date"].date()), old, float(p["close"]), "REFUSED: more than 5% from the existing close"))
+            continue
+        for c in ("open", "high", "low", "close", "volume"):
+            if c in df.columns and pd.notna(p.get(c)):
+                df.at[i, c] = float(p[c])
+        if "source" in df.columns:
+            df["source"] = df["source"].astype(object)
+            df.at[i, "source"] = str(p["source"])
+        REPLACED.append((stem, str(p["date"].date()), round(old, 4), float(p["close"]), "replaced"))
+    add = mine[act.eq("fill") & (~mine.date.isin(set(d)))]
     if add.empty:
         return df
     cols = [c for c in ("date", "open", "high", "low", "close", "volume", "dividends", "stock_splits", "source") if c in add.columns]
@@ -289,6 +317,7 @@ def main():
     pd.DataFrame(PLACEHOLDERS, columns=["ticker", "date", "source"]).to_csv(ROOT / "data" / "dropped_placeholders.csv", index=False)
     print(f"placeholder bars dropped (zero volume, flat at prior close): {len(PLACEHOLDERS):,} (data/dropped_placeholders.csv)")
     print(f"hand-verified patch rows added: {PATCHED}")
+    print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \

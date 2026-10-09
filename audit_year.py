@@ -28,7 +28,7 @@ have = set(yr.ticker)
 missing = [t for t in members if t not in have]
 say(f"members with no {YEAR} prices on file: {len(missing)} {missing}")
 
-agree, disagree, unavailable, thin, errs = [], [], [], [], []
+agree, disagree, unavailable, thin, errs, offdays = [], [], [], [], [], []
 for i, tk in enumerate(members):
     if tk not in have:
         continue
@@ -66,6 +66,10 @@ for i, tk in enumerate(members):
         thin.append((tk, len(diff))); continue
     off = (diff > 0.005).mean() * 100
     (agree if off < 1 else disagree).append((tk, round(off, 2), round(diff.max() * 100, 2), len(diff)))
+    for ix in diff[diff > 0.005].index:
+        r = m.loc[ix]
+        offdays.append((tk, str(r.date.date()), round(float(r.close_o), 4), round(float(r.close_n), 4),
+                        round(float(r.r_o) * 100, 2), round(float(r.r_n) * 100, 2)))
     if (i + 1) % 50 == 0:
         say(f"  ... {i + 1}/{len(members)} checked; agree {len(agree)} disagree {len(disagree)} unavailable {len(unavailable)}")
     time.sleep(0.4)
@@ -83,6 +87,9 @@ if unavailable:
     for u in unavailable: say(f"  {u}")
 if thin:
     say(f"\nTHIN: {thin}")
+if offdays:
+    say("\nEVERY DIFFERING DAY (ticker, date, our close, Nasdaq close, our return %, Nasdaq return %):")
+    for o in sorted(offdays, key=lambda x: (x[1], x[0])): say(f"  {o}")
 if errs:
     say(f"\nfirst request errors: {errs}")
 (ROOT / "data" / f"audit_{YEAR}.txt").write_text("\n".join(out))

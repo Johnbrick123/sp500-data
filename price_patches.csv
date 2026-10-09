@@ -1,4 +1,5 @@
-ticker,date,open,high,low,close,volume,dividends,stock_splits,source,note
-VLTO,2023-10-02,83.11,89.00,81.53,85.12,23045074,0,1,tiingo-patch,"Veralto's first two regular-way days (S&P 500 add 2023-10-02); Yahoo's history starts 2023-10-04. Tiingo's 2023-10-04..10 rows match ours to the cent."
-VLTO,2023-10-03,82.65,83.25,76.0115,77.05,12671218,0,1,tiingo-patch,"see above"
-CCI,2020-07-31,169.57,170.20,165.90,166.70,3308567,0,1,tiingo-patch,"Yahoo carries a zero-volume placeholder at the prior close (170.21); Tiingo has the real bar, which the June-2021 Kaggle archive confirms (166.70)."
+ticker,date,open,high,low,close,volume,dividends,stock_splits,source,action,note
+VLTO,2023-10-02,83.11,89.00,81.53,85.12,23045074,0,1,tiingo-patch,fill,Veralto's first two regular-way days (S&P 500 add 2023-10-02); Yahoo's history starts 2023-10-04. Tiingo's 2023-10-04..10 rows match ours to the cent.
+VLTO,2023-10-03,82.65,83.25,76.0115,77.05,12671218,0,1,tiingo-patch,fill,see above
+CCI,2020-07-31,169.57,170.20,165.90,166.70,3308567,0,1,tiingo-patch,fill,"Yahoo carries a zero-volume placeholder at the prior close (170.21); Tiingo has the real bar, which the June-2021 Kaggle archive confirms (166.70)."
+VNT,2020-10-09,32.50,32.90,27.85,28.11,19985326,0,1,tiingo-patch,replace,"Vontier's first regular-way day. Yahoo's bar (low 28.10, close 28.28) is wrong: Tiingo and Nasdaq both have low 27.85 / close 28.11, and Fortive's Form 8937 gives Vontier's NYSE average of high and low that day as $30.38 = (32.90+27.85)/2 (Yahoo's would be 30.50). Fortive's own bar that day matches the 8937 ($70.16) exactly."
