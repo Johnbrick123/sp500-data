@@ -32,8 +32,10 @@ y0, y1 = pd.Timestamp(f"{YEAR}-01-01"), pd.Timestamp(f"{YEAR}-12-31")
 oy = ours[(ours.date >= y0 - pd.Timedelta(days=10)) & (ours.date <= y1)]
 labels = set(oy.ticker)
 
+ALIASES = {"FI": "FISV"}   # snapshot-era symbols for names whose ticker later changed back
+
 def our_label(s):
-    for c in (ren.get(s, s), s):
+    for c in (ren.get(s, s), s, ALIASES.get(s, s)):
         if c in labels:
             return c
     dated = sorted(l for l in labels if re.match(rf"^{re.escape(s)}-\d{{6}}$", l))
