@@ -1,0 +1,23 @@
+name: Probe one ticker's rows (Tiingo vs Nasdaq)
+on:
+  workflow_dispatch:
+    inputs:
+      ticker: { description: "Ticker or Tiingo permaTicker", required: true, default: "VLTO" }
+      start: { description: "Start date", required: true, default: "2023-09-28" }
+      end: { description: "End date", required: true, default: "2023-10-10" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: python probe_rows.py "${{ github.event.inputs.ticker }}" "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}"
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: gh release upload data data/rows_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
