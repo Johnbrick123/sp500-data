@@ -41,7 +41,7 @@ def our_label(s):
     dated = sorted(l for l in labels if re.match(rf"^{re.escape(s)}-\d{{6}}$", l))
     return dated[0] if dated else None
 
-agree, disagree, missing = [], [], []
+agree, disagree, missing, offdays = [], [], [], []
 for s, g in k[(k.date >= y0 - pd.Timedelta(days=10)) & (k.date <= y1)].groupby("symbol"):
     lab = our_label(s)
     if lab is None:
@@ -55,6 +55,10 @@ for s, g in k[(k.date >= y0 - pd.Timedelta(days=10)) & (k.date <= y1)].groupby("
     if len(d) < 20:
         missing.append(f"{s}({len(d)}d)"); continue
     off = (d > 0.005).mean() * 100
+    for ix in d[d > 0.005].index:
+        r = m.loc[ix]
+        offdays.append((s, lab, str(r.date.date()), round(float(r.close_o), 4), round(float(r.close_k), 4),
+                        round(float(r.r_o) * 100, 2), round(float(r.r_k) * 100, 2)))
     src = str(oy[oy.ticker == lab].source.iloc[0])
     (agree if off < 1 else disagree).append((s, lab, src, round(off, 2), round(d.max() * 100, 3), len(d)))
 
@@ -70,4 +74,7 @@ if disagree:
     for d in sorted(disagree, key=lambda x: -x[3]): say(f"  {d}")
 if missing:
     say(f"\nin the snapshot but not matched to a label of ours with {YEAR} prices: {missing}")
+if offdays:
+    say("\nEVERY DIFFERING DAY (snapshot symbol, our label, date, our close, snapshot close, our return %, snapshot return %):")
+    for o in sorted(offdays, key=lambda x: (x[2], x[1])): say(f"  {o}")
 (ROOT / "data" / f"kaggle_crosscheck_{YEAR}.txt").write_text("\n".join(out))
