@@ -72,9 +72,16 @@ def candidates(lab):
     c = [lab, bare] + inv.get(lab, []) + inv.get(bare, [])
     return [x for x in dict.fromkeys(c) if x in ksyms]
 
-agree, disagree, absent = [], [], []
+spans = {t: list(zip(g.start, g["end"])) for t, g in iv.groupby("ticker")}
+def member_days(o, lab):
+    keep = pd.Series(False, index=o.index)
+    for a, b in spans.get(lab, []):
+        keep |= (o.date >= a - pd.Timedelta(days=10)) & ((o.date < b) if pd.notna(b) else True)
+    return o[keep]
+
+agree, disagree, absent, detail = [], [], [], {}
 for lab in sorted(members):
-    o = oy[oy.ticker == lab]
+    o = member_days(oy[oy.ticker == lab], lab)          # compare only days the company was in the index
     if o.empty:
         continue
     cs = candidates(lab)
@@ -94,6 +101,8 @@ for lab in sorted(members):
         row = (lab, s, str(o.source.iloc[0]), round(off, 2), round(d.max() * 100, 3), len(d), m.date.min().date(), m.date.max().date())
         if best is None or off < best[3]:
             best = row
+            bad = m.loc[d[d > 0.005].index]
+            detail[lab] = bad[["date", "close_o", "close_k", "r_o", "r_k"]].head(8)
     if best is None:
         absent.append(lab)
     else:
@@ -106,7 +115,15 @@ nonyahoo = [a for a in agree if not a[2].startswith("yahoo")]
 say(f"\nnon-Yahoo series confirmed ({len(nonyahoo)}): " + ", ".join(f"{a[0]}({a[6]}..{a[7]})" for a in nonyahoo))
 if disagree:
     say("\nDISAGREE (our label, archive symbol, our source, % days off, max pp, days, from, to):")
-    for d in sorted(disagree, key=lambda x: -x[3]): say(f"  {d}")
+    for d in sorted(disagree, key=lambda x: -x[3]):
+        say(f"  {d}")
+        say("    " + detail[d[0]].round(4).to_string(index=False).replace("\n", "\n    "))
+few = [a for a in agree if a[3] > 0]
+if few:
+    say("\nagreeing names with a few differing days:")
+    for a in sorted(few, key=lambda x: -x[3])[:10]:
+        say(f"  {a}")
+        say("    " + detail[a[0]].round(4).to_string(index=False).replace("\n", "\n    "))
 if WATCH:
     say("\nWATCHLIST:")
     allr = {a[0]: a for a in agree + disagree}
