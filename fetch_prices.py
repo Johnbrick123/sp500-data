@@ -176,7 +176,8 @@ def main():
         time.sleep(PAUSE)
 
     # Names whose history Tiingo keeps under another symbol (tiingo_aliases.csv:
-    # FRC -> FRCB) or where Yahoo only has an OTC tail (SBNY). Same acceptance
+    # FRC -> FRCB), under a permaTicker only (WRK), or where Yahoo only has an
+    # OTC tail (SBNY). Same acceptance
     # rules as the fallback below: must overlap the membership window and agree
     # with the file we hold on overlapping days.
     ALIAS_F = ROOT / "tiingo_aliases.csv"
