@@ -12,3 +12,4 @@ data/*.json
 data/*.txt
 data/*.csv
 kag/
+data/universe/*.csv
