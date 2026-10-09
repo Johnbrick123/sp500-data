@@ -1,0 +1,27 @@
+name: Second-source check of one year against an old Kaggle snapshot
+on:
+  workflow_dispatch:
+    inputs:
+      year: { description: "Calendar year", required: true, default: "2021" }
+      version: { description: "andrewmvd/sp-500-stocks version (a snapshot from just after year-end)", required: true, default: "17" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'renames.csv' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python kaggle_crosscheck.py "${{ github.event.inputs.year }}" "${{ github.event.inputs.version }}"
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: gh release upload data "data/kaggle_crosscheck_${{ github.event.inputs.year }}.txt" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
