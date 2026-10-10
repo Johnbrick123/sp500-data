@@ -1,0 +1,32 @@
+name: Audit one year's dividends against Tiingo
+on:
+  workflow_dispatch:
+    inputs:
+      year: { description: "Calendar year", required: true, default: "2018" }
+      tickers: { description: "Comma list (blank = every Yahoo-sourced member of the year)", required: false, default: "" }
+      batches: { description: "Hourly batches of 45 requests", required: false, default: "1" }
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python audit_dividends.py "${{ github.event.inputs.year }}" "${{ github.event.inputs.tickers }}"
+        env:
+          TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
+          DIV_BATCHES: "${{ github.event.inputs.batches }}"
+      - run: |
+          gh release upload data "data/dividend_audit_${{ github.event.inputs.year }}.txt" --clobber
+          gh release upload data "data/dividend_audit_${{ github.event.inputs.year }}_overrides.csv" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
