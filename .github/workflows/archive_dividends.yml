@@ -1,0 +1,27 @@
+name: Derive dividends from an archive's adjusted close
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "Kaggle owner/dataset", required: true, default: "jacksoncrow/stock-market-dataset" }
+      name: { description: "Short name for the output", required: true, default: "jacksoncrow" }
+      tickers: { description: "Comma list", required: true, default: "NBL" }
+      start: { description: "From", required: false, default: "1990-01-01" }
+      end: { description: "To", required: false, default: "2030-12-31" }
+permissions:
+  contents: write
+jobs:
+  derive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas 'kaggle>=1.8.0'
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python archive_dividends.py "${{ github.event.inputs.tickers }}" "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}"
+        env: { ARCHIVE_NAME: "${{ github.event.inputs.name }}" }
+      - run: gh release upload data "data/archive_dividends_${{ github.event.inputs.name }}.csv" "data/archive_dividends_${{ github.event.inputs.name }}.txt" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
