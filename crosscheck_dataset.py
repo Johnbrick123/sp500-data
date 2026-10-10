@@ -5,6 +5,7 @@ ticker). Built for archives frozen while companies that have since died were
 still trading, e.g. jacksoncrow/stock-market-dataset (Apr 2020) and
 tsaustin/us-historical-stock-prices-with-earnings-data (Jun 2021).
 Usage: python crosscheck_dataset.py SLUG YEAR [WATCH,LIST] -> data/xcheck_<name>_YEAR.txt
+  (a watch entry LABEL=SYMBOL compares that label with the archive's SYMBOL)
 When the archive has an adjusted close, total returns are compared too (that
 tests dividends, which the close-to-close check cannot see); spin-off ex-dates
 and distributions over 5% of the price differ by design (see kaggle_crosscheck.py).
@@ -15,6 +16,10 @@ import pandas as pd
 
 slug, YEAR = sys.argv[1], int(sys.argv[2])
 WATCH = [w.strip().upper() for w in (sys.argv[3] if len(sys.argv) > 3 else "").split(",") if w.strip()]
+# LABEL=SYMBOL in the watch list maps a label to the archive symbol that carries it
+# (DOW-201708=DWDP: the 2018 archive keeps Dow Chemical as the pre-merger part of DowDuPont)
+FORCE = dict(w.split("=", 1) for w in WATCH if "=" in w)
+WATCH = [w.split("=", 1)[0] for w in WATCH]
 ROOT = Path(__file__).parent
 name = slug.split("/")[1][:30]
 out = []
@@ -80,6 +85,8 @@ oy = ours[(ours.date >= lo) & (ours.date <= y1) & ours.ticker.isin(members)]
 ksyms = set(k.symbol)
 
 def candidates(lab):
+    if lab in FORCE:
+        return [FORCE[lab]] if FORCE[lab] in ksyms else []
     bare = re.sub(r"-\d{6}$", "", lab)
     c = [lab, bare] + inv.get(lab, []) + inv.get(bare, [])
     return [x for x in dict.fromkeys(c) if x in ksyms]
