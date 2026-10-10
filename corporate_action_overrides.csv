@@ -1,3 +1,5 @@
 ticker,date,split_factor,dividend,note
-KSU,2000-07-13,0.5,,"Tiingo books the Stilwell Financial spin-off as a $181 dividend per POST-split share but omits the 1-for-2 reverse split of the same day. Adding the split makes the record consistent: holders kept ~3.5% of value in KSU and received the rest as Stilwell stock."
-RRD,2016-10-03,0.333333,,"R.R. Donnelley spun off LSC Communications and Donnelley Financial and did a 1-for-3 reverse split the same day. Tiingo books the distribution ($25.61 per post-split share) but omits the split; the close moves 15.72 -> 23.81 on that date."
+KSU,2000-07-13,0.5,,Tiingo books the Stilwell Financial spin-off as a $181 dividend per POST-split share but omits the 1-for-2 reverse split of the same day. Adding the split makes the record consistent: holders kept ~3.5% of value in KSU and received the rest as Stilwell stock.
+RRD,2016-10-03,0.333333,,R.R. Donnelley spun off LSC Communications and Donnelley Financial and did a 1-for-3 reverse split the same day. Tiingo books the distribution ($25.61 per post-split share) but omits the split; the close moves 15.72 -> 23.81 on that date.
+FOXA-201903,2013-07-01,,0,"Tiingo books the June 2013 News Corp separation (1 new NWSA per 4 shares, valued 3.8125) on 2013-07-01, but the shares went ex on 2013-06-19 (31.56 -> 28.35; new NWSA when-issued trading starts that day). The distribution is booked on the real ex-date in spinoffs.csv instead."
+FOX-201903,2013-07-01,,0,"Same for Class B (1 new NWS per 4, Tiingo's 3.845 on 2013-07-01); real ex-date 2013-06-19."
