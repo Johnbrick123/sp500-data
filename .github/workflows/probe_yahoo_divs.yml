@@ -1,0 +1,22 @@
+name: Probe Yahoo dividends (download vs Ticker)
+on:
+  workflow_dispatch:
+    inputs:
+      tickers: { description: "Comma list", required: true, default: "APTV,EG,ETN,MDT" }
+      start: { description: "From", required: false, default: "2016-01-01" }
+      end: { description: "To", required: false, default: "2021-12-31" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q yfinance pandas
+      - run: python probe_yahoo_divs.py "${{ github.event.inputs.tickers }}" "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}"
+      - run: gh release upload data data/yahoo_divs_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
