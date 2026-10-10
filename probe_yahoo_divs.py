@@ -11,6 +11,7 @@ out = []
 def say(s=""): print(s, flush=True); out.append(str(s))
 def clip(s):
     s = s[s != 0].copy(); s.index = pd.to_datetime(s.index).tz_localize(None) if getattr(s.index, "tz", None) is not None else pd.to_datetime(s.index)
+    s.index = s.index.normalize()                       # Ticker().dividends carries a time of day
     return s[(s.index >= lo) & (s.index <= hi)].round(6)
 say(f"yfinance {yf.__version__}")
 for t in tks:
