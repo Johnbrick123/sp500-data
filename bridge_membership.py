@@ -121,6 +121,12 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("SE-201702",   "2017-02-28"),   # Incyte replaced Spectra Energy before the 2/28 open (S&P DJI 2017-02-23); Enbridge closed 2/27, SE last traded 2/24
+    ("HAR-201703",  "2017-03-16"),   # Synopsys replaced Harman before the 3/16 open (S&P DJI 2017-03-13); Samsung closed 3/10
+    ("MJN-201706",  "2017-06-19"),   # Everest Re replaced Mead Johnson before the 6/19 open (S&P DJI 2017-06-12); Reckitt closed 6/15, MJN last traded 6/14
+    ("RAI-201707",  "2017-07-26"),   # MGM Resorts replaced Reynolds American before the 7/26 open (S&P DJI 2017-07-19); BAT closed before the 7/25 open
+    ("WFM-201708",  "2017-08-29"),   # Quintiles IMS replaced Whole Foods before the 8/29 open (S&P DJI 2017-08-24); Amazon closed 8/28, WFM last traded 8/25
+    ("SPLS-201709", "2017-09-18"),   # Cadence replaced Staples before the 9/18 open (S&P DJI 2017-09-08); Sycamore closed 9/12
     ("BCR-201712",  "2018-01-03"),   # Huntington Ingalls replaced C.R. Bard before the 2018-01-03 open (S&P DJI 2017-12-28); Becton Dickinson closed 12/29
     ("TWX-201806",  "2018-06-20"),   # FleetCor replaced Time Warner before the 6/20 open (S&P DJI 2018-06-15); AT&T closed 6/14
     ("XL-201809",   "2018-09-17"),   # WellCare replaced XL Group before the 9/17 open (S&P DJI 2018-09-11); AXA closed 9/12
@@ -164,6 +170,8 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "IR":   [("TT",         "1900-01-01", "2020-03-02")],   # Ingersoll-Rand plc renamed Trane Technologies; a NEW Ingersoll Rand Inc took IR on 2020-03-02
     "FOXA": [("FOXA-201903","1900-01-01", "2019-03-19")],   # (old News Corp ->) 21st Century Fox Class A; Fox Corp took FOXA on 2019-03-19
     "FOX":  [("FOX-201903", "1900-01-01", "2019-03-19")],   # 21st Century Fox Class B; Fox Corp took FOX on 2019-03-19
+    "BBBY": [("BBBY-202305","1900-01-01", "2023-10-01")],   # Bed Bath & Beyond Inc. (S&P 500 1999-10-01..2017-07-26; Nasdaq delisting 2023-05, shares
+                                                            #   cancelled 2023-09); the symbol was reused later - Yahoo's BBBY series starts 2026-07-17 and is another company
 }
 
 

@@ -333,6 +333,11 @@ MEMBERSHIP_TESTS = [
     ("AVB", "2026-08-17", True), ("AVB", "2026-08-18", False), ("RDDT", "2026-08-18", True), ("RDDT", "2026-08-17", False),
     ("BRK-B", "2026-09-18", True), ("FISV", "2026-09-18", True), ("META", "2026-09-18", True),
     ("EA", "2010-06-30", True), ("AVB", "2015-12-31", True), ("FERG", "2020-01-01", False), ("RDDT", "2020-01-01", False),
+    # deals: S&P holds the target until the effective date in its release, after the stock stops trading
+    ("SPLS-201709", "2017-09-15", True), ("SPLS-201709", "2017-09-18", False), ("CDNS", "2017-09-15", False), ("CDNS", "2017-09-18", True),
+    ("HAR-201703", "2017-03-15", True), ("HAR-201703", "2017-03-16", False),
+    ("TWX-201806", "2018-06-19", True), ("TWX-201806", "2018-06-20", False),
+    ("BBBY-202305", "2017-07-25", True), ("BBBY-202305", "2017-07-26", False),
 ]
 
 

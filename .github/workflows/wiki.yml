@@ -2,9 +2,18 @@ name: Recover dead companies from WIKI
 
 on:
   workflow_dispatch:
+    inputs:
+      labels:
+        description: "Only these labels, space-separated; LABEL@YYYY-MM-DD keeps WIKI's rows up to that day (blank = every member without prices)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
+
+concurrency:
+  group: raw-store          # never run alongside another job that rewrites raw.tar.zst
+  cancel-in-progress: false
 
 jobs:
   recover:
@@ -23,12 +32,13 @@ jobs:
           gh release download data --pattern 'prices.parquet' --dir data --clobber
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
-      - run: python fetch_wiki.py
+      - run: python fetch_wiki.py ${{ github.event.inputs.labels }}
         env: { NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}" }
       - name: Publish recovered files and the report (always, so the result is readable)
         if: always()
         run: |
           [ -f data/wiki_report.txt ] && gh release upload data data/wiki_report.txt --clobber || true
+          [ -f data/wiki_report_targeted.txt ] && gh release upload data data/wiki_report_targeted.txt --clobber || true
           tar --zstd -cf raw.tar.zst data/raw
           gh release upload data raw.tar.zst --clobber
         env: { GH_TOKEN: "${{ github.token }}" }

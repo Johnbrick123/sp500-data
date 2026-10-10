@@ -31,7 +31,9 @@ if not KEY:
 
 ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
-REPORT = ROOT / "data" / "wiki_report.txt"
+# a targeted run (labels on the command line) reports separately, so the full-run report that
+# salvage_split.py reads is not replaced by a partial one
+REPORT = ROOT / "data" / ("wiki_report_targeted.txt" if len(sys.argv) > 1 else "wiki_report.txt")
 SUFFIX = re.compile(r"-(\d{6})$")
 lines = []
 
@@ -86,6 +88,22 @@ def main():
     for t, g in iv.groupby("ticker"):
         if t not in have:
             want[t] = (SUFFIX.sub("", t).replace("-", "."), g.start.min(), g["end"].max())
+    # Targeted run: python fetch_wiki.py LABEL[@YYYY-MM-DD] ... recovers only those
+    # labels; @date keeps WIKI's rows up to that day (the company's last trading
+    # day) when WIKI ran the symbol on into its successor (Dow -> DowDuPont).
+    cut_at = {}
+    if len(sys.argv) > 1:
+        picked = {}
+        for a in sys.argv[1:]:
+            lab, _, cut = a.partition("@")
+            if lab in want:
+                picked[lab] = want[lab]
+                if cut:
+                    cut_at[lab] = pd.Timestamp(cut)
+            else:
+                say(f"  {lab}: not a member without a price file - skipped")
+        want = picked
+        say(f"targeted run: {sorted(want)}" + (f", cut at {dict((k, str(v.date())) for k, v in cut_at.items())}" if cut_at else ""))
     bare_needed = {v[0] for v in want.values()}
 
     # a validation sample: live names we already hold from Yahoo
@@ -151,6 +169,9 @@ def main():
     ok, rejected, absent = 0, [], []
     for label, (bare, m_start, m_end) in sorted(want.items()):
         g = by_bare.get(bare)
+        if g is not None and label in cut_at:
+            say(f"  {label}: WIKI {bare} {g.date.min().date()}..{g.date.max().date()}, kept through {cut_at[label].date()}")
+            g = g[g.date <= cut_at[label]]
         if g is None or len(g) < 20:
             absent.append(label); continue
         first, last = g.date.min(), g.date.max()
