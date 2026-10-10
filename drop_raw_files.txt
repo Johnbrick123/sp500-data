@@ -7,3 +7,5 @@ DISCA wiki    # 2026-10-09: superseded by the DISCA->WBD rename; WBD holds the f
 GPS wiki      # 2026-10-09: superseded by the GPS->GAP rename; GAP holds the full history
 HFC wiki      # 2026-10-09: superseded by the HFC->DINO rename; DINO holds HollyFrontier's full history
 ADS wiki      # 2026-10-09: superseded by the ADS->BFH rename; BFH holds Alliance Data's full history
+KORS tiingo   # 2026-10-10: superseded by the KORS->CPRI rename; CPRI holds Michael Kors' full history (the upstream file listed both 2016-2018)
+PX-201810 tiingo  # 2026-10-10: superseded by PX-201810->LIN; LIN holds Praxair's full history (the upstream file listed both 2016-2018)

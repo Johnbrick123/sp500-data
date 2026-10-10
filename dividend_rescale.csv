@@ -1,0 +1,2 @@
+ticker,before,divide_by,note
+T,2022-04-11,1.324,"Yahoo scales AT&T's closes before the WarnerMedia spin-off (2022-04-11) by its 1.324 spin factor but left the dividends as declared ($0.52 a quarter in 2021 against a close of ~$19.9 instead of ~$26.3), so every AT&T dividend yield before April 2022 came out 32% too high (1996-2022 total return 339% instead of 194%). Every other parent's dividends are scaled; checked by verify.py ('dividend basis')."

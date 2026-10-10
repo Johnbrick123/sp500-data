@@ -14,6 +14,7 @@ correlation alone: adding 0.1pp to every daily return keeps correlation at
 import io, sys, urllib.request, warnings
 from datetime import date
 from pathlib import Path
+import numpy as np
 import pandas as pd
 
 warnings.filterwarnings("ignore")
@@ -75,6 +76,43 @@ def check_corporate_actions(df):
         record("spin-off ex-dates", "PASS" if not bad else "FAIL",
                f"{n} spin-off ex-dates carry the holder's actual return (parent + spun-off shares at their first close)"
                + (f"; WRONG: {bad[:5]}" if bad else ""))
+    check_dividend_basis(df)
+
+
+# Yahoo divides closes AND dividends by every later split factor, including the
+# factor it uses for a spin-off. A declared dividend is a round amount (a
+# multiple of $0.0001), so dividend x (product of later factors) must be round.
+# If instead the stored dividend is itself round across an odd factor, the
+# vendor left it unscaled and its yield is wrong by that factor (AT&T before
+# the 2022 WarnerMedia spin: fixed in dividend_rescale.csv).
+SIMPLE_FACTORS = (2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 1.5, 1.25, 4 / 3, 0.5, 0.25, 0.2, 0.125, 0.1, 1 / 3, 2 / 3,
+                  1.02, 1.03, 1.04, 1.05, 1.06, 1.08, 1.1)
+
+
+def check_dividend_basis(df):
+    def rnd(x, tol):
+        return abs(x * 10000 - round(x * 10000)) < tol
+    bad, n = [], 0
+    y = df[df.source == "yahoo"]
+    for tk, g in y.groupby("ticker"):
+        sp = g.stock_splits.fillna(0).replace(0, 1.0).astype(float).to_numpy()
+        odd = [i for i in np.flatnonzero(sp != 1) if not any(abs(sp[i] - s) < 1e-6 for s in SIMPLE_FACTORS)]
+        if not odd:
+            continue
+        later = np.append(np.cumprod(sp[::-1])[::-1][1:], 1.0)        # product of factors after each row
+        dv = g.dividends.fillna(0).to_numpy(dtype=float); dt = g.date.to_numpy()
+        for i in odd:
+            w = [j for j in np.flatnonzero(dv > 0) if dt[i] - np.timedelta64(3 * 365, "D") <= dt[j] < dt[i]]
+            if not w:
+                continue
+            n += 1
+            f = sp[i]
+            unscaled = sum(1 for j in w if rnd(dv[j] * later[j] / f, 0.02 * later[j] / f) and not rnd(dv[j] * later[j], 0.02 * later[j]))
+            if unscaled > len(w) / 2:
+                bad.append(f"{tk} before {pd.Timestamp(dt[i]).date()} (factor {f:g}): {unscaled}/{len(w)} dividends unscaled")
+    record("dividend basis", "PASS" if not bad else "FAIL",
+           f"{n} odd split/spin factors in Yahoo series: dividends before each are on the closes' basis"
+           + (f"; UNSCALED: {bad[:5]}" if bad else ""))
 
 
 # 2. Our adjustment vs Yahoo's own total-return series. Same vendor: tests OUR

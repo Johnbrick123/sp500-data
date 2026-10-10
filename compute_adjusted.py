@@ -26,12 +26,31 @@ ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
 ANOMALIES = []          # (ticker, date, prev_close, dividend, factor_or_close, action)
 OVERRIDES = ROOT / "corporate_action_overrides.csv"   # hand-verified fixes to provider records
+RESCALE_F = ROOT / "dividend_rescale.csv"              # runs of dividends a vendor left on the wrong basis
+RESCALED = []           # (ticker, before, divide_by, dividends rescaled)
 
 
 def apply_overrides(df):
     """Provider records are sometimes wrong in known ways. This table is the
     place to fix them explicitly, with a note, instead of code heuristics.
-    Columns: ticker, date, split_factor, dividend, note. Blank = leave as is."""
+    Columns: ticker, date, split_factor, dividend, note. Blank = leave as is.
+    dividend_rescale.csv (ticker, before, divide_by, note) puts a run of
+    dividends back on the closes' basis: Yahoo divides closes AND dividends by
+    every later split factor, including the one it uses for a spin-off, but
+    left AT&T's dividends before the 2022 WarnerMedia spin unscaled (closes
+    / 1.324, dividends not), which overstated every AT&T dividend yield before
+    April 2022 by 32%."""
+    if RESCALE_F.exists():
+        rs = pd.read_csv(RESCALE_F, dtype={"ticker": str}, parse_dates=["before"])
+        rs = rs[rs.ticker == df.ticker.iloc[0]]
+        if len(rs) and "dividends" in df.columns:
+            d = pd.to_datetime(df["date"])
+            if d.dt.tz is not None:
+                d = d.dt.tz_localize(None)
+            for _, r in rs.iterrows():
+                m = (d < r["before"]) & (df["dividends"].fillna(0) != 0)
+                df.loc[m, "dividends"] = df.loc[m, "dividends"] / float(r["divide_by"])
+                RESCALED.append((df.ticker.iloc[0], str(r["before"].date()), float(r["divide_by"]), int(m.sum())))
     if not OVERRIDES.exists():
         return df
     ov = pd.read_csv(OVERRIDES, dtype={"ticker": str})
@@ -404,6 +423,7 @@ def main():
     print(f"end-of-membership no-trade bars kept (halt / deal closed before removal): {CARRIED}")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
+    print(f"dividends put back on the closes' basis (ticker, before, divided by, rows): {RESCALED}")
     print("spin-off ex-dates set to the holder's actual return (ticker, ex-date, old %, new %, factor already in history, outcome):")
     for x in SPUN:
         print(f"    {x}")

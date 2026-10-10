@@ -108,7 +108,46 @@ KNOWN_RENAMES = {
     # found 85% of days differing). WestRock keeps its own label and series and
     # hands its index slot to SW on 2024-07-08 - see MANUAL_CHANGES.
     "DWDP": "DD",    # DowDuPont -> DuPont
+    # Same company listed twice by the upstream snapshot file from 2016-01-04
+    # (its old and new symbol side by side), which made 507 members instead of
+    # 505 for most of 2016-2018. One label each; the series are identical.
+    "KORS": "CPRI",       # Michael Kors -> Capri Holdings (ticker change 2018-12-31); both listed 2016-01-04..2018-09-18
+    "PX-201810": "LIN",   # Praxair -> Linde plc (1:1, 2018-10-31); PX and PX-201810 both listed 2016-01-04..2018-09-17
 }
+
+
+# Removals the upstream snapshot file dates at the deal's close. S&P removes a
+# name on the effective date in its announcement and holds it until then (at
+# its last price once it stops trading), so the name stays a member through
+# the day before that date. (label, effective removal date) - S&P DJI releases.
+HOLD_UNTIL = [
+    ("BCR-201712",  "2018-01-03"),   # Huntington Ingalls replaced C.R. Bard before the 2018-01-03 open (S&P DJI 2017-12-28); Becton Dickinson closed 12/29
+    ("TWX-201806",  "2018-06-20"),   # FleetCor replaced Time Warner before the 6/20 open (S&P DJI 2018-06-15); AT&T closed 6/14
+    ("XL-201809",   "2018-09-17"),   # WellCare replaced XL Group before the 9/17 open (S&P DJI 2018-09-11); AXA closed 9/12
+    ("COL-201811",  "2018-12-03"),   # Lamb Weston replaced Rockwell Collins before the 12/3 open (S&P DJI 2018-11-26); UTC closed 11/26
+    ("AET-201811",  "2018-12-03"),   # Maxim replaced Aetna before the 12/3 open (same release); CVS closed 11/28
+    ("ESRX-201812", "2018-12-24"),   # Celanese replaced Express Scripts before the 12/24 open (S&P DJI 2018-12-19); Cigna closed 12/20
+]
+
+
+def hold_until(all_m, label, end):
+    """Keep `label` a member on every snapshot date from its last listing up to
+    (not including) `end`, and make `end` a snapshot date without it, so its
+    membership interval ends exactly there."""
+    end = pd.Timestamp(end)
+    have = all_m.loc[all_m.ticker == label, "date"]
+    if have.empty or have.max() >= end:
+        print(f"  hold {label} until {end.date()}: nothing to do"); return all_m
+    dates = sorted(all_m.date.unique())
+    if end not in set(dates):                                 # a new snapshot = the composition just before it
+        prev = max(d for d in dates if d < end)
+        snap = all_m[(all_m.date == prev) & (all_m.ticker != label)].assign(date=end)
+        all_m = pd.concat([all_m, snap], ignore_index=True)
+        dates = sorted(all_m.date.unique())
+    gap = [d for d in dates if have.max() < d < end]
+    all_m = pd.concat([all_m, pd.DataFrame({"date": gap, "ticker": label})], ignore_index=True)
+    print(f"  hold {label} until {end.date()}: +{len(gap)} snapshot dates")
+    return all_m
 
 
 # Tickers REUSED by a different company after the original delisted. The
@@ -275,6 +314,8 @@ def main():
                 merge[bare] = sfx
     all_m["ticker"] = all_m["ticker"].map(lambda t: merge.get(t, t))
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
+    for lab, end in HOLD_UNTIL:
+        all_m = hold_until(all_m, lab, end)
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.
