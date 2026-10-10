@@ -25,7 +25,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-KEY = os.environ.get("NASDAQ_DATA_LINK_KEY")
+KEY = (os.environ.get("NASDAQ_DATA_LINK_KEY") or "").strip()   # the secret carries trailing whitespace: harmless at the end of a URL (urllib strips it), fatal before &qopts.cursor_id - every series longer than one page was lost
 if not KEY:
     sys.exit("NASDAQ_DATA_LINK_KEY not set")
 
