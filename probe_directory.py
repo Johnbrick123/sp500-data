@@ -1,6 +1,7 @@
 """Probe: find companies in Tiingo's directory by NAME fragment and test whether
-their permaTicker serves prices. Usage: python probe_directory.py "IHS MARKIT" "DISCOVERY" ...  -> data/directory_probe.txt"""
-import json, os, sys, time, urllib.request
+their permaTicker serves prices. Usage: python probe_directory.py "IHS MARKIT" "DISCOVERY" ...  -> data/directory_probe.txt
+A fragment "t:REGEX" matches the directory ticker instead (t:ca\\d*), "=NAME" an exact name."""
+import json, os, re, sys, time, urllib.request
 import pandas as pd
 KEY = os.environ["TIINGO_API_KEY"].strip()
 out = []
@@ -8,7 +9,13 @@ def say(s): print(s, flush=True); out.append(s)
 meta = json.load(urllib.request.urlopen(f"https://api.tiingo.com/tiingo/fundamentals/meta?token={KEY}", timeout=90))
 calls = 0
 for frag in sys.argv[1:]:
-    hits = [m for m in meta if frag.upper() in str(m.get("name", "")).upper()]
+    if frag.startswith("t:"):          # t:REGEX -> match the directory's ticker (dead names carry suffixes: ca1, csra)
+        rx = re.compile(frag[2:], re.I)
+        hits = [m for m in meta if rx.fullmatch(str(m.get("ticker", "")))]
+    elif frag.startswith("="):         # =NAME -> exact company name, case-insensitive
+        hits = [m for m in meta if str(m.get("name", "")).strip().upper() == frag[1:].strip().upper()]
+    else:
+        hits = [m for m in meta if frag.upper() in str(m.get("name", "")).upper()]
     say(f"== {frag}: {len(hits)} directory entries")
     for m in hits[:8]:
         pid = m.get("permaTicker")
