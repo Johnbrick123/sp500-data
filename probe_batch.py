@@ -2,7 +2,8 @@
 close, dividends, split factor) and Nasdaq (raw close), side by side. Used to
 hand-verify event days such as spin-offs, where the published closes on both
 sides of the ex-date are needed.
-Usage: python probe_batch.py "RTX:2020-03-30:2020-04-08,CARR:2020-04-01:2020-04-08"
+Usage: python probe_batch.py "RTX:2020-03-30:2020-04-08,CARR:2020-04-01:2020-04-08:n"
+(optional 4th field per item: t = Tiingo only, n = Nasdaq only, b = both, the default)
 -> data/batch_probe.txt"""
 import json, os, sys, time, urllib.request
 from datetime import date
@@ -15,20 +16,28 @@ def say(s=""): print(s, flush=True); out.append(str(s))
 pd.set_option("display.width", 220)
 
 for item in [x.strip() for x in sys.argv[1].split(",") if x.strip()]:
-    tk, start, end = item.split(":")
+    parts = item.split(":")
+    tk, start, end = parts[:3]
+    which = parts[3] if len(parts) > 3 else "b"         # t = Tiingo only, n = Nasdaq only, b = both
     say(f"\n===== {tk} {start}..{end}")
     t = pd.DataFrame()
     try:
+        if which == "n":
+            raise LookupError("skipped")
         rows = json.load(urllib.request.urlopen(
             f"https://api.tiingo.com/tiingo/daily/{tk}/prices?startDate={start}&endDate={end}&format=json&token={key}", timeout=60))
         t = pd.DataFrame(rows)
         if len(t):
             t["date"] = pd.to_datetime(t["date"]).dt.tz_localize(None)
             t = t[["date", "open", "high", "low", "close", "volume", "divCash", "splitFactor"]]
+    except LookupError:
+        pass
     except Exception as e:
         say(f"TIINGO error {type(e).__name__} {str(e)[:120]}")
     n = pd.DataFrame()
     try:
+        if which == "t":
+            raise LookupError("skipped")
         # the nightly's request shape: from mid-December of the year before to today
         y = int(start[:4])
         u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass=stocks"
@@ -42,6 +51,8 @@ for item in [x.strip() for x in sys.argv[1].split(",") if x.strip()]:
                 n[c] = pd.to_numeric(n[c].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce")
             n["volume"] = pd.to_numeric(n["volume"].astype(str).str.replace(",", ""), errors="coerce")
             n = n[(n.date >= start) & (n.date <= end)][["date", "open", "high", "low", "close", "volume"]]
+    except LookupError:
+        pass
     except Exception as e:
         say(f"NASDAQ error {type(e).__name__} {str(e)[:120]}")
     if t.empty and n.empty:

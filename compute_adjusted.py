@@ -152,7 +152,10 @@ def adjust_one(df):
                     SPUN.append((tk, str(exd.date()), None, None, None, "REFUSED: a cash dividend is booked on the ex-date")); continue
             implied = (c1 / c0) / (p1 / p0)      # the factor the stored history already carries for this event
             rec = float(split.iloc[i])
-            ok = abs(implied / rec - 1) < 0.01 if rec != 1 else 0.99 <= implied <= 100
+            if src in ("tiingo", "wiki"):
+                ok = abs(implied - 1) < 0.01               # raw closes: nothing is baked into the stored history
+            else:
+                ok = abs(implied / rec - 1) < 0.01 if rec != 1 else 0.99 <= implied <= 100
             if not ok:
                 SPUN.append((tk, str(exd.date()), None, None, None, f"REFUSED: implied factor {implied:.4f} vs recorded {rec:g}")); continue
             old = c1 / (c0 * float(factor.iloc[i])) - 1
