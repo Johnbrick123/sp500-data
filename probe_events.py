@@ -82,7 +82,7 @@ for root in sorted(glob.glob("kag_*")):
     frames = []
     for f in files:
         base = re.sub(r"\.(csv|txt)$", "", os.path.basename(f), flags=re.I)
-        base = re.sub(r"\.us$", "", base, flags=re.I).upper().replace(".", "-")
+        base = re.sub(r"\.us$", "", base, flags=re.I).upper().replace(".", "-").replace("_", "-")
         try:
             head = pd.read_csv(f, nrows=3)
         except Exception:
@@ -94,7 +94,7 @@ for root in sorted(glob.glob("kag_*")):
             continue
         if scol:
             for ch in pd.read_csv(f, chunksize=2_000_000):
-                ch[scol] = ch[scol].astype(str).str.upper().str.replace(".", "-", regex=False)
+                ch[scol] = ch[scol].astype(str).str.upper().str.replace(".", "-", regex=False).str.replace("_", "-", regex=False)
                 ch = ch[ch[scol].isin(need)]
                 if len(ch):
                     frames.append(ch.rename(columns={scol: "symbol", dcol: "date"}))
