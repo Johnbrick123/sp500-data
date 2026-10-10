@@ -2,7 +2,7 @@
 have, side by side, to hand-verify the closes a spinoffs.csv or price_patches.csv
 row needs. Read-only.
 
-Usage: python probe_events.py "SYM:START:END SYM:START:END ..." [TIINGO,SYMS]
+Usage: python probe_events.py "SYM:START:END SYM:START:END ..." [TIINGO,SYMS] [WIKI,SYMS]
   Nasdaq historical rows for every SYM (Nasdaq's history is split-adjusted and,
   for some spin-offs, spin-adjusted - fine for a spun-off company's own first
   days, not for a parent's raw close).
@@ -18,26 +18,44 @@ import pandas as pd
 specs = [s.split(":") for s in sys.argv[1].split() if s.count(":") >= 2]
 TI = {s.strip().upper() for s in (sys.argv[2] if len(sys.argv) > 2 else "").split(",") if s.strip()}
 KEY = os.environ.get("TIINGO_API_KEY", "").strip()
-H = {"User-Agent": "Mozilla/5.0 (data verification)", "Accept": "application/json"}
+H = {"User-Agent": "Mozilla/5.0 (data verification)"}
+WIKI = {s.strip().upper() for s in (sys.argv[3] if len(sys.argv) > 3 else "").split(",") if s.strip()}
+DLKEY = os.environ.get("NASDAQ_DATA_LINK_KEY", "").strip()
 out = []
 def say(s=""): print(s, flush=True); out.append(str(s))
 pd.set_option("display.width", 200)
 
 
+NQ = {}
 def nasdaq(sym, a, b):
-    for v in dict.fromkeys([sym, sym.replace("-", "."), sym.replace("-", "/"), sym.replace(".", "-")]):
-        u = (f"https://api.nasdaq.com/api/quote/{urllib.request.quote(v, safe='')}/historical?assetclass=stocks"
-             f"&fromdate={a}&todate={b}&limit=200")
-        try:
-            d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
-            rows = ((d.get("data") or {}).get("tradesTable") or {}).get("rows") or []
-            if rows:
-                df = pd.DataFrame(rows)
-                return v, df.iloc[::-1].to_string(index=False)
-        except Exception as e:
-            last = f"{type(e).__name__}"
-        time.sleep(0.5)
-    return None, "no rows"
+    """Same request as verify.py's nightly check (full 10-year window), filtered here."""
+    errs = []
+    for v in dict.fromkeys([sym, sym.replace("-", "."), sym.replace("-", "/")]):
+        if v not in NQ:
+            u = (f"https://api.nasdaq.com/api/quote/{v}/historical?assetclass=stocks"
+                 f"&fromdate=2016-09-01&todate={pd.Timestamp.today():%Y-%m-%d}&limit=9999")
+            try:
+                d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
+                NQ[v] = pd.DataFrame(((d.get("data") or {}).get("tradesTable") or {}).get("rows") or [])
+            except Exception as e:
+                NQ[v] = None; errs.append(f"{v}: {type(e).__name__} {str(e)[:60]}")
+            time.sleep(0.7)
+        df = NQ[v]
+        if df is not None and len(df):
+            dd = pd.to_datetime(df["date"], errors="coerce")
+            g = df[(dd >= pd.Timestamp(a)) & (dd <= pd.Timestamp(b))]
+            return v, (g.iloc[::-1].to_string(index=False) if len(g) else f"{len(df)} rows, none in the window")
+    return None, "no rows " + "; ".join(errs)
+
+
+def wiki(sym, a, b):
+    u = (f"https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES.json?ticker={sym}&date.gte={a}&date.lte={b}"
+         f"&qopts.columns=ticker,date,open,high,low,close,volume,ex-dividend,split_ratio&api_key={DLKEY}")
+    d = json.load(urllib.request.urlopen(u, timeout=60))
+    rows = d["datatable"]["data"]
+    if not rows:
+        return "no rows"
+    return pd.DataFrame(rows, columns=[c["name"] for c in d["datatable"]["columns"]]).to_string(index=False)
 
 
 def tiingo(sym, a, b):
@@ -99,6 +117,12 @@ for s in specs:
         except Exception as e:
             say(f"-- TIINGO error {type(e).__name__} {str(e)[:100]}")
         time.sleep(1)
+    wsym = sym.replace("-", "_")
+    if wsym in WIKI or sym in WIKI:
+        try:
+            say(f"-- WIKI ({wsym}):\n{wiki(wsym, a, b)}")
+        except Exception as e:
+            say(f"-- WIKI error {type(e).__name__} {str(e)[:100]}")
     for name, df in arch.items():
         g = df[(df.symbol == sym.replace(".", "-")) & (df.date >= pd.Timestamp(a)) & (df.date <= pd.Timestamp(b))]
         say(f"-- ARCHIVE {name}:\n" + (g.drop(columns=["symbol"]).sort_values("date").to_string(index=False) if len(g) else "no rows"))

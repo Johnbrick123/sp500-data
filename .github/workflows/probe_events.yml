@@ -5,6 +5,7 @@ on:
       specs: { description: "SYM:START:END ... (space-separated)", required: true, default: "CNDT:2016-12-28:2017-01-06" }
       tiingo: { description: "Also ask Tiingo for these symbols (comma list; one request each)", required: false, default: "" }
       archives: { description: "Kaggle archives to search (comma list of owner/dataset)", required: false, default: "ehallmar/daily-historical-stock-prices-1970-2018,jacksoncrow/stock-market-dataset" }
+      wiki: { description: "Also ask Quandl WIKI for these symbols (comma list; WIKI ends 2018-03)", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -25,8 +26,8 @@ jobs:
             mkdir -p "$d" && kaggle datasets download -d "$slug" -p "$d" --unzip && du -sh "$d" || echo "download failed: $slug"
           done
         env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
-      - run: python probe_events.py "${{ github.event.inputs.specs }}" "${{ github.event.inputs.tiingo }}"
-        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      - run: python probe_events.py "${{ github.event.inputs.specs }}" "${{ github.event.inputs.tiingo }}" "${{ github.event.inputs.wiki }}"
+        env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}", NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}" }
       - run: gh release upload data data/events_probe.txt --clobber
         if: always()
         env: { GH_TOKEN: "${{ github.token }}" }
