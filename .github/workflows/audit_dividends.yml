@@ -7,6 +7,7 @@ on:
       all: { description: "Then every other Yahoo-sourced member of the range (yes/no)", required: false, default: "no" }
       parts: { description: "Hourly parts of 40 names (one Tiingo request each)", required: false, default: "1" }
       first_part: { description: "Start at this part (to resume)", required: false, default: "1" }
+      start_at: { description: "UTC hour to start (e.g. 18) - waits for Tiingo's hourly allowance to reset; blank = now", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -26,6 +27,10 @@ jobs:
       - name: Run the parts, an hour apart (Tiingo free tier - 50 requests an hour)
         run: |
           ALL=""; [ "${{ github.event.inputs.all }}" = "yes" ] && ALL="--all"
+          if [ -n "${{ github.event.inputs.start_at }}" ]; then
+            now=$(date -u +%s); t=$(date -u -d "today ${{ github.event.inputs.start_at }}:01" +%s)
+            [ $t -lt $now ] && t=$(( t + 86400 )); echo "waiting $(( (t - now) / 60 )) min"; sleep $(( t - now ))
+          fi
           first=${{ github.event.inputs.first_part }}; last=$(( first + ${{ github.event.inputs.parts }} - 1 ))
           for part in $(seq $first $last); do
             DIV_OFFSET=$(( (part - 1) * 40 )) DIV_LIMIT=40 DIV_PART=$part \
