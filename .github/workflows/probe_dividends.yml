@@ -1,0 +1,20 @@
+name: Probe Nasdaq dividend history
+on:
+  workflow_dispatch:
+    inputs:
+      tickers: { description: "Comma list of tickers", required: true, default: "T,AAPL,GE" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas
+      - run: python probe_dividends.py "${{ github.event.inputs.tickers }}"
+      - run: gh release upload data data/dividends_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
