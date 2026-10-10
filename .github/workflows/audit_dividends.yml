@@ -1,16 +1,18 @@
-name: Audit one year's dividends against Tiingo
+name: Audit dividends against Tiingo
 on:
   workflow_dispatch:
     inputs:
-      year: { description: "Calendar year", required: true, default: "2018" }
-      tickers: { description: "Comma list (blank = every Yahoo-sourced member of the year)", required: false, default: "" }
-      batches: { description: "Hourly batches of 45 requests", required: false, default: "1" }
+      years: { description: "Year or range, e.g. 2018 or 2018-2026", required: true, default: "2018-2026" }
+      tickers: { description: "Names to check first (comma list)", required: false, default: "" }
+      all: { description: "Then every other Yahoo-sourced member of the range (yes/no)", required: false, default: "no" }
+      parts: { description: "Hourly parts of 45 names (one Tiingo request each)", required: false, default: "1" }
+      first_part: { description: "Start at this part (to resume)", required: false, default: "1" }
 permissions:
   contents: write
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,12 +23,18 @@ jobs:
           gh release download data --pattern 'prices.parquet' --dir data --clobber
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
-      - run: python audit_dividends.py "${{ github.event.inputs.year }}" "${{ github.event.inputs.tickers }}"
+      - name: Run the parts, an hour apart (Tiingo free tier - 50 requests an hour)
+        run: |
+          ALL=""; [ "${{ github.event.inputs.all }}" = "yes" ] && ALL="--all"
+          first=${{ github.event.inputs.first_part }}; last=$(( first + ${{ github.event.inputs.parts }} - 1 ))
+          for part in $(seq $first $last); do
+            DIV_OFFSET=$(( (part - 1) * 45 )) DIV_LIMIT=45 DIV_PART=$part \
+              python audit_dividends.py "${{ github.event.inputs.years }}" "${{ github.event.inputs.tickers }}" $ALL || true
+            tag="${{ github.event.inputs.years }}_part$part"
+            gh release upload data "data/dividend_audit_${tag}.txt" "data/dividend_audit_${tag}_overrides.csv" --clobber || true
+            grep -q "0 names (offset" "data/dividend_audit_${tag}.txt" && break
+            [ $part -lt $last ] && sleep 3610
+          done
         env:
           TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}"
-          DIV_BATCHES: "${{ github.event.inputs.batches }}"
-      - run: |
-          gh release upload data "data/dividend_audit_${{ github.event.inputs.year }}.txt" --clobber
-          gh release upload data "data/dividend_audit_${{ github.event.inputs.year }}_overrides.csv" --clobber
-        if: always()
-        env: { GH_TOKEN: "${{ github.token }}" }
+          GH_TOKEN: "${{ github.token }}"
