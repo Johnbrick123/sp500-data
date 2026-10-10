@@ -191,7 +191,9 @@ def main():
             f = RAW / f"{lab}.parquet"
             if f.exists():
                 old = pd.read_parquet(f); old["date"] = pd.to_datetime(old["date"]).dt.tz_localize(None)
-                if old["date"].min() <= m_start + pd.Timedelta(days=30) and old["date"].max() >= stop - pd.Timedelta(days=30):
+                # an alias exists to complete a series, so the end must be within a week of the
+                # membership's (CSRA: WIKI's copy stops 2018-03-27, eight days before S&P removed it)
+                if old["date"].min() <= m_start + pd.Timedelta(days=30) and old["date"].max() >= stop - pd.Timedelta(days=7):
                     continue                                    # already covers the membership
             try:
                 df = tiingo_fetch(sym)

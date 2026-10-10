@@ -7,3 +7,5 @@ AIRC,AIRC,"Apartment Income REIT (spun off from Aimco 2020-12-15, acquired by Bl
 FOXA-201903,TFCFA,21st Century Fox Class A (old News Corp until 2013): its ticker became TFCFA on 2019-03-19 when Fox Corp took FOXA; Disney bought it 2019-03-20.
 FOX-201903,TFCF,21st Century Fox Class B: ticker TFCF from 2019-03-19; Disney bought it 2019-03-20.
 MON-201806,US000000000296,"Monsanto (acquired by Bayer 2018-06-07): Tiingo permaTicker, 2000-10-18..2018-06; our WIKI copy stops 2018-03-27"
+CA-201811,US000000000517,"CA Inc / CA Technologies (acquired by Broadcom 2018-11-05, last trade 11-02 at $44.44 vs $44.50 cash): Tiingo permaTicker; our WIKI copy stops 2018-03-27. Tiingo's by-ticker CA is a later owner of the symbol (drop_raw_files.txt)"
+CSRA-201804,US000000035002,"CSRA Inc (spun off by CSC 2015-11-30, acquired by General Dynamics 2018-04-03 at $41.25 cash, last close 41.23): Tiingo permaTicker - its directory entry carries a later name for the symbol, but the series runs 2015-11-30..2018-04-04 and must agree with our WIKI copy to be used"
