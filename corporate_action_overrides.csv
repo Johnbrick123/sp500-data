@@ -3,3 +3,45 @@ KSU,2000-07-13,0.5,,Tiingo books the Stilwell Financial spin-off as a $181 divid
 RRD,2016-10-03,0.333333,,R.R. Donnelley spun off LSC Communications and Donnelley Financial and did a 1-for-3 reverse split the same day. Tiingo books the distribution ($25.61 per post-split share) but omits the split; the close moves 15.72 -> 23.81 on that date.
 FOXA-201903,2013-07-01,,0,"Tiingo books the June 2013 News Corp separation (1 new NWSA per 4 shares, valued 3.8125) on 2013-07-01, but the shares went ex on 2013-06-19 (31.56 -> 28.35; new NWSA when-issued trading starts that day). The distribution is booked on the real ex-date in spinoffs.csv instead."
 FOX-201903,2013-07-01,,0,"Same for Class B (1 new NWS per 4, Tiingo's 3.845 on 2013-07-01); real ex-date 2013-06-19."
+APTV,2018-08-07,,0.22,Dividend missing from Yahoo's record; Tiingo has $0.22 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+APTV,2018-11-06,,0.22,Dividend missing from Yahoo's record; Tiingo has $0.22 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+EG,2018-11-27,,1.4,Dividend missing from Yahoo's record; Tiingo has $1.4 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+EG,2025-09-03,,2.0,Dividend missing from Yahoo's record; Tiingo has $2 on this ex-date (audit_dividends.py).
+EG,2025-11-26,,2.0,Dividend missing from Yahoo's record; Tiingo has $2 on this ex-date (audit_dividends.py).
+ETN,2018-08-02,,0.66,Dividend missing from Yahoo's record; Tiingo has $0.66 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+ETN,2018-11-01,,0.66,Dividend missing from Yahoo's record; Tiingo has $0.66 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+MDT,2018-09-27,,0.5,Dividend missing from Yahoo's record; Tiingo has $0.5 on this ex-date (audit_dividends.py). Also missing from the Dec-2021 snapshot comparison.
+AVGO,2018-03-21,,0.175,"Broadcom paid $1.75 a share (Tiingo); Yahoo records $3.50, double. Confirmed by the Apr-2020, Aug-2018 and Jun-2021 archives."
+AVGO,2018-06-19,,0.175,"Broadcom paid $1.75 a share (Tiingo); Yahoo records $3.50, double. Confirmed by the Apr-2020, Aug-2018 and Jun-2021 archives."
+CB,2025-09-12,,0.97,Dividend missing from Yahoo's record; Tiingo has $0.97 on this ex-date (audit_dividends.py).
+CB,2025-12-12,,0.97,Dividend missing from Yahoo's record; Tiingo has $0.97 on this ex-date (audit_dividends.py).
+ACN,2025-10-10,,1.63,Dividend missing from Yahoo's record; Tiingo has $1.63 on this ex-date (audit_dividends.py).
+ACN,2026-01-13,,1.63,Dividend missing from Yahoo's record; Tiingo has $1.63 on this ex-date (audit_dividends.py).
+AON,2025-11-03,,0.745,Dividend missing from Yahoo's record; Tiingo has $0.745 on this ex-date (audit_dividends.py).
+AON,2026-02-02,,0.745,Dividend missing from Yahoo's record; Tiingo has $0.745 on this ex-date (audit_dividends.py).
+TT,2025-12-05,,0.94,Dividend missing from Yahoo's record; Tiingo has $0.94 on this ex-date (audit_dividends.py).
+TEL,2025-11-21,,0.71,Dividend missing from Yahoo's record; Tiingo has $0.71 on this ex-date (audit_dividends.py).
+JCI,2025-09-22,,0.4,Dividend missing from Yahoo's record; Tiingo has $0.4 on this ex-date (audit_dividends.py).
+JCI,2025-12-22,,0.4,Dividend missing from Yahoo's record; Tiingo has $0.4 on this ex-date (audit_dividends.py).
+STE,2025-11-18,,0.63,Dividend missing from Yahoo's record; Tiingo has $0.63 on this ex-date (audit_dividends.py).
+ALLE,2025-09-15,,0.51,Dividend missing from Yahoo's record; Tiingo has $0.51 on this ex-date (audit_dividends.py).
+ALLE,2025-12-16,,0.51,Dividend missing from Yahoo's record; Tiingo has $0.51 on this ex-date (audit_dividends.py).
+SW,2025-11-14,,0.4308,Dividend missing from Yahoo's record; Tiingo has $0.4308 on this ex-date (audit_dividends.py).
+CBOE,2025-08-29,,0.72,Dividend missing from Yahoo's record; Tiingo has $0.72 on this ex-date (audit_dividends.py).
+CBOE,2025-11-28,,0.72,Dividend missing from Yahoo's record; Tiingo has $0.72 on this ex-date (audit_dividends.py).
+ROL,2018-11-08,,0.062222,Rollins declared $0.14 a share (record 2018-11-09; Tiingo); Yahoo records $0.187.
+ETN,2020-05-13,,0.73,"Eaton paid $0.73 a share; Yahoo and Tiingo both record $0.073 (a decimal slip). The Dec-2021 snapshot has $0.73, as do Eaton's other 2020 quarters."
+COR,2019-03-28,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2019-06-27,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2019-09-27,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2019-12-30,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2020-03-30,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2020-06-29,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2020-09-29,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2020-12-30,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2021-03-30,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2021-06-29,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2021-09-29,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+COR,2021-12-01,,0.0,"Not Cencora's: CoreSite Realty's dividend (CoreSite used the COR ticker until its 2021 sale). Yahoo and Tiingo carry it in Cencora's history; Cencora (then AmerisourceBergen, ABC) paid $0.40-0.46 a quarter on other dates, as the Dec-2021 snapshot and the Apr-2020 archive show."
+BNY,2026-01-20,,0.0,Not BNY Mellon's: a monthly fund distribution (~$0.051) from the former holder of the BNY symbol; BNY Mellon paid $0.53 on 2026-01-23. Tiingo has no such payment.
+BNY,2026-02-06,,0.0,Not BNY Mellon's: a monthly fund distribution (~$0.051) from the former holder of the BNY symbol; BNY Mellon paid $0.53 on 2026-01-23. Tiingo has no such payment.
