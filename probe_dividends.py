@@ -15,6 +15,8 @@ for tk in [x.strip() for x in sys.argv[1].split(",") if x.strip()]:
         d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
         rows = (((d.get("data") or {}).get("dividends") or {}).get("rows")) or []
         say(f"\n===== {tk}: {len(rows)} rows; header keys {list((d.get('data') or {}).keys())[:8]}")
+        if not rows:
+            say("  raw: " + json.dumps(d)[:600])
         if rows:
             df = pd.DataFrame(rows)
             say(df.head(6).to_string(index=False))
