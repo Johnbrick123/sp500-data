@@ -190,7 +190,7 @@ def main():
         if pd.isna(m_end) and last < pd.Timestamp("2018-03-01"):
             rejected.append(f"{label}: still a member but WIKI stops {last.date()}"); continue
         mo = SUFFIX.search(label)
-        if mo:
+        if mo and label not in cut_at:      # an explicit last day replaces the label-month test (WIKI ends 2018-03; Bed Bath & Beyond's label says 2023-05)
             dl = pd.Timestamp(mo.group(1)[:4] + "-" + mo.group(1)[4:] + "-01")
             if abs((last - dl).days) > 550:
                 rejected.append(f"{label}: ends {last.date()}, label says {dl:%Y-%m}"); continue
