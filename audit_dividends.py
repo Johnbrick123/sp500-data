@@ -65,9 +65,14 @@ def tiingo(sym):
          f"&endDate={Y1}-12-31&format=json&token={KEY}")
     body = urllib.request.urlopen(u, timeout=60).read().decode()
     try:
-        return json.loads(body)
+        js = json.loads(body)
     except json.JSONDecodeError:
         raise RuntimeError("throttled" if any(w in body.lower() for w in ("limit", "exceed", "quota", "hour")) else "not json")
+    if isinstance(js, dict):
+        # an error message in JSON instead of rows: the hourly or monthly cap, or an unknown symbol
+        msg = str(js.get("detail", js))[:200]
+        raise RuntimeError(("throttled: " if any(w in msg.lower() for w in ("limit", "exceed", "quota", "allocation", "unique")) else "message: ") + msg)
+    return js
 
 
 def windows(t):
@@ -90,8 +95,8 @@ for t in todo:
         js = tiingo(alias.get(t, t))
     except Exception as e:
         if "throttled" in str(e) or "429" in str(e):
-            say(f"  throttled at {t}; stopping"); break
-        rows.append((t, "", f"tiingo error {type(e).__name__}", "", "")); done.append(t); continue
+            say(f"  throttled at {t}; stopping ({str(e)[:160]})"); break
+        rows.append((t, "", f"tiingo error {type(e).__name__}: {str(e)[:120]}", "", "")); done.append(t); continue
     done.append(t)
     if not js:
         rows.append((t, "", "tiingo has no rows", "", "")); continue

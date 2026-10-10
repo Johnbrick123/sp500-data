@@ -65,6 +65,8 @@ def tiingo(sym, a, b):
         js = json.loads(body)
     except json.JSONDecodeError:
         return "not json (throttled?)"
+    if isinstance(js, dict):
+        return f"Tiingo answered with a message, not rows: {str(js)[:300]}"
     if not js:
         return "no rows"
     df = pd.DataFrame(js); df["date"] = pd.to_datetime(df["date"]).dt.date
