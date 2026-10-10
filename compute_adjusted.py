@@ -313,8 +313,8 @@ def apply_carves():
     """A dead company whose history a vendor keeps inside ANOTHER label's file
     (series_carves.csv). Yahoo's DD (DowDuPont, renamed DuPont in 2019) carries
     The Dow Chemical Company's prices before the 2017-08-31 merger - each Dow
-    share became one DowDuPont share - while Tiingo and WIKI have no Dow
-    Chemical series at all. The rows in [first, last] are copied to the dead
+    share became one DowDuPont share - while Tiingo has no Dow Chemical
+    series (WIKI's matches this one; a query bug had missed it). The rows in [first, last] are copied to the dead
     company's own label and put back on their as-traded basis: Yahoo divides
     every earlier close and dividend by each later split or spin-off factor, so
     they are multiplied by the product of the source's factors after `last`.
