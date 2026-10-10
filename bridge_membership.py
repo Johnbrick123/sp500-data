@@ -137,6 +137,8 @@ MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcemen
     ("2019-03-19", "FOX-201903", ""),    #   S&P removed 21CF before the 3/20 open, after Disney's deal closed (S&P DJI release 2019-03-14)
     ("2019-03-20", "", "FOXA-201903"),
     ("2019-03-20", "", "FOX-201903"),
+    ("2023-07-03", "FTRE", ""),          # Fortrea (spun off by Labcorp) - S&P 500 on 7/3 and 7/5, then the SmallCap 600
+    ("2023-07-06", "", "FTRE"),          #   before the 2023-07-06 open (S&P DJI release 2023-06-28)
     ("2020-04-01", "ARNC-202308", ""),   # Arconic Corp (spun off by Arconic Inc./Howmet) - S&P 500 until it moved to the SmallCap 600
     ("2020-04-06", "", "ARNC-202308"),   #   before the 2020-04-06 open (S&P DJI release 2020-04-01)
     ("2020-12-15", "AIRC", ""),          # Apartment Income REIT (spun off by Aimco) - S&P 500 until it moved to the MidCap 400
