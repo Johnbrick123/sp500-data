@@ -45,6 +45,7 @@ def say(s=""):
 API = "https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES.json"
 COLS = "ticker,date,open,high,low,close,volume,ex-dividend,split_ratio"
 ERRORS = {}
+ERROR_SAMPLES = []      # the first few non-HTTP errors, with the symbol and page they hit
 
 
 def fetch_ticker(sym):
@@ -65,6 +66,8 @@ def fetch_ticker(sym):
             return None
         except Exception as e:
             ERRORS[type(e).__name__] = ERRORS.get(type(e).__name__, 0) + 1
+            if len(ERROR_SAMPLES) < 5:
+                ERROR_SAMPLES.append(f"{sym} page {_ + 1} ({len(rows)} rows so far): {type(e).__name__} {str(e)[:160]}")
             return None
         dt = d["datatable"]
         rows += dt["data"]
@@ -137,6 +140,8 @@ def main():
     val = pd.concat(vparts, ignore_index=True) if vparts else pd.DataFrame(columns=COLS.split(","))
     val["date"] = pd.to_datetime(val["date"])
     say(f"errors seen while querying: {ERRORS or 'none'}")
+    for e in ERROR_SAMPLES:
+        say(f"  e.g. {e}")
     say(f"WIKI rows for missing members: {len(wiki):,} across {wiki.ticker.nunique()} symbols")
 
     # ---- 1. cross-validation against Yahoo on names both sources carry ----
