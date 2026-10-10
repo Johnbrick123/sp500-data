@@ -246,6 +246,17 @@ def check_cross_source(df):
                     st, note = "PASS", f"; Nasdaq disagrees but Tiingo agrees with ours on {v:.2f}% of days"
                 else:
                     note = f"; Tiingo agrees with ours on only {v:.2f}% of days"
+            else:
+                # Tiingo unreachable tonight (its free tier allows 50 requests an
+                # hour, shared with the recovery and audit jobs). The same,
+                # unchanged disagreement already settled by Tiingo in the last 60
+                # days keeps its verdict; anything new or different stays FAIL.
+                prev = ledger[(ledger.ticker == tk) & (ledger.status == "PASS")
+                              & (pd.to_datetime(ledger.checked) >= pd.Timestamp(date.today()) - pd.Timedelta(days=60))]
+                prev = prev[pd.to_numeric(prev.pct_off, errors="coerce").sub(off).abs() < 0.5]
+                if len(prev):
+                    st, note = "PASS", (f"; Tiingo unavailable tonight - the same disagreement ({float(prev.pct_off.iloc[-1]):.2f}% "
+                                        f"of days) passed the Tiingo tie-break on {pd.Timestamp(prev.checked.iloc[-1]).date()}")
         record("nasdaq " + tk, st, f"{tk}: {off:.2f}% of {len(diff):,} days differ >0.5pp (max {diff.max()*100:.3f}pp){note}")
         new.append((tk, date.today(), st, len(diff), round(off, 3), round(diff.max() * 100, 3)))
     done = {r[0] for r in new}
