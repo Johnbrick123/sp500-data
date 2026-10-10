@@ -123,6 +123,8 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
     "INFO": [("INFO-202203","1900-01-01", "2022-03-01")],   # IHS Markit -> reused 2024
     "IR":   [("TT",         "1900-01-01", "2020-03-02")],   # Ingersoll-Rand plc renamed Trane Technologies; a NEW Ingersoll Rand Inc took IR on 2020-03-02
+    "FOXA": [("FOXA-201903","1900-01-01", "2019-03-19")],   # (old News Corp ->) 21st Century Fox Class A; Fox Corp took FOXA on 2019-03-19
+    "FOX":  [("FOX-201903", "1900-01-01", "2019-03-19")],   # 21st Century Fox Class B; Fox Corp took FOX on 2019-03-19
 }
 
 
@@ -131,6 +133,10 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
 MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements: changes after the Wikipedia log ends,
                      # and spin-offs the log leaves out. Since Oct 2015 S&P adds every spin-off to its parent's index at a
                      # zero price after the close before the ex-date; one that does not qualify stays until S&P moves it.
+    ("2019-03-19", "FOXA-201903", ""),   # 21st Century Fox stays in the S&P 500 one day alongside Fox Corp (added before the 3/19 open);
+    ("2019-03-19", "FOX-201903", ""),    #   S&P removed 21CF before the 3/20 open, after Disney's deal closed (S&P DJI release 2019-03-14)
+    ("2019-03-20", "", "FOXA-201903"),
+    ("2019-03-20", "", "FOX-201903"),
     ("2020-04-01", "ARNC-202308", ""),   # Arconic Corp (spun off by Arconic Inc./Howmet) - S&P 500 until it moved to the SmallCap 600
     ("2020-04-06", "", "ARNC-202308"),   #   before the 2020-04-06 open (S&P DJI release 2020-04-01)
     ("2020-12-15", "AIRC", ""),          # Apartment Income REIT (spun off by Aimco) - S&P 500 until it moved to the MidCap 400

@@ -66,7 +66,8 @@ def check_corporate_actions(df):
             i = x.index[x.date == d]
             if len(i) != 1 or i[0] == 0:
                 bad.append(f"{tk} {d.date()}: no ex-date row"); continue
-            want = (g.parent_close.iloc[0] + (g.ratio * g.spinco_close).sum()) / g.parent_prev_close.iloc[0] - 1
+            ps = float(g.parent_shares.iloc[0]) if "parent_shares" in g.columns and pd.notna(g.parent_shares.iloc[0]) else 1.0
+            want = (g.parent_close.iloc[0] * ps + (g.ratio * g.spinco_close).sum()) / g.parent_prev_close.iloc[0] - 1
             got = x.adj_close.iloc[i[0]] / x.adj_close.iloc[i[0] - 1] - 1
             n += 1
             if abs(got - want) > 1e-6:
