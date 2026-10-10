@@ -143,6 +143,7 @@ def main():
     val["ticker"] = val.ticker.str.replace(".", "-", regex=False)
     val = val[(val.date >= "1998-01-01") & (val.date < "2018-01-01")]
     tot = bad = n_names = 0
+    other = []
     for t, g in val.groupby("ticker"):
         m = g.merge(yahoo[yahoo.ticker == t][["date", "close"]], on="date", suffixes=("_w", "_y")).sort_values("date")
         if len(m) < 250:
@@ -150,7 +151,14 @@ def main():
         sp = m.split_ratio.fillna(1.0)
         m = m[(sp == 1.0) & (sp.shift(-1).fillna(1.0) == 1.0)]
         d = (m.close_w.pct_change() - m.close_y.pct_change()).abs().dropna()
+        if (d > 0.005).mean() > 0.20:
+            # not the same security: Yahoo files a renamed company's history under
+            # today's symbol (its DD before 2017-09 is Dow Chemical; WIKI's DD is
+            # DuPont). That tests the symbol map, not WIKI's prices - left out.
+            other.append(f"{t} ({(d > 0.005).mean():.0%} of days)"); continue
         tot += len(d); bad += int((d > 0.005).sum()); n_names += 1
+    if other:
+        say(f"validation names that are a different security at WIKI (excluded): {', '.join(other)}")
     agree = 100 - bad / max(tot, 1) * 100
     say(f"CROSS-VALIDATION vs Yahoo, 1998-2017: {n_names} companies, {tot:,} daily returns, "
         f"{agree:.3f}% agree within 0.5pp")
