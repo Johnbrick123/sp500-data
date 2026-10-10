@@ -67,7 +67,8 @@ def fetch_ticker(sym):
         except Exception as e:
             ERRORS[type(e).__name__] = ERRORS.get(type(e).__name__, 0) + 1
             if len(ERROR_SAMPLES) < 5:
-                ERROR_SAMPLES.append(f"{sym} page {_ + 1} ({len(rows)} rows so far): {type(e).__name__} {str(e)[:160]}")
+                msg = re.sub(r"api_key=[^&\s'\"]*", "api_key=***", str(e)).replace(KEY, "***") if KEY else str(e)
+                ERROR_SAMPLES.append(f"{sym} page {_ + 1} ({len(rows)} rows so far): {type(e).__name__} {msg[:160]}")   # never the key: the report is published
             return None
         dt = d["datatable"]
         rows += dt["data"]
