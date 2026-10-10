@@ -304,6 +304,68 @@ def apply_splice(df, stem):
     return pd.concat([add[df.columns.intersection(add.columns)], df], ignore_index=True).sort_values("date").reset_index(drop=True)
 
 
+CARVES_F = ROOT / "series_carves.csv"
+CARVES = pd.read_csv(CARVES_F, parse_dates=["first", "last"]) if CARVES_F.exists() else pd.DataFrame(columns=["label", "source_label", "first", "last", "last_close"])
+CARVED = []             # (label, source label, rows, factor, outcome)
+
+
+def apply_carves():
+    """A dead company whose history a vendor keeps inside ANOTHER label's file
+    (series_carves.csv). Yahoo's DD (DowDuPont, renamed DuPont in 2019) carries
+    The Dow Chemical Company's prices before the 2017-08-31 merger - each Dow
+    share became one DowDuPont share - while Tiingo and WIKI have no Dow
+    Chemical series at all. The rows in [first, last] are copied to the dead
+    company's own label and put back on their as-traded basis: Yahoo divides
+    every earlier close and dividend by each later split or spin-off factor, so
+    they are multiplied by the product of the source's factors after `last`.
+    Refused unless the carved last close matches the published one within 1%.
+    Rewritten every run (data/raw/<label>.parquet), so it follows any later
+    restatement of the source."""
+    for r in CARVES.itertuples():
+        src = RAW / f"{r.source_label}.parquet"
+        if not src.exists():
+            CARVED.append((r.label, r.source_label, 0, None, "REFUSED: source file missing")); continue
+        df = pd.read_parquet(src)
+        d = pd.to_datetime(df["date"]); df["date"] = d.dt.tz_localize(None) if d.dt.tz is not None else d
+        df = df.sort_values("date").reset_index(drop=True)
+        sp = df["stock_splits"].fillna(0).replace(0, 1).astype(float) if "stock_splits" in df else pd.Series(1.0, index=df.index)
+        k = float(sp[df.date > r.last].prod())
+        part = df[(df.date >= r.first) & (df.date <= r.last)].copy()
+        if part.empty:
+            CARVED.append((r.label, r.source_label, 0, None, "REFUSED: no rows in the window")); continue
+        for col in ("open", "high", "low", "close", "dividends"):
+            if col in part:
+                part[col] = part[col].astype(float) * k
+        got = float(part["close"].iloc[-1])
+        if abs(got / float(r.last_close) - 1) > 0.01:
+            CARVED.append((r.label, r.source_label, len(part), round(k, 6), f"REFUSED: last close {got:.4f} vs published {r.last_close}")); continue
+        part["ticker"] = r.label
+        part.to_parquet(RAW / f"{r.label}.parquet", index=False)
+        CARVED.append((r.label, r.source_label, len(part), round(k, 6), f"written, {part.date.min().date()}..{part.date.max().date()}, last close {got:.4f}"))
+
+
+ENDS_F = ROOT / "series_end.csv"
+ENDS = pd.read_csv(ENDS_F, parse_dates=["last_day"]) if ENDS_F.exists() else pd.DataFrame(columns=["label", "last_day"])
+CUT_TAILS = []          # (label, last day kept, rows dropped)
+
+
+def apply_series_end(df, stem):
+    """series_end.csv: a dead company's last trading day, where the vendor's
+    series runs on with someone else's prices - Tiingo continued old DuPont
+    (DD-201708) with DowDuPont's closes for a month after the 2017-08-31
+    merger, WIKI's Spectra Energy line picks up Sea Ltd's 'SE' in 2018. Rows
+    after the last day are dropped (they are outside the index membership)."""
+    if ENDS.empty or stem not in set(ENDS.label):
+        return df
+    last = ENDS.loc[ENDS.label == stem, "last_day"].iloc[0]
+    d = pd.to_datetime(df["date"])
+    d = d.dt.tz_localize(None) if d.dt.tz is not None else d
+    keep = (d <= last).to_numpy()
+    if (~keep).any():
+        CUT_TAILS.append((stem, str(last.date()), int((~keep).sum())))
+    return df[keep].reset_index(drop=True)
+
+
 def apply_patches(df, stem):
     """Hand-verified rows (price_patches.csv). Values must already be on the
     series' price basis.
@@ -314,7 +376,9 @@ def apply_patches(df, stem):
         Nasdaq, Tiingo and Fortive's Form 8937 against Yahoo). The row keeps its
         dividend and split. Refused, and logged, when the date is not in the
         series or the existing close is more than 5% away from the patch (that
-        would mean the series' price basis moved and the patch needs redoing)."""
+        would mean the series' price basis moved and the patch needs redoing);
+        the optional max_move column widens that limit for one row whose vendor
+        bar is badly off (Chesapeake 2017-08-01: Tiingo 10% below three sources)."""
     if PATCHES.empty or stem not in set(PATCHES.ticker):
         return df
     d = pd.to_datetime(df["date"])
@@ -331,8 +395,10 @@ def apply_patches(df, stem):
             continue
         i = hit[0]
         old = float(df.at[i, "close"])
-        if not abs(old / float(p["close"]) - 1) <= 0.05:
-            REPLACED.append((stem, str(p["date"].date()), old, float(p["close"]), "REFUSED: more than 5% from the existing close"))
+        mm = pd.to_numeric(p.get("max_move"), errors="coerce") if "max_move" in p.index else float("nan")
+        lim = float(mm) if pd.notna(mm) else 0.05          # a wider limit is set per row, with its evidence, for a vendor bar that is badly off
+        if not abs(old / float(p["close"]) - 1) <= lim:
+            REPLACED.append((stem, str(p["date"].date()), old, float(p["close"]), f"REFUSED: more than {lim:.0%} from the existing close"))
             continue
         for c in ("open", "high", "low", "close", "volume"):
             if c in df.columns and pd.notna(p.get(c)):
@@ -388,6 +454,7 @@ def trim_filler(df, stem):
 
 
 def main():
+    apply_carves()                     # before the file list, so a carved label is adjusted like any other
     # Labels whose stored history belongs to a different company that later
     # reused the ticker are never published (see quarantine_tickers.txt).
     qf = ROOT / "quarantine_tickers.txt"
@@ -398,7 +465,7 @@ def main():
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(trim_filler(apply_patches(drop_placeholders(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem), f.stem)))
+            out.append(adjust_one(trim_filler(apply_patches(drop_placeholders(apply_series_end(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem), f.stem), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -428,6 +495,8 @@ def main():
     for x in SPUN:
         print(f"    {x}")
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
+    print(f"series carved out of another label's file (label, source, rows, factor, outcome): {CARVED}")
+    print(f"rows after a dead company's last trading day dropped (label, last day, rows): {CUT_TAILS}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
         .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
