@@ -1,0 +1,30 @@
+name: Audit dividends against WIKI (2018-04 and earlier)
+on:
+  workflow_dispatch:
+    inputs:
+      years: { description: "Year or range, e.g. 2017 or 2013-2017", required: true, default: "2017" }
+      tickers: { description: "Only these labels (comma list; blank = every member)", required: false, default: "" }
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: |
+          mkdir -p data/universe
+          gh release download data --pattern 'prices.parquet' --dir data --clobber
+          gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
+          gh release download data --pattern 'renames.csv' --dir data/universe --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python audit_dividends_wiki.py "${{ github.event.inputs.years }}" "${{ github.event.inputs.tickers }}"
+        env: { NASDAQ_DATA_LINK_KEY: "${{ secrets.NASDAQ_DATA_LINK_KEY }}" }
+      - run: |
+          y="${{ github.event.inputs.years }}"
+          gh release upload data "data/dividend_audit_wiki_${y}.txt" "data/dividend_audit_wiki_${y}_overrides.csv" --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }

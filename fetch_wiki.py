@@ -55,7 +55,7 @@ def fetch_ticker(sym):
     for _ in range(20):
         url = f"{API}?ticker={urllib.parse.quote(sym.strip(), safe='')}&qopts.columns={COLS}&api_key={KEY}"
         if cursor:
-            url += f"&qopts.cursor_id={cursor}"
+            url += f"&qopts.cursor_id={urllib.parse.quote(str(cursor), safe='')}"   # cursors can hold characters a URL may not (InvalidURL dropped every series over 10,000 rows)
         try:
             d = json.load(urllib.request.urlopen(url, timeout=60))
         except urllib.error.HTTPError as e:
