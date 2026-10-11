@@ -9,9 +9,12 @@ that differs from the published membership.
 Usage: python tools/bridge_test.py WORKDIR [Y0 Y1]
   WORKDIR is created if needed (use a scratch directory, not the repo).
   Needs network access to github.com / raw.githubusercontent.com only.
-Before 2019 the count should be 505 on every day (S&P 500 with its
-dual-class lines); on days S&P itself held 506 (e.g. 2017-08-07, Brighthouse
-added the day before AutoNation left) the S&P DJI release is the authority.
+From 2016-04-08 (Under Armour's Class C line added) through 2018 the count
+should be 505 on every day (S&P 500 with its dual-class lines: GOOG, DISCK,
+NWS, FOX, UA); before that it is 504 (four dual-class extras). On days S&P
+itself held an extra line (2017-08-07, Brighthouse added the day before
+AutoNation left; 2016-07-05, Fortive added at the Danaher spin while Columbia
+Pipeline left after that day's close) the S&P DJI release is the authority.
 """
 import importlib.util, shutil, subprocess, sys
 from pathlib import Path

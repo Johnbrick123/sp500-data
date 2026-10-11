@@ -9,3 +9,5 @@ HFC wiki      # 2026-10-09: superseded by the HFC->DINO rename; DINO holds Holly
 ADS wiki      # 2026-10-09: superseded by the ADS->BFH rename; BFH holds Alliance Data's full history
 KORS tiingo   # 2026-10-10: superseded by the KORS->CPRI rename; CPRI holds Michael Kors' full history (the upstream file listed both 2016-2018)
 PX-201810 tiingo  # 2026-10-10: superseded by PX-201810->LIN; LIN holds Praxair's full history (the upstream file listed both 2016-2018)
+CB-201601 tiingo   # 2026-10-11: Tiingo's series is untrustworthy (half its days match ACE, and it runs to 2016-03 though Chubb Corp last traded 2016-01-14); recovered from WIKI with a 2016-01-14 cutoff instead
+JCI-201609 tiingo  # 2026-10-11: Tiingo's series continues past the 2016-09-02 merger with the NEW Johnson Controls' (Tyco's) prices and even books the Adient spin on it; recovered from WIKI with a 2016-09-02 cutoff instead

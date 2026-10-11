@@ -113,6 +113,9 @@ KNOWN_RENAMES = {
     # 505 for most of 2016-2018. One label each; the series are identical.
     "KORS": "CPRI",       # Michael Kors -> Capri Holdings (ticker change 2018-12-31); both listed 2016-01-04..2018-09-18
     "PX-201810": "LIN",   # Praxair -> Linde plc (1:1, 2018-10-31); PX and PX-201810 both listed 2016-01-04..2018-09-17
+    "CCEP": "CCE",        # Coca-Cola Enterprises listed twice 2016-01-04..2016-05-31 (under CCE and under CCEP, Yahoo's
+                          #   continuation symbol; identical prices). Coca-Cola European Partners itself was NEVER an S&P 500
+                          #   member: S&P DJI's 2016-05-24 release removes CCE and calls CCEP Spain-domiciled and ineligible.
 }
 
 
@@ -121,6 +124,14 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CB-201601",   "2016-01-19"),   # Extra Space replaced Chubb Corp after the close of Fri 1/15 = before the 1/19 open, MLK between (S&P DJI 2016-01-13); ACE closed the deal 1/14, CB's last trade
+    ("GMCR-201603", "2016-03-07"),   # UDR replaced Keurig Green Mountain after the close of Fri 3/4 (S&P DJI 2016-03-03); JAB closed 3/3, GMCR last traded 3/2
+    ("POM-201603",  "2016-03-30"),   # Hologic and Centene replaced Pepco and Ensco after the close of Tue 3/29 (S&P DJI 2016-03-24); Exelon closed 3/23, POM's last trade
+    ("ADT-201604",  "2016-05-03"),   # Acuity Brands replaced The ADT Corp after the close of Mon 5/2 (S&P DJI 2016-04-26); Apollo closed 5/2, ADT last traded 4/29
+    ("SNDK-201605", "2016-05-13"),   # Alaska Air replaced SanDisk after the close of Thu 5/12 (S&P DJI 2016-05-10); Western Digital closed 5/12, SNDK last traded 5/11
+    ("CVC-201606",  "2016-06-24"),   # Fortune Brands replaced Cablevision after the close of Thu 6/23 (S&P DJI 2016-06-21); Altice closed 6/21, CVC last traded 6/20
+    ("CPGX-201606", "2016-07-06"),   # Columbia Pipeline left after the close of Tue 7/5, its replacement Fortive having joined 7/5 at the spin-off - both members on 7/5 (S&P DJI 2016-06-23); TransCanada closed 7/1, CPGX's last trade 6/30
+    ("EMC-201609",  "2016-09-08"),   # Charter replaced EMC after the close of Wed 9/7 (S&P DJI 2016-08-31); Dell closed 9/7, EMC last traded 9/6
     ("SE-201702",   "2017-02-28"),   # Incyte replaced Spectra Energy before the 2/28 open (S&P DJI 2017-02-23); Enbridge closed 2/27, SE last traded 2/24
     ("HAR-201703",  "2017-03-16"),   # Synopsys replaced Harman before the 3/16 open (S&P DJI 2017-03-13); Samsung closed 3/10
     ("MJN-201706",  "2017-06-19"),   # Everest Re replaced Mead Johnson before the 6/19 open (S&P DJI 2017-06-12); Reckitt closed 6/15, MJN last traded 6/14
