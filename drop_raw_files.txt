@@ -11,3 +11,4 @@ KORS tiingo   # 2026-10-10: superseded by the KORS->CPRI rename; CPRI holds Mich
 PX-201810 tiingo  # 2026-10-10: superseded by PX-201810->LIN; LIN holds Praxair's full history (the upstream file listed both 2016-2018)
 CB-201601 tiingo   # 2026-10-11: Tiingo's series is untrustworthy (half its days match ACE, and it runs to 2016-03 though Chubb Corp last traded 2016-01-14); recovered from WIKI with a 2016-01-14 cutoff instead
 JCI-201609 tiingo  # 2026-10-11: Tiingo's series continues past the 2016-09-02 merger with the NEW Johnson Controls' (Tyco's) prices and even books the Adient spin on it; recovered from WIKI with a 2016-09-02 cutoff instead
+JCI-201609 wiki    # 2026-10-11: WIKI's JCI line is also Tyco's series (2016-01-04 close 31.79 = Yahoo's JCI x 0.955 to the cent; Tyco's 2007 reverse split and 2012 breakup distribution are on it) - the 2026-10-11 WIKI recovery grabbed the same wrong lineage the Tiingo one did

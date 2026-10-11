@@ -39,12 +39,17 @@ def load_progress():
 
 
 def candidates(progress):
-    """Members with no price file, not yet tried. Post-2014 delistings first."""
+    """Members with no price file, not yet tried. Post-2014 delistings first.
+    Quarantined labels are never retried: their symbol is known to serve a
+    different company's series (JCI-201609 -> Tyco's), so a refetch would just
+    recreate the file that drop_raw_files.txt deletes."""
     iv = pd.read_parquet(ROOT / "data" / "universe" / "membership_intervals.parquet")
     have = {p.stem for p in RAW.glob("*.parquet")}
+    qf = ROOT / "quarantine_tickers.txt"
+    quarantined = ({l.split("#")[0].strip() for l in qf.read_text().splitlines()} - {""}) if qf.exists() else set()
     out = []
     for t, g in iv.groupby("ticker"):
-        if t in have:
+        if t in have or t in quarantined:
             continue
         # A name marked "recovered" whose file is gone (an overlapping run
         # overwrote the raw-data upload) must be retried, not skipped forever.
