@@ -124,6 +124,14 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CFN-201503",  "2015-03-18"),   # Henry Schein replaced CareFusion after the close of Tue 3/17 (S&P DJI 2015-03-13); Becton Dickinson closed 3/17, CFN's last trade
+    ("AGN-201503",  "2015-03-23"),   # AAL/EQIX/HBI/SLG replaced Allergan, Avon, Denbury and Nabors after the close of Fri 3/20 (S&P DJI 2015-03-13 and -16); Actavis closed 3/17, old Allergan's last trade 3/16
+    ("TEG-201506",  "2015-07-01"),   # J.B. Hunt and Baxalta joined after the close of Tue 6/30, Integrys and QEP out (S&P DJI 2015-06-19 and -26); WEC closed 6/29, TEG's last trade
+    ("FDO-201507",  "2015-07-09"),   # Advance Auto Parts replaced Family Dollar after the close of Wed 7/8 (S&P DJI 2015-07-06); Dollar Tree closed 7/6, FDO's last trade
+    ("DTV-201507",  "2015-07-29"),   # Signet replaced DIRECTV after the close of Tue 7/28 (S&P DJI 2015-07-24); AT&T closed 7/24, DTV's last trade
+    ("HCBK-201510", "2015-11-03"),   # Hudson City left after the close of Mon 11/2 while its replacement HPE joined at the HP separation after the 10/30 close - both lines were members on 11/2 (S&P DJI 2015-10-27); M&T's merger was effective 11/1, HCBK last traded 10/30
+    ("SIAL-201511", "2015-11-19"),   # Illumina replaced Sigma-Aldrich after the close of Wed 11/18 (S&P DJI 2015-11-12); Merck KGaA closed 11/18, SIAL's last trade
+    ("ALTR-201512", "2015-12-29"),   # Church & Dwight replaced Altera after the close of Mon 12/28 (S&P DJI 2015-12-22); Intel closed 12/28, ALTR's last trade
     ("CB-201601",   "2016-01-19"),   # Extra Space replaced Chubb Corp after the close of Fri 1/15 = before the 1/19 open, MLK between (S&P DJI 2016-01-13); ACE closed the deal 1/14, CB's last trade
     ("GMCR-201603", "2016-03-07"),   # UDR replaced Keurig Green Mountain after the close of Fri 3/4 (S&P DJI 2016-03-03); JAB closed 3/3, GMCR last traded 3/2
     ("POM-201603",  "2016-03-30"),   # Hologic and Centene replaced Pepco and Ensco after the close of Tue 3/29 (S&P DJI 2016-03-24); Exelon closed 3/23, POM's last trade
@@ -145,6 +153,30 @@ HOLD_UNTIL = [
     ("AET-201811",  "2018-12-03"),   # Maxim replaced Aetna before the 12/3 open (same release); CVS closed 11/28
     ("ESRX-201812", "2018-12-24"),   # Celanese replaced Express Scripts before the 12/24 open (S&P DJI 2018-12-19); Cigna closed 12/20
 ]
+
+
+# Memberships the upstream snapshot file runs LONGER than S&P's own release:
+# snapshot rows for the label on or after the date are dropped, so the
+# interval ends exactly there. (label, first non-member date) - S&P DJI releases.
+END_EARLY = [
+    ("FCPT", "2015-11-11"),   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
+]
+
+
+def end_early(all_m, label, end):
+    """The snapshots are sparse (change dates), so ending a membership early
+    means inserting a snapshot AT `end` that carries the prior composition
+    without the label, then dropping the label's own rows from `end` on."""
+    end = pd.Timestamp(end)
+    dates = sorted(all_m.date.unique())
+    if end not in set(dates):
+        prev = max(d for d in dates if d < end)
+        snap = all_m[(all_m.date == prev) & (all_m.ticker != label)].assign(date=end)
+        all_m = pd.concat([all_m, snap], ignore_index=True)
+    m = (all_m.ticker == label) & (all_m.date >= end)
+    print(f"  end {label} before {end.date()}: -{int(m.sum())} snapshot dates"
+          + ("" if end in set(dates) else f", snapshot inserted at {end.date()}"))
+    return all_m[~m]
 
 
 def hold_until(all_m, label, end):
@@ -183,6 +215,11 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "FOX":  [("FOX-201903", "1900-01-01", "2019-03-19")],   # 21st Century Fox Class B; Fox Corp took FOX on 2019-03-19
     "BBBY": [("BBBY-202305","1900-01-01", "2023-10-01")],   # Bed Bath & Beyond Inc. (S&P 500 1999-10-01..2017-07-26; Nasdaq delisting 2023-05, shares
                                                             #   cancelled 2023-09); the symbol was reused later - Yahoo's BBBY series starts 2026-07-17 and is another company
+    "NE":   [("NE-202102",  "1900-01-01", "2021-06-01")],   # Noble Corporation, the offshore driller (S&P 500 2001-2009 and 2011-2015; removed 2009 on the
+                                                            #   Swiss redomicile policy like ACE and Tyco, re-added 2011; its shares were cancelled in the
+                                                            #   Feb 2021 Chapter 11 emergence). Yahoo's NE series starts 2021-06 with the re-listed
+                                                            #   successor's new shares - a different security, never an index member. WIKI's NE is the
+                                                            #   old company (Jan 2015 closes 15-17, = the Aug-2018 archive).
 }
 
 
@@ -335,6 +372,8 @@ def main():
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
     for lab, end in HOLD_UNTIL:
         all_m = hold_until(all_m, lab, end)
+    for lab, end in END_EARLY:
+        all_m = end_early(all_m, lab, end)
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.

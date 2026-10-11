@@ -157,7 +157,12 @@ def adjust_one(df):
             i = int(hit[0])
             p0, p1 = float(g.parent_prev_close.iloc[0]), float(g.parent_close.iloc[0])
             ps = float(g.parent_shares.iloc[0]) if "parent_shares" in g.columns and pd.notna(g.parent_shares.iloc[0]) else 1.0
-            target = (p1 * ps + float((g.ratio.astype(float) * g.spinco_close.astype(float)).sum())) / p0
+            # `cash`: per-share cash paid at the same ex-date as the distribution
+            # (CSC 2015-11-30: 1 CSRA + a $10.50 special), on the table's basis.
+            # The vendor's record of that cash is zeroed in
+            # corporate_action_overrides.csv so it is counted exactly once.
+            csh = float(g.cash.iloc[0]) if "cash" in g.columns and pd.notna(g.cash.iloc[0]) else 0.0
+            target = (p1 * ps + float((g.ratio.astype(float) * g.spinco_close.astype(float)).sum()) + csh) / p0
             c0, c1 = float(close.iloc[i - 1]), float(close.iloc[i])
             scale = 1.0 if src in ("tiingo", "wiki") else float(later.iloc[i])
             if abs(c1 * scale / p1 - 1) > 0.01:
