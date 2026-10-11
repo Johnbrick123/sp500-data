@@ -85,6 +85,20 @@ def fetch_ticker(sym):
 def main():
     iv = pd.read_parquet(ROOT / "data" / "universe" / "membership_intervals.parquet")
     iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
+    # Honor drop_raw_files.txt here too (fetch_prices.py applies it nightly):
+    # a condemned file (wrong company under the label) would otherwise make
+    # this recovery skip the label - CB-201601 and JCI-201609 held Tiingo
+    # series of the wrong lineage until the next nightly fetch deleted them.
+    drop_f = ROOT / "drop_raw_files.txt"
+    if drop_f.exists():
+        for line in drop_f.read_text().splitlines():
+            parts = line.split("#")[0].split()
+            if len(parts) != 2:
+                continue
+            lab, src = parts
+            f = RAW / f"{lab}.parquet"
+            if f.exists() and str(pd.read_parquet(f, columns=["source"])["source"].iloc[0]) == src:
+                f.unlink(); say(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt")
     have = {p.stem for p in RAW.glob("*.parquet")}
 
     # label -> bare symbol, for every index member we have no prices for
