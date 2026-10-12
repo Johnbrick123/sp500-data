@@ -33,7 +33,7 @@ for o in range(0, 1000, 100):
     if not new:
         break
     time.sleep(1)
-keep = [u for u in links if re.search(r"S-P-500|Join|Replace|S-P-100", u, re.I)]
+keep = [u for u in links if re.search(r"S-P-500|Join|Replace|S-P-100|Announces-Change|U-S-Ind|Index-Change", u, re.I)]   # before mid-2012 the titles were the generic "S&P Indices Announces Change(s) to U.S. Index"
 print(f"{len(links)} releases in {Y}, {len(keep)} about index changes")
 for u in sorted(keep):
     f = f"{OUT}/{u.rsplit('/', 1)[1][:120]}.html"
