@@ -124,6 +124,10 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CEG-201203",  "2012-03-14"),   # Crown Castle replaced Constellation after the close of Tue 3/13 (S&P Indices 2012-03-07 set the swap, date announced later; CCI's index-trade volume 50M on 3/13 vs 9.6M on 3/12); Exelon closed 3/12, CEG's last trade
+    ("MHS-201203",  "2012-04-04"),   # Fossil replaced Medco after the close of Tue 4/3 (S&P Indices 2012-03-28, date announced later; FOSL's index trade 4/3); Express Scripts closed 4/2, MHS's last trade 3/30
+    ("MMI-201205",  "2012-05-25"),   # Alexion replaced Motorola Mobility after the close of Thu 5/24 (S&P Indices 2012-05-21); Google closed 5/22, MMI's last trade 5/21
+    ("GR-201207",   "2012-07-31"),   # Ensco replaced Goodrich after the close of Mon 7/30 (S&P DJI 2012-07-26); UTC closed 7/26, GR's last trade
     ("CVH-201305",  "2013-05-09"),   # Macerich replaced Coventry after the close of Wed 5/8 (S&P DJI 2013-05-03); Aetna closed the deal 5/7, CVH's last trade 5/6 - the file left a two-day hole (499 members)
     ("MOLX-201312", "2013-12-10"),   # GGP replaced Molex after the close of Mon 12/9 (S&P DJI 2013-12-04); Koch closed the deal 12/9 - the file dropped Molex a day early (499 members on 12/9)
     ("LSI-201405",  "2014-05-08"),   # Avago replaced LSI after the close of Wed 5/7 (S&P DJI 2014-05-05); Avago closed the deal 5/6, LSI's last trade
@@ -171,8 +175,34 @@ END_EARLY = [
 # dropped from snapshot dates before its real first member day, so its interval
 # starts exactly there. (label, first member date) - S&P DJI releases.
 START_LATE = [
+    ("CCI", "2012-03-14"),   # Crown Castle joined after the close of Tue 3/13 (see CEG-201203 above); the upstream file has 3/13
     ("XEC", "2014-06-23"),   # Cimarex joined after the close of Fri 6/20 (S&P DJI 2014-06-12), i.e. before the 6/23 open; the upstream file has 6/20
 ]
+
+
+# Additions the upstream snapshot file dates a trading day LATE: the label is added to
+# the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
+START_EARLY = [
+    ("ADT-201604", "2012-10-01"),   # ADT replaced Lexmark after the close of Fri 9/28 at the Tyco separation (S&P DJI 2012-09-24); first regular-way day 10/1; the upstream file has 10/2 (499 members on 10/1)
+]
+
+
+def start_early(all_m, label, start):
+    """Make `label` a member from `start`: a snapshot at `start` (inserted from the
+    prior composition if needed) and every snapshot date up to its first listing."""
+    start = pd.Timestamp(start)
+    have = all_m.loc[all_m.ticker == label, "date"]
+    if have.empty or have.min() <= start:
+        print(f"  start {label} early on {start.date()}: nothing to do"); return all_m
+    dates = sorted(all_m.date.unique())
+    if start not in set(dates):
+        prev = max(d for d in dates if d < start)
+        all_m = pd.concat([all_m, all_m[all_m.date == prev].assign(date=start)], ignore_index=True)
+        dates = sorted(all_m.date.unique())
+    gap = [d for d in dates if start <= d < have.min()]
+    all_m = pd.concat([all_m, pd.DataFrame({"date": gap, "ticker": label})], ignore_index=True)
+    print(f"  start {label} early on {start.date()}: +{len(gap)} snapshot dates")
+    return all_m
 
 
 def start_late(all_m, label, start):
@@ -250,6 +280,8 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "FOX":  [("FOX-201903", "1900-01-01", "2019-03-19")],   # 21st Century Fox Class B; Fox Corp took FOX on 2019-03-19
     "BBBY": [("BBBY-202305","1900-01-01", "2023-10-01")],   # Bed Bath & Beyond Inc. (S&P 500 1999-10-01..2017-07-26; Nasdaq delisting 2023-05, shares
                                                             #   cancelled 2023-09); the symbol was reused later - Yahoo's BBBY series starts 2026-07-17 and is another company
+    "SHLD": [("SHLD-201810","1900-01-01", "2023-01-01")],   # Sears Holdings (S&P 500 2005-03-28..2012-09-04; Nasdaq delisting 2018-10, then SHLDQ). Yahoo's
+                                                            #   SHLD series starts 2023-09 with another company - never a member
     "NE":   [("NE-202102",  "1900-01-01", "2021-06-01")],   # Noble Corporation, the offshore driller (S&P 500 2001-2009 and 2011-2015; removed 2009 on the
                                                             #   Swiss redomicile policy like ACE and Tyco, re-added 2011; its shares were cancelled in the
                                                             #   Feb 2021 Chapter 11 emergence). Yahoo's NE series starts 2021-06 with the re-listed
@@ -411,6 +443,8 @@ def main():
         all_m = end_early(all_m, lab, end)
     for lab, start in START_LATE:
         all_m = start_late(all_m, lab, start)
+    for lab, start in START_EARLY:
+        all_m = start_early(all_m, lab, start)
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.
