@@ -1,0 +1,21 @@
+name: Probe web pages (releases, filings) for a pattern
+on:
+  workflow_dispatch:
+    inputs:
+      urls: { description: "URLs, space-separated", required: true }
+      pattern: { description: "Regex to show in context (blank = first 6000 chars)", required: false, default: "" }
+      context: { description: "Characters of context around each match", required: false, default: "400" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: mkdir -p data && python probe_pages.py "${{ github.event.inputs.urls }}" "${{ github.event.inputs.pattern }}" "${{ github.event.inputs.context }}"
+      - run: gh release upload data data/pages_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
