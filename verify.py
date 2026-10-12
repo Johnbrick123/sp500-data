@@ -140,6 +140,10 @@ def check_adjustment(df):
         if sf.exists():       # spin-off ex-dates are booked at the holder's actual return, not Yahoo's (see [1])
             skip = set(pd.read_csv(sf, parse_dates=["ex_date"]).query("ticker == @tk").ex_date)
             ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
+        of = ROOT / "corporate_action_overrides.csv"
+        if of.exists():       # days where Yahoo's own record is corrected by hand (GE's phantom $0.055 of 2012-06-15) differ by design
+            skip = set(pd.read_csv(of, parse_dates=["date"]).query("ticker == @tk").date)
+            ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
         max_err = (ra - rb).abs().max() * 100
         wealth_err = abs((1 + ra).prod() / (1 + rb).prod() - 1) * 100
         record("adjust " + tk, "PASS" if (max_err < 0.05 and wealth_err < 0.5) else "FAIL",
