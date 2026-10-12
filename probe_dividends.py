@@ -1,7 +1,7 @@
 """Probe: Nasdaq's dividend history for a few tickers (ex-date, type, cash amount,
 declaration/record/payment dates), to see how far back it goes and whether the
 amounts are as declared or split-adjusted.
-Usage: python probe_dividends.py "T,AAPL,GE" -> data/dividends_probe.txt"""
+Usage: python probe_dividends.py "T,AAPL,GE" -> data/dividends_probe.txt   (YEAR=2012 prints every row of that year)"""
 import json, os, sys, time, urllib.request
 import pandas as pd
 
@@ -19,9 +19,13 @@ for tk in [x.strip() for x in sys.argv[1].split(",") if x.strip()]:
             say("  raw: " + json.dumps(d)[:600])
         if rows:
             df = pd.DataFrame(rows)
-            say(df.head(6).to_string(index=False))
-            say("  ...")
-            say(df.tail(6).to_string(index=False))
+            yr = os.environ.get("YEAR", "").strip()
+            if yr and "exOrEffDate" in df.columns:      # every row of one year (the sign-off passes)
+                say(df[df.exOrEffDate.astype(str).str.contains("/" + yr)].to_string(index=False))
+            else:
+                say(df.head(6).to_string(index=False))
+                say("  ...")
+                say(df.tail(6).to_string(index=False))
     except Exception as e:
         say(f"\n===== {tk}: {type(e).__name__} {str(e)[:150]}")
     time.sleep(1)

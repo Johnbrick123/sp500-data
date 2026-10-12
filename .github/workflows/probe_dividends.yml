@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tickers: { description: "Comma list of tickers", required: true, default: "T,AAPL,GE" }
+      year: { description: "Print every row of this year (blank: head and tail)", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -15,6 +16,7 @@ jobs:
         with: { python-version: '3.12' }
       - run: pip install -q pandas
       - run: python probe_dividends.py "${{ github.event.inputs.tickers }}"
+        env: { YEAR: "${{ github.event.inputs.year }}" }
       - run: gh release upload data data/dividends_probe.txt --clobber
         if: always()
         env: { GH_TOKEN: "${{ github.token }}" }
