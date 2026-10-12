@@ -11,7 +11,6 @@ JPM-200012   # returned Chase, not the original J.P. Morgan & Co
 HON-199912   # returned AlliedSignal, not the original Honeywell
 GENZ-201104  # $22.71 in 2010; Genzyme traded ~$50-70
 WEN-200809   # returned Triarc, not Wendy's International
-EP-201205    # $0.02 in Dec 2011; El Paso traded ~$26
 CSR-200006   # returned today's CSR (Centerspace)
 AIT-199910   # returned Applied Industrial Technologies, not Ameritech
 TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
