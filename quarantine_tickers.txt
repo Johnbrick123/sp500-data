@@ -13,4 +13,3 @@ CSR-200006   # returned today's CSR (Centerspace)
 AIT-199910   # returned Applied Industrial Technologies, not Ameritech
 TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
 KMG-200608   # $8.57 in 2006 = KMG Chemicals, not Kerr-McGee
-MIL-201007   # $13 in 2010; Millipore traded ~$105

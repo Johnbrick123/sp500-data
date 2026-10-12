@@ -19,3 +19,4 @@ EP-201205 tiingo   # 2026-10-12: Tiingo's file is not El Paso Corp ($0.02 in Dec
 GAS-201112 tiingo   # Tiingo's GAS is AGL Resources (which took the ticker in Dec 2011), not Nicor; Nicor comes from CRSP (permno 48274)
 GENZ-201104 tiingo   # Tiingo's GENZ (2008-2011, ~$32) is not Genzyme (~$50-76); Genzyme comes from CRSP (permno 10324)
 PLD-201106 tiingo   # Tiingo's PLD is the merged AMB/ProLogis line, not old ProLogis
+MIL-201007 tiingo   # Tiingo's MIL is a ~$13 stock in 2010, not Millipore (~$105); Millipore comes from CRSP (permno 54181: last trade 2010-07-14 at $106.95 vs the $107 Merck KGaA cash price)
