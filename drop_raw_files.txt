@@ -16,3 +16,6 @@ BXLT-201606 tiingo # 2026-10-11: Tiingo's whole Baxalta series is dated one trad
 AGN-201503 tiingo   # 2026-10-12: Tiingo's file is Actavis (closes 255-314 in early 2015), not old Allergan Inc; old Allergan recovered from CRSP (permno 75646: last trade 2015-03-16 at $240.22)
 LSI-201405 tiingo   # 2026-10-12: Tiingo's file is Life Storage/Sovran (~$65 in 2013), not LSI Corp; LSI Corp recovered from CRSP (permno 48267: last trade 2014-05-06 at $11.14 vs Avago's $11.15 cash)
 EP-201205 tiingo   # 2026-10-12: Tiingo's file is not El Paso Corp ($0.02 in Dec 2011; El Paso traded ~$26); El Paso recovered from CRSP (permno 77481: last trade 2012-05-24 at $28.75, the KMI deal day)
+GAS-201112 tiingo   # Tiingo's GAS is AGL Resources (which took the ticker in Dec 2011), not Nicor; Nicor comes from CRSP (permno 48274)
+GENZ-201104 tiingo   # Tiingo's GENZ (2008-2011, ~$32) is not Genzyme (~$50-76); Genzyme comes from CRSP (permno 10324)
+PLD-201106 tiingo   # Tiingo's PLD is the merged AMB/ProLogis line, not old ProLogis

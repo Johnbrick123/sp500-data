@@ -49,7 +49,8 @@ for lab, d, anchor in specs:
     say(f"\n== {lab}: last day ~{d.date()}" + (f", deal value {anchor}" if anchor else ""))
     c = []
     for p, r in last.items():
-        if abs((r.date - d).days) <= 20 and str(r.shrcd) in ("10", "11", "12", "18", "10.0", "11.0", "12.0", "18.0"):   # 12 = foreign-incorporated (Cooper Industries plc, Tyco, Accenture...); 18 = REIT (old ProLogis)
+        codes = os.environ.get("SHRCD", "10,11,12,18").split(",")      # 12 = foreign-incorporated (Cooper Industries plc, Tyco, Accenture...); 18 = REIT; SHRCD=any lifts the filter
+        if abs((r.date - d).days) <= 20 and ("any" in codes or str(r.shrcd).split(".")[0] in codes):
             mcap = abs(r.prc) * r.shrout / 1000.0      # shrout in thousands -> $M
             if mcap > float(os.environ.get("MIN_MCAP", "1000")):
                 c.append((p, r.date.date(), abs(r.prc), round(mcap), r.exchcd, first[p].date(),
