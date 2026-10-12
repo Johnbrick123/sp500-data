@@ -1,0 +1,26 @@
+name: Probe the Kaggle CRSP dump for missing members' permnos
+on:
+  workflow_dispatch:
+    inputs:
+      specs: { description: "LABEL:LASTDAY[:DEALVALUE] ... (space-separated)", required: true }
+      slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas 'kaggle>=1.8.0'
+      - name: Dataset metadata (license, description)
+        run: kaggle datasets metadata -d "${{ github.event.inputs.slug }}" -p meta && cat meta/dataset-metadata.json || true
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag && ls -la kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python probe_crsp.py "${{ github.event.inputs.specs }}"
+      - run: gh release upload data data/crsp_probe.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
