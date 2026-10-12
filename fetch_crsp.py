@@ -90,24 +90,32 @@ for ch in chunks():
     keep.append(ch[ch.permno.isin(want | set(chk_perm.values()))])
 crsp = pd.concat(keep, ignore_index=True)
 
-# ---- 1. validation against dead members we already hold
+# ---- 1. validation against dead members we already hold - scored from 2003 (decimal prices; the era
+# being signed off). Before that our own Tiingo/WIKI copies disagree with CRSP on fractional-price days
+# (Jan 1996 especially); those are for the earlier years' passes to arbitrate.
+VALID_FROM = pd.Timestamp("2003-01-01")
 if ours:
     tot = agree = 0
     for lab, p in chk_perm.items():
         o = ours[lab]
         c = crsp[crsp.permno == p].dropna(subset=["prc"]).assign(close=lambda x: x.prc.abs())
-        m = o.merge(c[["date", "close"]], on="date", suffixes=("_o", "_c"))
+        m_all = o.merge(c[["date", "close"]], on="date", suffixes=("_o", "_c"))
+        early = m_all[m_all.date < VALID_FROM]
+        if len(early):
+            e_ok = int(((early.close_o / early.close_c - 1).abs() < 0.005).sum())
+            say(f"  (before {VALID_FROM.date()}, not scored: {len(early)} days, {e_ok / len(early) * 100:.2f}% within 0.5% - fractional-price era; a later year's pass)")
+        m = m_all[m_all.date >= VALID_FROM]
         ok = int(((m.close_o / m.close_c - 1).abs() < 0.005).sum())
         tot += len(m); agree += ok
         gap = c[(c.date >= o.date.min()) & (c.date <= o.date.max()) & ~c.date.isin(set(o.date))]
         if len(gap):
             say(f"  days CRSP has that our {lab} lacks: {[(str(r.date.date()), r.close, r.ret) for r in gap.head(12).itertuples()]}")
         bad = m[(m.close_o / m.close_c - 1).abs() >= 0.005]
-        say(f"check {lab} ({o.source.iloc[0]}): permno {p}, {len(m)} days compared, {ok / max(len(m), 1) * 100:.2f}% within 0.5%"
+        say(f"check {lab} ({o.source.iloc[0]}): permno {p}, {len(m)} days compared from 2003, {ok / max(len(m), 1) * 100:.2f}% within 0.5%"
             + (f"; e.g. {[(str(r.date.date()), r.close_o, r.close_c) for r in bad.head(4).itertuples()]}" if len(bad) else ""))
     pct = agree / max(tot, 1) * 100
     say(f"VALIDATION: {tot:,} closes compared, {pct:.3f}% agree within 0.5%")
-    if tot < 2000 or pct < 99.0:
+    if tot < 2000 or pct < 99.5:
         say("ABORT: CRSP does not validate against our held series - nothing written"); done(1)
 
 # ---- 2. recovery
