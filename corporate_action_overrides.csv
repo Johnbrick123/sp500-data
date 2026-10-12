@@ -170,3 +170,8 @@ DNB,2014-04-25,,0,"Not a Dun & Bradstreet dividend: WIKI books $2.70 on 4/25 bet
 ARG-201605,2014-08-27,,0,"Not an Airgas dividend: Tiingo books $0.06 on 8/27 between Airgas's regular quarterlies ($0.55 ex 6/11 and 9/11); WIKI has no such payment, and nothing in the quarterly schedule fits it."
 IGT-201504,2014-03-19,,0,"WIKI books IGT's fiscal-Q2 $0.11 dividend twice, on 3/19 and 3/20. One payment: the Aug-2018 and Apr-2020 archives and the Jun-2021 archive all carry it on 3/20, so the 3/19 copy is dropped (one-day ex-date uncertainty noted in the log)."
 BTUUQ-201704,2014-08-06,,0.085,"Peabody paid $0.085 a quarter from 2012 until the 2015 cut (WIKI's own record has 0.085 on every other 2013-2014 date); WIKI rounds this one to 0.09."
+AGN-201503,2006-02-15,,0.10,"Old Allergan's $0.10 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
+AGN-201503,2007-05-16,,0.10,"Old Allergan's $0.10 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
+AGN-201503,2014-05-21,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
+AGN-201503,2014-08-13,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
+AGN-201503,2015-02-05,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
