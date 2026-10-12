@@ -10,6 +10,7 @@ Download the published build first (GitHub's release CLI is blocked in some sand
 |---|---|
 | `daily_coverage.py DIR Y0 Y1` | Does every index member have a price on every trading day of each year? Lists the members with missing days (days within 7 of a name's last trade count as "carried": S&P held it after its deal closed). |
 | `member_changes.py DIR YEAR` | Our membership changes in a year next to Wikipedia's change log (a lead only: S&P DJI's releases are the authority). |
+| `volume_spikes.py DIR YEAR` | For each add and removal in a year, the day of the name's biggest volume around it: index funds trade at the close BEFORE the effective date, so a peak on another day flags a wrong date (IGT/Cimarex 2014). Share-class lines and spin-offs the index receives show no spike. |
 | `bridge_test.py WORKDIR [Y0 Y1]` | Rebuilds membership from the upstream file with the repo's `bridge_membership.py` and prints each year's daily member count and every interval that differs from the published one. Run it before committing a membership change. |
 | `bigmoves.py DIR YEAR [THRESH]` | Members' one-day total returns beyond a threshold (default 10%), with that row's dividend, split factor and source — finds unbooked spin-offs and bad bars. |
 | `spin_inventory_2015_2026.csv` | Candidate spin-off / large-distribution days found from Yahoo factors and big dividends (`done` = converted in `spinoffs.csv`). Not complete: Biogen 2017 had no vendor record at all and was found by the Nasdaq audit. |
