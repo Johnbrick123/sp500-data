@@ -160,7 +160,11 @@ for lab, p, lo, hi in specs:
                 continue
         d = x[i] - close[i] * split[i]
         if d > 0.001:
-            div[i] = round(d / split[i], 4)
+            v = d / split[i]
+            # CRSP's RET has 6 decimals, so the derived amount carries noise of about price x 1e-6
+            # (Allergan's $0.05 came out 0.0501 at $240): snap to the cent when that close
+            v = round(v, 2) if abs(v - round(v, 2)) <= max(0.0002, close[i] * 1.5e-6) else round(v, 4)
+            div[i] = v
     df = pd.DataFrame({"date": g.date, "open": np.nan, "high": np.nan, "low": np.nan, "close": close,
                        "volume": np.nan, "dividends": div, "stock_splits": split, "ticker": lab, "source": "crsp"})
     RAW.mkdir(parents=True, exist_ok=True)
