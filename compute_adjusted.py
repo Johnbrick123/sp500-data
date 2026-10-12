@@ -91,7 +91,7 @@ def adjust_one(df):
         src = base.mode().iloc[0] if len(base) else srcs.iloc[0]
     else:
         src = "yahoo"
-    eff_split = split if src in ("tiingo", "wiki") else pd.Series(1.0, index=df.index)
+    eff_split = split if src in ("tiingo", "wiki", "crsp") else pd.Series(1.0, index=df.index)
     # A dividend is paid per share ON the ex-date, i.e. on the post-split basis
     # when a split lands the same day, while prev_close is pre-split. Put both
     # on the same basis: prev_close_new = prev_close / split.
@@ -164,19 +164,19 @@ def adjust_one(df):
             csh = float(g.cash.iloc[0]) if "cash" in g.columns and pd.notna(g.cash.iloc[0]) else 0.0
             target = (p1 * ps + float((g.ratio.astype(float) * g.spinco_close.astype(float)).sum()) + csh) / p0
             c0, c1 = float(close.iloc[i - 1]), float(close.iloc[i])
-            scale = 1.0 if src in ("tiingo", "wiki") else float(later.iloc[i])
+            scale = 1.0 if src in ("tiingo", "wiki", "crsp") else float(later.iloc[i])
             if abs(c1 * scale / p1 - 1) > 0.01:
                 SPUN.append((tk, str(exd.date()), None, None, None,
                              f"REFUSED: stored ex-date close {c1 * scale:.4f} does not match the table's {p1}")); continue
             note = ""
             if float(div.iloc[i]) != 0:
-                if src in ("tiingo", "wiki", "kaggle"):
+                if src in ("tiingo", "wiki", "kaggle", "crsp"):
                     note = f"; replaces the vendor's distribution of {float(div.iloc[i]):.4f}"
                 else:
                     SPUN.append((tk, str(exd.date()), None, None, None, "REFUSED: a cash dividend is booked on the ex-date")); continue
             implied = (c1 / c0) / (p1 / p0)      # the factor the stored history already carries for this event
             rec = float(split.iloc[i])
-            if src in ("tiingo", "wiki"):
+            if src in ("tiingo", "wiki", "crsp"):
                 ok = abs(implied - 1) < 0.01               # raw closes: nothing is baked into the stored history
             else:
                 ok = abs(implied / rec - 1) < 0.01 if rec != 1 else 0.99 <= implied <= 100
