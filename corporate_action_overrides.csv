@@ -175,3 +175,6 @@ AGN-201503,2007-05-16,,0.10,"Old Allergan's $0.10 quarterly; the CRSP-derived am
 AGN-201503,2014-05-21,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
 AGN-201503,2014-08-13,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
 AGN-201503,2015-02-05,,0.05,"Old Allergan's $0.05 quarterly; the CRSP-derived amount carries RET's rounding noise (0.0501 / 0.1001 / 0.0999)."
+MDLZ,2013-03-27,,0.13,"Mondelez paid $0.13 a quarter in early 2013 (its 12/27/2012 and 6/27/2013 payments, $0.14 from September); Yahoo records $0.26 on 3/27, double. WIKI has $0.13, and the Dec-2021 snapshot's and Aug-2018 archive's total returns that day imply the same."
+COL-201811,2013-11-08,,0,"Not a second Rockwell Collins dividend: Tiingo books $0.31 on 11/8 the day after the real $0.30 (11/7). WIKI and the archives' adjusted closes have only the 11/7 payment."
+CTRA,2013-08-02,,0.04,"Cabot paid $0.04 per pre-split share on 8/2 (the 2-for-1 split came 8/15; the next payment, $0.02 per post-split share on 11/5, is the same rate). Tiingo's raw record carries $0.02 - the post-split amount on a pre-split date. WIKI has $0.04."
