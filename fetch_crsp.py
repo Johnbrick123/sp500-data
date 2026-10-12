@@ -76,6 +76,10 @@ for lab in checks:
     ours[lab] = (real if len(real) else d)[["date", "close", "source"]]
 
 want = {p for _, p, _, _ in specs}
+# SHOW_ROWS="PERMNO:START:END ..." prints CRSP's own rows (PRC, RET) for a window - read-only, for checking
+# what a distribution was worth on an ex-date (RET includes every distribution)
+show = [(int(a), pd.Timestamp(b), pd.Timestamp(c)) for a, b, c in (x.split(":") for x in os.environ.get("SHOW_ROWS", "").split())]
+want |= {p for p, _, _ in show}
 f = glob.glob("kag/**/*.csv", recursive=True)[0]
 WANT = {"permno", "date", "shrcd", "prc", "ret", "shrout"}
 def chunks():
@@ -123,6 +127,12 @@ keep = []
 for ch in chunks():
     keep.append(ch[ch.permno.isin(want | set(chk_perm.values()))])
 crsp = pd.concat(keep, ignore_index=True)
+
+for p, a, b in show:
+    w = crsp[(crsp.permno == p) & (crsp.date >= a) & (crsp.date <= b)].sort_values("date")
+    say(f"CRSP rows for permno {p} {a.date()}..{b.date()}:")
+    for r in w.itertuples():
+        say(f"  {r.date.date()}  prc {r.prc}  ret {r.ret}  shrout {r.shrout}")
 
 # ---- 1. validation against dead members we already hold - scored from 2003 (decimal prices; the era
 # being signed off). Before that our own Tiingo/WIKI copies disagree with CRSP on fractional-price days
