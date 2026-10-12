@@ -129,7 +129,8 @@ if ours:
         bad = m[(m.close_o / m.close_c - 1).abs() >= 0.005]
         cy = os.environ.get("CHECK_YEAR", "").strip()
         if cy:      # every disagreement inside the year being signed off, for hand review
-            yb = bad[bad.date.dt.year == int(cy)]
+            yrs = {int(y) for y in cy.replace(",", " ").split()}
+            yb = bad[bad.date.dt.year.isin(yrs)]
             if len(yb):
                 say(f"  {cy} disagreements for {lab}: {[(str(r.date.date()), r.close_o, r.close_c) for r in yb.itertuples()]}")
         say(f"check {lab} ({o.source.iloc[0]}): permno {p}, {len(m)} days compared from 2003, {ok / max(len(m), 1) * 100:.2f}% within 0.5%"
