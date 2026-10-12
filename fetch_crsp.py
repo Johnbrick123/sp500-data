@@ -30,6 +30,8 @@ ROOT = Path(__file__).parent
 RAW = ROOT / "data" / "raw"
 specs = []
 for s in sys.argv[1].split():
+    if s == "-":
+        continue
     lab, rest = s.split("=", 1)
     p, win = rest.split("@", 1)
     a, b = win.split(":")
@@ -125,6 +127,11 @@ if ours:
         if len(gap):
             say(f"  days CRSP has that our {lab} lacks: {[(str(r.date.date()), r.close, r.ret) for r in gap.head(12).itertuples()]}")
         bad = m[(m.close_o / m.close_c - 1).abs() >= 0.005]
+        cy = os.environ.get("CHECK_YEAR", "").strip()
+        if cy:      # every disagreement inside the year being signed off, for hand review
+            yb = bad[bad.date.dt.year == int(cy)]
+            if len(yb):
+                say(f"  {cy} disagreements for {lab}: {[(str(r.date.date()), r.close_o, r.close_c) for r in yb.itertuples()]}")
         say(f"check {lab} ({o.source.iloc[0]}): permno {p}, {len(m)} days compared from 2003, {ok / max(len(m), 1) * 100:.2f}% within 0.5%"
             + (f"; e.g. {[(str(r.date.date()), r.close_o, r.close_c) for r in bad.head(4).itertuples()]}" if len(bad) else ""))
     pct = agree / max(tot, 1) * 100
