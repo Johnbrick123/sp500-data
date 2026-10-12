@@ -7,7 +7,7 @@ import html, re, sys, time, urllib.request
 urls = sys.argv[1].split()
 pat = re.compile(sys.argv[2], re.I) if len(sys.argv) > 2 and sys.argv[2] else None
 ctx = int(sys.argv[3]) if len(sys.argv) > 3 else 400
-H = {"User-Agent": "sp500-data research (github.com/Johnbrick123/sp500-data)", "Accept-Encoding": "identity"}
+H = {"User-Agent": "sp500-data research sp500-data@users.noreply.github.com", "Accept-Encoding": "identity"}   # SEC EDGAR refuses requests without a contact in the User-Agent
 out = []
 def say(s=""): print(s, flush=True); out.append(str(s))
 for u in urls:
