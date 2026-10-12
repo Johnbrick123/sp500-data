@@ -124,6 +124,8 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("LSI-201405",  "2014-05-08"),   # Avago replaced LSI after the close of Wed 5/7 (S&P DJI 2014-05-05); Avago closed the deal 5/6, LSI's last trade
+    ("IGT-201504",  "2014-06-23"),   # Cimarex replaced IGT after the close of Fri 6/20, the quarterly rebalance (S&P DJI 2014-06-12); the upstream file dates it 6/20 (index-trade volume: IGT 6/20, XEC 6/20)
     ("CFN-201503",  "2015-03-18"),   # Henry Schein replaced CareFusion after the close of Tue 3/17 (S&P DJI 2015-03-13); Becton Dickinson closed 3/17, CFN's last trade
     ("AGN-201503",  "2015-03-23"),   # AAL/EQIX/HBI/SLG replaced Allergan, Avon, Denbury and Nabors after the close of Fri 3/20 (S&P DJI 2015-03-13 and -16); Actavis closed 3/17, old Allergan's last trade 3/16
     ("TEG-201506",  "2015-07-01"),   # J.B. Hunt and Baxalta joined after the close of Tue 6/30, Integrys and QEP out (S&P DJI 2015-06-19 and -26); WEC closed 6/29, TEG's last trade
@@ -161,6 +163,37 @@ HOLD_UNTIL = [
 END_EARLY = [
     ("FCPT", "2015-11-11"),   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
 ]
+
+
+# Additions the upstream snapshot file dates a trading day EARLY: the label is
+# dropped from snapshot dates before its real first member day, so its interval
+# starts exactly there. (label, first member date) - S&P DJI releases.
+START_LATE = [
+    ("XEC", "2014-06-23"),   # Cimarex joined after the close of Fri 6/20 (S&P DJI 2014-06-12), i.e. before the 6/23 open; the upstream file has 6/20
+]
+
+
+def start_late(all_m, label, start):
+    """Drop the label's snapshot rows in the stretch just before `start` (from
+    the start of that membership spell). The composition at `start` must
+    already list it - a snapshot at `start` is inserted from the prior one if
+    there is none (hold_until/end_early may have made one already)."""
+    start = pd.Timestamp(start)
+    dates = sorted(all_m.date.unique())
+    if start not in set(dates):
+        prev = max(d for d in dates if d < start)
+        all_m = pd.concat([all_m, all_m[all_m.date == prev].assign(date=start)], ignore_index=True)
+    have = sorted(all_m.loc[(all_m.ticker == label) & (all_m.date < start), "date"])
+    # only the contiguous run of snapshot dates ending just before `start`
+    dates = sorted(all_m.date.unique()); run = []
+    for d in reversed([d for d in dates if d < start]):
+        if d in set(have):
+            run.append(d)
+        else:
+            break
+    m = (all_m.ticker == label) & all_m.date.isin(run)
+    print(f"  start {label} on {start.date()}: -{int(m.sum())} snapshot dates")
+    return all_m[~m]
 
 
 def end_early(all_m, label, end):
@@ -374,6 +407,8 @@ def main():
         all_m = hold_until(all_m, lab, end)
     for lab, end in END_EARLY:
         all_m = end_early(all_m, lab, end)
+    for lab, start in START_LATE:
+        all_m = start_late(all_m, lab, start)
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.
