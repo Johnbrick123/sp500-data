@@ -124,6 +124,8 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CVH-201305",  "2013-05-09"),   # Macerich replaced Coventry after the close of Wed 5/8 (S&P DJI 2013-05-03); Aetna closed the deal 5/7, CVH's last trade 5/6 - the file left a two-day hole (499 members)
+    ("MOLX-201312", "2013-12-10"),   # GGP replaced Molex after the close of Mon 12/9 (S&P DJI 2013-12-04); Koch closed the deal 12/9 - the file dropped Molex a day early (499 members on 12/9)
     ("LSI-201405",  "2014-05-08"),   # Avago replaced LSI after the close of Wed 5/7 (S&P DJI 2014-05-05); Avago closed the deal 5/6, LSI's last trade
     ("IGT-201504",  "2014-06-23"),   # Cimarex replaced IGT after the close of Fri 6/20, the quarterly rebalance (S&P DJI 2014-06-12); the upstream file dates it 6/20 (index-trade volume: IGT 6/20, XEC 6/20)
     ("CFN-201503",  "2015-03-18"),   # Henry Schein replaced CareFusion after the close of Tue 3/17 (S&P DJI 2015-03-13); Becton Dickinson closed 3/17, CFN's last trade
