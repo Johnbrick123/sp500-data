@@ -1,0 +1,23 @@
+name: Fetch S&P DJI index-change releases for a year
+on:
+  workflow_dispatch:
+    inputs:
+      year: { description: "Calendar year", required: true, default: "2014" }
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python fetch_releases.py ${{ github.event.inputs.year }}
+      - name: Publish the sentences and the saved pages
+        if: always()
+        run: |
+          y=${{ github.event.inputs.year }}
+          tar -czf data/releases_${y}.tar.gz -C data releases_${y}
+          gh release upload data data/releases_${y}.txt data/releases_${y}.tar.gz --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
