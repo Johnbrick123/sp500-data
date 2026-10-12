@@ -376,6 +376,8 @@ def apply_patches(df, stem):
     series' price basis.
       action=fill (the default): adds a day the source is missing, e.g.
         Veralto's first two trading days. Never touches an existing row.
+      action=replace_close: as replace, when only the close is known (CRSP): the
+        close is set and open/high/low/volume are blanked unless given.
       action=replace: overwrites open/high/low/close/volume of an existing day
         that two independent sources show to be wrong (Vontier 2020-10-09:
         Nasdaq, Tiingo and Fortive's Form 8937 against Yahoo). The row keeps its
@@ -393,7 +395,7 @@ def apply_patches(df, stem):
     mine = PATCHES[PATCHES.ticker == stem]
     act = (mine["action"].fillna("fill").astype(str).str.strip().str.lower()
            if "action" in mine.columns else pd.Series("fill", index=mine.index))
-    for _, p in mine[act.eq("replace")].iterrows():
+    for _, p in mine[act.isin(["replace", "replace_close"])].iterrows():
         hit = df.index[df["date"] == p["date"]]
         if len(hit) != 1:
             REPLACED.append((stem, str(p["date"].date()), None, float(p["close"]), "REFUSED: date not in series"))
@@ -405,9 +407,17 @@ def apply_patches(df, stem):
         if not abs(old / float(p["close"]) - 1) <= lim:
             REPLACED.append((stem, str(p["date"].date()), old, float(p["close"]), f"REFUSED: more than {lim:.0%} from the existing close"))
             continue
-        for c in ("open", "high", "low", "close", "volume"):
-            if c in df.columns and pd.notna(p.get(c)):
-                df.at[i, c] = float(p[c])
+        if str(p.get("action", "")).strip().lower() == "replace_close":
+            # only the close is known (CRSP has no open/high/low/volume): the vendor's other fields
+            # belong to the bar it wrongly carried (the next day's, on Tiingo/WIKI's 2014 bad days), so blank them
+            for c in ("open", "high", "low", "volume"):
+                if c in df.columns:
+                    df.at[i, c] = float(p[c]) if pd.notna(p.get(c)) else np.nan
+            df.at[i, "close"] = float(p["close"])
+        else:
+            for c in ("open", "high", "low", "close", "volume"):
+                if c in df.columns and pd.notna(p.get(c)):
+                    df.at[i, c] = float(p[c])
         if "source" in df.columns:
             df["source"] = df["source"].astype(object)
             df.at[i, "source"] = str(p["source"])
