@@ -4,8 +4,6 @@
 # up to 2015 returned today's owner of AGN (Actavis), cut off at 2015.
 # Evidence: daily returns 90-100% identical to the current owner, and/or price
 # levels inconsistent with the real company.
-JCI-201609   # every reachable source's JCI line is TYCO's series, not old Johnson Controls': Tiingo's symbol (2026-10-03 finding), WIKI's JCI (2016-01-04 close 31.79 = Tyco = Yahoo's JCI x 0.955; carries Tyco's 2007 1-for-4 reverse split and 2012 breakup), the Aug-2018/Apr-2020/Jun-2021 archives, and Stooq's Nov-2017 jci.us (30.35 on 2016-01-04). Old JCI (~39.5 then) is in no free source; leads: Tiingo permaTicker US000000000566 (cap resets 2026-11-01), paid sources, Stooq via John's browser.
-AGN-201503   # returned Actavis, not the original Allergan
 PLD-201106   # returned AMB/Prologis merged entity
 TT-200806    # returned Trane/Ingersoll history
 T-200511     # returned SBC, not the original AT&T Corp
@@ -20,4 +18,3 @@ TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
 GAS-201112   # returned AGL Resources, not Nicor
 KMG-200608   # $8.57 in 2006 = KMG Chemicals, not Kerr-McGee
 MIL-201007   # $13 in 2010; Millipore traded ~$105
-LSI-201405   # $64.79 in 2013; LSI Corp traded ~$7
