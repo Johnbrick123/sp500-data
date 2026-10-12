@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       labels:
-        description: "Only these labels, space-separated; LABEL@YYYY-MM-DD keeps WIKI's rows up to that day (blank = every member without prices)"
+        description: "Only these labels, space-separated; LABEL[=WIKISYMBOL]@YYYY-MM-DD; =SYMBOL reads the company from another WIKI symbol, @date keeps WIKI's rows up to that day (blank = every member without prices)"
         required: false
         default: ""
 

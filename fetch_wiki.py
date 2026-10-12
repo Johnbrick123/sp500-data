@@ -106,7 +106,7 @@ def main():
     for t, g in iv.groupby("ticker"):
         if t not in have:
             want[t] = (SUFFIX.sub("", t).replace("-", "."), g.start.min(), g["end"].max())
-    # Targeted run: python fetch_wiki.py LABEL[@YYYY-MM-DD] ... recovers only those
+    # Targeted run: python fetch_wiki.py LABEL[=SYMBOL][@YYYY-MM-DD] ... recovers only those
     # labels; @date keeps WIKI's rows up to that day (the company's last trading
     # day) when WIKI ran the symbol on into its successor (Dow -> DowDuPont).
     cut_at = {}
@@ -114,14 +114,15 @@ def main():
         picked = {}
         for a in sys.argv[1:]:
             lab, _, cut = a.partition("@")
+            lab, _, sym = lab.partition("=")      # LABEL=SYMBOL: WIKI files the company under another symbol (Peabody's label is BTUUQ-201704, WIKI's line is BTU)
             if lab in want:
-                picked[lab] = want[lab]
+                picked[lab] = (sym.upper(), *want[lab][1:]) if sym else want[lab]
                 if cut:
                     cut_at[lab] = pd.Timestamp(cut)
             else:
                 say(f"  {lab}: not a member without a price file - skipped")
         want = picked
-        say(f"targeted run: {sorted(want)}" + (f", cut at {dict((k, str(v.date())) for k, v in cut_at.items())}" if cut_at else ""))
+        say(f"targeted run: {dict((k, v[0]) for k, v in sorted(want.items()))}" + (f", cut at {dict((k, str(v.date())) for k, v in cut_at.items())}" if cut_at else ""))
     bare_needed = {v[0] for v in want.values()}
 
     # a validation sample: live names we already hold from Yahoo
