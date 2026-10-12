@@ -29,7 +29,9 @@ hi = max(d for _, d, _ in specs) + pd.Timedelta(days=60)
 last = {}
 first = {}
 n = 0
-for ch in pd.read_csv(f, chunksize=5_000_000, usecols=["permno", "date", "shrcd", "exchcd", "prc", "shrout"]):
+WANT = {"permno", "date", "shrcd", "exchcd", "prc", "shrout"}
+for ch in pd.read_csv(f, chunksize=5_000_000, usecols=lambda c: c.lower() in WANT):
+    ch.columns = [c.lower() for c in ch.columns]      # the dump's headers are CRSP's upper case (PERMNO, PRC, ...)
     ch["date"] = pd.to_datetime(ch["date"].astype(str), errors="coerce")
     n += len(ch)
     g = ch.groupby("permno").date.agg(["min", "max"])
