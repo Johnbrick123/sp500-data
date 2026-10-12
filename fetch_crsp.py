@@ -6,7 +6,7 @@ the Kaggle copy is labelled MIT).
 Usage: python fetch_crsp.py "LABEL=PERMNO@START:END ..." ["CHECK_LABEL ..."]
   Each LABEL gets PERMNO's rows START..END (END = the company's last trading day).
   The permno must be identified first (probe_crsp.yml: last day + deal value).
-  CHECK_LABELs are dead members we already hold from Tiingo/WIKI: each is matched
+  CHECK_LABELs (or LABEL=PERMNO, to name the permno) are dead members we already hold from Tiingo/WIKI: each is matched
   to its permno by its last trading day and last close (and a close a month
   earlier), and every overlapping
   close is compared - the validation of the source. Nothing is written unless
@@ -38,6 +38,10 @@ for s in sys.argv[1].split():
     a, b = win.split(":")
     specs.append((lab, int(p), pd.Timestamp(a), pd.Timestamp(b)))
 checks = sys.argv[2].split() if len(sys.argv) > 2 else []
+# A check given as LABEL=PERMNO skips the last-day match (for a label whose series ends before the
+# company's last trade, e.g. Sears Holdings: WIKI stops 2018-03, CRSP runs to the Oct-2018 delisting)
+fixed_perm = {c.split("=")[0]: int(c.split("=")[1]) for c in checks if "=" in c}
+checks = [c.split("=")[0] for c in checks]
 out = []
 def say(s=""): print(s, flush=True); out.append(str(s))
 def done(code=0):
@@ -100,6 +104,8 @@ if ours:
     near = pd.concat(near, ignore_index=True)
     near["close"] = near.prc.abs()
     for lab, (ld, lc, ref) in ends.items():
+        if lab in fixed_perm:
+            chk_perm[lab] = fixed_perm[lab]; continue
         w = near[(near.date - ld).abs() <= pd.Timedelta(days=10)]
         last = w.sort_values("date").groupby("permno").tail(1)
         cand = last[((last.date - ld).abs() <= pd.Timedelta(days=3)) & ((last.close / lc - 1).abs() < 0.005)]
