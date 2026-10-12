@@ -22,8 +22,8 @@ for d, act, t in sorted(ev):
     if g.empty:
         print(f"{d.date()} {act} {t:14s} no prices"); continue
     med = g.loc[d - pd.Timedelta(days=60):d - pd.Timedelta(days=14)].volume.median()
-    w = g.loc[d - pd.Timedelta(days=12):d + pd.Timedelta(days=6)].volume
-    if w.empty or not med:
+    w = g.loc[d - pd.Timedelta(days=12):d + pd.Timedelta(days=6)].volume.dropna()
+    if w.empty or not med or pd.isna(med):
         print(f"{d.date()} {act} {t:14s} no volume around the date"); continue
     top = w.idxmax()
     flag = "" if top == prev else f"   <-- peak is not the day before ({prev.date()})"
