@@ -20,3 +20,5 @@ GAS-201112 tiingo   # Tiingo's GAS is AGL Resources (which took the ticker in De
 GENZ-201104 tiingo   # Tiingo's GENZ (2008-2011, ~$32) is not Genzyme (~$50-76); Genzyme comes from CRSP (permno 10324)
 PLD-201106 tiingo   # Tiingo's PLD is the merged AMB/ProLogis line, not old ProLogis
 MIL-201007 tiingo   # Tiingo's MIL is a ~$13 stock in 2010, not Millipore (~$105); Millipore comes from CRSP (permno 54181: last trade 2010-07-14 at $106.95 vs the $107 Merck KGaA cash price)
+TT-200806 tiingo   # Tiingo's TT returned Trane/Ingersoll-Rand history, not American Standard/Trane Inc. (~$46 at the 2008-06-05 Ingersoll-Rand deal); American Standard comes from CRSP (permno 81285: last trade 2008-06-05 at $46.49 vs $36.50 + 0.23 IR)
+WEN-200809 tiingo   # Tiingo's WEN is Triarc (now The Wendy's Company, ~$3.62 in Oct 2008), not Wendy's International; Wendy's International comes from CRSP (permno 63060: last trade 2008-09-29 at $19.21 = 4.25 Triarc shares)

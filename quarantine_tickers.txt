@@ -4,11 +4,9 @@
 # up to 2015 returned today's owner of AGN (Actavis), cut off at 2015.
 # Evidence: daily returns 90-100% identical to the current owner, and/or price
 # levels inconsistent with the real company.
-TT-200806    # returned Trane/Ingersoll history
 T-200511     # returned SBC, not the original AT&T Corp
 JPM-200012   # returned Chase, not the original J.P. Morgan & Co
 HON-199912   # returned AlliedSignal, not the original Honeywell
-WEN-200809   # returned Triarc, not Wendy's International
 CSR-200006   # returned today's CSR (Centerspace)
 AIT-199910   # returned Applied Industrial Technologies, not Ameritech
 TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
