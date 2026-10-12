@@ -7,7 +7,8 @@ Usage: python fetch_crsp.py "LABEL=PERMNO@START:END ..." ["CHECK_LABEL ..."]
   Each LABEL gets PERMNO's rows START..END (END = the company's last trading day).
   The permno must be identified first (probe_crsp.yml: last day + deal value).
   CHECK_LABELs are dead members we already hold from Tiingo/WIKI: each is matched
-  to its permno by its last trading day and last close, and every overlapping
+  to its permno by its last trading day and last close (and a close a month
+  earlier), and every overlapping
   close is compared - the validation of the source. Nothing is written unless
   >= 99% of the checked closes agree within 0.5%.
 
@@ -82,23 +83,34 @@ def chunks():
 # pass 1: each check label's permno = the one whose last trade is our last day at our last close
 chk_perm = {}
 if ours:
-    ends = {lab: (o.date.max(), float(o.close.iloc[-1])) for lab, o in ours.items()}
+    # ... and a second close, a month earlier, so that another security whose last trade happens to
+    # coincide cannot be mistaken for it (our CCE line ended 2017-11-08 at 35.71, and so did an
+    # unrelated permno, which once failed the whole validation)
+    ends = {}
+    for lab, o in ours.items():
+        ld, lc = o.date.max(), float(o.close.iloc[-1])
+        ref = o[o.date <= ld - pd.Timedelta(days=30)]
+        ends[lab] = (ld, lc, (ref.date.max(), float(ref.close.iloc[-1])) if len(ref) else None)
     near = []
     for ch in chunks():
         m = pd.Series(False, index=ch.index)
-        for ld, _ in ends.values():
-            m |= (ch.date >= ld - pd.Timedelta(days=10)) & (ch.date <= ld + pd.Timedelta(days=10))
+        for ld, _, _ in ends.values():
+            m |= (ch.date >= ld - pd.Timedelta(days=45)) & (ch.date <= ld + pd.Timedelta(days=10))
         near.append(ch[m].dropna(subset=["prc"]))
     near = pd.concat(near, ignore_index=True)
     near["close"] = near.prc.abs()
-    for lab, (ld, lc) in ends.items():
+    for lab, (ld, lc, ref) in ends.items():
         w = near[(near.date - ld).abs() <= pd.Timedelta(days=10)]
         last = w.sort_values("date").groupby("permno").tail(1)
         cand = last[((last.date - ld).abs() <= pd.Timedelta(days=3)) & ((last.close / lc - 1).abs() < 0.005)]
+        if ref is not None and len(cand):
+            rd, rc = ref
+            r2 = near[(near.date == rd) & near.permno.isin(set(cand.permno)) & ((near.close / rc - 1).abs() < 0.005)]
+            cand = cand[cand.permno.isin(set(r2.permno))]
         if len(cand) == 1:
             chk_perm[lab] = int(cand.permno.iloc[0])
         else:
-            say(f"check {lab}: {len(cand)} permnos end {ld.date()} at {lc} - skipped")
+            say(f"check {lab}: {len(cand)} permnos end {ld.date()} at {lc} (and match a month earlier) - skipped")
 
 # pass 2: the full rows of every permno we need
 keep = []
