@@ -124,6 +124,9 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("JAVA-201001",  "2010-01-29"),   # NRG replaced Sun Microsystems after the close of Thu 1/28/2010 (NRG's index-trade volume 20.8x on 1/28); Oracle closed 1/26-27 and S&P set the swap "on a date to be announced"; the upstream file left 499 lines on 1/27-1/28
+    ("RX-201002",    "2010-03-01"),   # Helmerich & Payne replaced IMS Health after the close of Fri 2/26/2010 (HP's volume 16.6x on 2/26, with Discovery's add for Pepsi Bottling the same night); IMS's buyout closed 2/26; the upstream file left 499 lines on 2/26
+    ("BJS-201004",   "2010-04-30"),   # Cerner replaced BJ Services after the close of Thu 4/29/2010 (CERN's volume 33.6x on 4/29); Baker Hughes closed 4/28; the upstream file left 499 lines on 4/29
     ("CEPH-201110",  "2011-10-17"),   # TE Connectivity replaced Cephalon after the close of Fri 10/14 (S&P Indices 2011-10-11, PR Newswire); Teva closed 10/14; the upstream file ended Cephalon a day early (499 lines on 10/14)
     ("GAS-201112",   "2011-12-13"),   # AGL Resources replaced Nicor after the close of Mon 12/12 (S&P Indices 2011-12-08; AGL's index-trade volume 50x on 12/12); the upstream file ended Nicor a day early (499 lines on 12/12)
     ("CEG-201203",  "2012-03-14"),   # Crown Castle replaced Constellation after the close of Tue 3/13 (S&P Indices 2012-03-07 set the swap, date announced later; CCI's index-trade volume 50M on 3/13 vs 9.6M on 3/12); Exelon closed 3/12, CEG's last trade
