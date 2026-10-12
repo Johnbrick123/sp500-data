@@ -124,6 +124,8 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CEPH-201110",  "2011-10-17"),   # TE Connectivity replaced Cephalon after the close of Fri 10/14 (S&P Indices 2011-10-11, PR Newswire); Teva closed 10/14; the upstream file ended Cephalon a day early (499 lines on 10/14)
+    ("GAS-201112",   "2011-12-13"),   # AGL Resources replaced Nicor after the close of Mon 12/12 (S&P Indices 2011-12-08; AGL's index-trade volume 50x on 12/12); the upstream file ended Nicor a day early (499 lines on 12/12)
     ("CEG-201203",  "2012-03-14"),   # Crown Castle replaced Constellation after the close of Tue 3/13 (S&P Indices 2012-03-07 set the swap, date announced later; CCI's index-trade volume 50M on 3/13 vs 9.6M on 3/12); Exelon closed 3/12, CEG's last trade
     ("MHS-201203",  "2012-04-04"),   # Fossil replaced Medco after the close of Tue 4/3 (S&P Indices 2012-03-28, date announced later; FOSL's index trade 4/3); Express Scripts closed 4/2, MHS's last trade 3/30
     ("MMI-201205",  "2012-05-25"),   # Alexion replaced Motorola Mobility after the close of Thu 5/24 (S&P Indices 2012-05-21); Google closed 5/22, MMI's last trade 5/21
