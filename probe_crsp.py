@@ -7,9 +7,9 @@ Usage: python probe_crsp.py "LABEL:YYYY-MM-DD[:ANCHOR] ..."   (CSV unpacked in k
   YYYY-MM-DD = the company's last trading day as far as we know (S&P removal or
   deal close); ANCHOR = the deal value per share, to rank candidates.
 Candidates: permnos whose last row falls within 20 days of the date, common
-shares (shrcd 10/11), market cap over $1B on their last day.
+shares (shrcd 10/11/12), market cap over $1B (MIN_MCAP env, in $M) on their last day.
 -> data/crsp_probe.txt"""
-import glob, sys
+import glob, os, sys
 import pandas as pd
 
 specs = []
@@ -49,9 +49,9 @@ for lab, d, anchor in specs:
     say(f"\n== {lab}: last day ~{d.date()}" + (f", deal value {anchor}" if anchor else ""))
     c = []
     for p, r in last.items():
-        if abs((r.date - d).days) <= 20 and str(r.shrcd) in ("10", "11", "10.0", "11.0"):
+        if abs((r.date - d).days) <= 20 and str(r.shrcd) in ("10", "11", "12", "10.0", "11.0", "12.0"):   # 12 = foreign-incorporated (Cooper Industries plc, Tyco, Accenture...)
             mcap = abs(r.prc) * r.shrout / 1000.0      # shrout in thousands -> $M
-            if mcap > 1000:
+            if mcap > float(os.environ.get("MIN_MCAP", "1000")):
                 c.append((p, r.date.date(), abs(r.prc), round(mcap), r.exchcd, first[p].date(),
                           abs(abs(r.prc) / anchor - 1) if anchor else 0))
     c.sort(key=lambda x: x[-1])
