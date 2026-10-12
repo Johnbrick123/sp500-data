@@ -124,6 +124,7 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("SGP-200911",   "2009-11-06"),   # Priceline replaced Schering-Plough "after the close of trading on a date to be announced" (S&P, 10/30/2009); Merck closed 11/3 and Priceline's index-trade volume came on 11/5 (199M vs ~40M); the upstream file left 499 lines on 11/4-11/5
     ("JAVA-201001",  "2010-01-29"),   # NRG replaced Sun Microsystems after the close of Thu 1/28/2010 (NRG's index-trade volume 20.8x on 1/28); Oracle closed 1/26-27 and S&P set the swap "on a date to be announced"; the upstream file left 499 lines on 1/27-1/28
     ("RX-201002",    "2010-03-01"),   # Helmerich & Payne replaced IMS Health after the close of Fri 2/26/2010 (HP's volume 16.6x on 2/26, with Discovery's add for Pepsi Bottling the same night); IMS's buyout closed 2/26; the upstream file left 499 lines on 2/26
     ("BJS-201004",   "2010-04-30"),   # Cerner replaced BJ Services after the close of Thu 4/29/2010 (CERN's volume 33.6x on 4/29); Baker Hughes closed 4/28; the upstream file left 499 lines on 4/29
