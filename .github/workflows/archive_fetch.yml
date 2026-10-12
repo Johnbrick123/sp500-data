@@ -1,0 +1,43 @@
+name: Recover a missing member from a Kaggle price archive (named symbol and window)
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "Kaggle owner/dataset", required: true, default: "tsaustin/us-historical-stock-prices-with-earnings-data" }
+      name: { description: "Short archive name (goes into the source column)", required: true, default: "tsaustin" }
+      specs: { description: "LABEL=SYMBOL@START:END ... (space-separated)", required: true }
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raw-store          # never run alongside another job that rewrites raw.tar.zst
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow 'kaggle>=1.8.0'
+      - name: Restore the raw store
+        run: |
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python fetch_archive.py "${{ github.event.inputs.name }}" "${{ github.event.inputs.specs }}"
+      - name: Publish the report
+        if: always()
+        run: '[ -f data/archive_fetch_report.txt ] && gh release upload data data/archive_fetch_report.txt --clobber || true'
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - name: Publish the raw store (only after a clean restore and run)
+        run: |
+          n=$(ls data/raw/*.parquet | wc -l); echo "$n raw files"; [ "$n" -gt 900 ] || { echo "raw store looks incomplete - not publishing"; exit 1; }
+          tar --zstd -cf raw.tar.zst data/raw
+          gh release upload data raw.tar.zst --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
