@@ -95,31 +95,59 @@ if ours:
     # coincide cannot be mistaken for it (our CCE line ended 2017-11-08 at 35.71, and so did an
     # unrelated permno, which once failed the whole validation)
     ends = {}
-    # MATCH_ASOF=YYYY-MM-DD matches each label on its last trade on or before that day instead (lets a
-    # live name, whose series runs past the dump's end, be found for a year's check - read-only use)
-    asof = os.environ.get("MATCH_ASOF", "").strip()
-    for lab, o in ours.items():
-        if asof and lab not in fixed_perm:
-            o = o[o.date <= pd.Timestamp(asof)]
-            if not len(o):
+    # MATCH_YEAR=YYYY instead matches each label by its day-to-day price moves within that year (a
+    # read-only check of a whole year's membership: live names run past the dump's end, and a series on
+    # a vendor's split-adjusted basis has the same moves as CRSP's raw prices). The permno must reproduce
+    # at least 80% of the label's non-zero moves to 5 decimals, and the runner-up fewer than half as many.
+    myear = os.environ.get("MATCH_YEAR", "").strip()
+    if myear:
+        Y = int(myear)
+        yr = []
+        for ch in chunks():
+            yr.append(ch[ch.date.dt.year == Y].dropna(subset=["prc"]))
+        yr = pd.concat(yr, ignore_index=True)
+        yr["close"] = yr.prc.abs()
+        yr = yr.sort_values(["permno", "date"])
+        yr["rel"] = (yr.close / yr.groupby("permno").close.shift()).round(5)
+        yr = yr[yr.rel.notna() & (yr.rel != 1)][["permno", "date", "rel"]]
+        qs = []
+        for lab, o in ours.items():
+            if lab in fixed_perm:
+                chk_perm[lab] = fixed_perm[lab]; continue
+            q = o[o.date.dt.year == Y].sort_values("date")
+            q = q.assign(rel=(q.close / q.close.shift()).round(5), lab=lab)
+            qs.append(q[q.rel.notna() & (q.rel != 1)][["lab", "date", "rel"]])
+        qs = pd.concat(qs, ignore_index=True) if qs else pd.DataFrame(columns=["lab", "date", "rel"])
+        n_q = qs.groupby("lab").size()
+        hits = qs.merge(yr, on=["date", "rel"]).groupby(["lab", "permno"]).size()
+        for lab in ours:
+            if lab in fixed_perm:
                 continue
+            n = int(n_q.get(lab, 0))
+            h = hits[lab].sort_values(ascending=False) if lab in hits.index.get_level_values(0) else pd.Series(dtype=int)
+            if n >= 20 and len(h) and h.iloc[0] >= 0.8 * n and (len(h) < 2 or h.iloc[1] < 0.5 * h.iloc[0]):
+                chk_perm[lab] = int(h.index[0])
+            else:
+                say(f"check {lab}: no permno uniquely matches its {Y} moves ({n} moves; best {[(int(k), int(v)) for k, v in h.head(2).items()]}) - skipped")
+        ours_end = {}
+    else:
+        ours_end = ours
+    for lab, o in ours_end.items():
         ld, lc = o.date.max(), float(o.close.iloc[-1])
         ref = o[o.date <= ld - pd.Timedelta(days=30)]
         ends[lab] = (ld, lc, (ref.date.max(), float(ref.close.iloc[-1])) if len(ref) else None)
     near = []
-    for ch in chunks():
+    for ch in chunks() if ends else []:
         m = pd.Series(False, index=ch.index)
-        for ld in {e[0] for e in ends.values()}:     # distinct days only (an as-of run shares one)
+        for ld in {e[0] for e in ends.values()}:     # distinct days only
             m |= (ch.date >= ld - pd.Timedelta(days=45)) & (ch.date <= ld + pd.Timedelta(days=10))
         near.append(ch[m].dropna(subset=["prc"]))
-    near = pd.concat(near, ignore_index=True)
+    near = pd.concat(near, ignore_index=True) if near else pd.DataFrame(columns=["permno", "date", "prc"])
     near["close"] = near.prc.abs()
     for lab, (ld, lc, ref) in ends.items():
         if lab in fixed_perm:
             chk_perm[lab] = fixed_perm[lab]; continue
         w = near[(near.date - ld).abs() <= pd.Timedelta(days=10)]
-        if asof and lab not in fixed_perm:
-            w = w[w.date <= ld]                    # a live permno trades on past our as-of day
         last = w.sort_values("date").groupby("permno").tail(1)
         cand = last[((last.date - ld).abs() <= pd.Timedelta(days=3)) & ((last.close / lc - 1).abs() < 0.005)]
         if ref is not None and len(cand):
