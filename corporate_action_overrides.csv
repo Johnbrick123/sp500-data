@@ -474,3 +474,16 @@ USB,2003-03-27,,0.205,U.S. Bancorp raised its quarterly to $0.205 in 2003; CRSP'
 CNP,2003-01-07,,0.525,"CenterPoint Energy's Texas Genco distribution (ex 2003-01-07): Yahoo books it as a 0.493 'dividend'. Texas Genco was never an S&P 500 member and is not in our data, so the distribution is valued at what CRSP's RET implies (permno 21792: 8.55 -> 8.06, +0.4094%), $0.525 a share; the day's return now equals CRSP's."
 MWW-201610,2003-04-01,,1.0225,"Monster Worldwide (then TMP Worldwide) spun off Hudson Highland Group (ex 2003-04-01); WIKI books nothing. Hudson Highland was never an S&P 500 member and is not in our data, so the distribution is valued at what CRSP's RET implies (permno 84342: 10.73 -> 10.22, +4.7764%), $1.0225 a share; the day's return now equals CRSP's."
 MRK,2003-08-20,,0.0,"Merck's Medco Health spin-off (0.1206 MHS per MRK share, ex 2003-08-20) is booked in spinoffs.csv; Yahoo's 2.744275 'dividend' for it is removed so it is not counted twice."
+COF,2003-11-05,,0.02667,"Capital One's quarterly was $0.02667 (CRSP's RET, permno 81055, implies 0.0267; WIKI 0.02666); Yahoo has 0.028 - as in 2004."
+GAP,2003-09-17,,0.0222,Gap's quarterly was $0.0222 (CRSP's RET implies 0.0222; WIKI 0.0222); Yahoo has 0.023 (its 3-decimal rounding).
+GAP,2003-12-17,,0.0222,Gap's quarterly was $0.0222 (CRSP's RET implies 0.0222; WIKI 0.0222); Yahoo has 0.023 (its 3-decimal rounding).
+JCP,2003-01-08,,0.125,J.C. Penney paid $0.125 a quarter in 2003 (CRSP's RET implies 0.1250 on each ex-date); WIKI's line has 0.13.
+JCP,2003-10-08,,0.125,J.C. Penney paid $0.125 a quarter in 2003 (CRSP's RET implies 0.1250 on each ex-date); WIKI's line has 0.13.
+MDP,2003-05-28,,0.095,Meredith paid $0.095 on this ex-date (CRSP's RET implies 0.0950); WIKI's line has 0.10.
+MDP,2003-11-24,,0.095,Meredith paid $0.095 on this ex-date (CRSP's RET implies 0.0950); WIKI's line has 0.10.
+PGR,2003-03-12,,0.00625,Progressive paid $0.025 (CRSP's RET implies 0.0250; WIKI 0.025); Yahoo stores dividends here on a 0.25 basis (the 2006 4-for-1 split) and had 0.00575 (= $0.023). 0.025 x 0.25.
+SCHW,2003-11-05,,0.014,"Schwab's Q4 2003 dividend was $0.014, as in August (CRSP's RET implies 0.0140; WIKI 0.014); Yahoo has 0.013."
+TXN,2003-01-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
+TXN,2003-04-28,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
+TXN,2003-07-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
+TXN,2003-10-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
