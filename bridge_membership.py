@@ -196,6 +196,32 @@ START_EARLY = [
 ]
 
 
+# Members the upstream snapshot file never lists at all. (label, first member date, first
+# non-member date) - S&P announcements, company filings and the index-trade volume spikes.
+ADD_SPANS = [
+    ("TAP-200404", "2002-08-21", "2004-04-02"),   # Travelers Property Casualty (Class B): Citigroup distributed it on 8/20/2002 and S&P added it
+                                                   #   the next day in Vitesse's place; St. Paul's merger closed 4/1/2004 and ACS took the slot on 4/2.
+                                                   #   The upstream file never lists it (it counts XL twice instead), leaving 499 lines a day for 19 months.
+]
+
+
+def add_span(all_m, label, start, end):
+    """Make `label` a member on every snapshot date in [start, end): snapshots are inserted
+    at `start` and `end` (each a copy of the composition just before it) when missing."""
+    start, end = pd.Timestamp(start), pd.Timestamp(end)
+    for d in (start, end):
+        dates = sorted(all_m.date.unique())
+        if d not in set(dates):
+            prev = max(x for x in dates if x < d)
+            all_m = pd.concat([all_m, all_m[(all_m.date == prev) & (all_m.ticker != label)].assign(date=d)], ignore_index=True)
+    dates = [d for d in sorted(all_m.date.unique()) if start <= d < end]
+    have = set(all_m.loc[all_m.ticker == label, "date"])
+    add = [d for d in dates if d not in have]
+    all_m = pd.concat([all_m, pd.DataFrame({"date": add, "ticker": label})], ignore_index=True)
+    print(f"  add {label} {start.date()}..{end.date()}: +{len(add)} snapshot dates")
+    return all_m
+
+
 def start_early(all_m, label, start):
     """Make `label` a member from `start`: a snapshot at `start` (inserted from the
     prior composition if needed) and every snapshot date up to its first listing."""
@@ -280,6 +306,8 @@ def hold_until(all_m, label, end):
 RELABEL = {   # bare ticker: list of (dated label, first date, first date of the NEXT owner)
     "S":    [("S-200503",   "1900-01-01", "2005-08-01"),    # Sears Roebuck (merged into Kmart 2005)
              ("S-202004",   "2005-08-01", "2020-05-01")],   # Sprint Nextel / Sprint -> SentinelOne
+    "CR":   [("CR-202304",  "1900-01-01", "2023-04-04")],   # Crane Co. (S&P 500 to 2004-12-20) - the company renamed itself Crane NXT (CXT) at its
+                                                            #   April 2023 separation; Yahoo's CR since 2023 is the new Crane Company, never a member
     "NFX":  [("NFX-201902", "1900-01-01", "2019-03-01")],   # Newfield Exploration -> now an ETF
     "STI":  [("STI-201912", "1900-01-01", "2020-01-01")],   # SunTrust -> reused 2024
     "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
@@ -454,6 +482,8 @@ def main():
         all_m = start_late(all_m, lab, start)
     for lab, start in START_EARLY:
         all_m = start_early(all_m, lab, start)
+    for lab, start, end in ADD_SPANS:
+        all_m = add_span(all_m, lab, start, end)
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.
