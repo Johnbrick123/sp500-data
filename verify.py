@@ -144,6 +144,14 @@ def check_adjustment(df):
         if of.exists():       # days where Yahoo's own record is corrected by hand (GE's phantom $0.055 of 2012-06-15) differ by design
             skip = set(pd.read_csv(of, parse_dates=["date"]).query("ticker == @tk").date)
             ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
+        pf = ROOT / "price_patches.csv"
+        if pf.exists():       # a close replaced with CRSP's (MSFT 2005-11-14) moves that day's and the next day's return
+            pd_ = set(pd.read_csv(pf, parse_dates=["date"]).query("ticker == @tk").date)
+            if pd_:
+                idx = list(ra.index)
+                nxt = {idx[i + 1] for i, d in enumerate(idx[:-1]) if d in pd_}
+                skip = pd_ | nxt
+                ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
         max_err = (ra - rb).abs().max() * 100
         wealth_err = abs((1 + ra).prod() / (1 + rb).prod() - 1) * 100
         record("adjust " + tk, "PASS" if (max_err < 0.05 and wealth_err < 0.5) else "FAIL",

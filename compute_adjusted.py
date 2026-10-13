@@ -300,6 +300,20 @@ def apply_splice(df, stem):
         print(f"  splice {stem} <- {r.prefix}: REFUSED ({len(j)} overlapping days, ratio spread {(ratio.quantile(0.95)-ratio.quantile(0.05))/ratio.median():.4f})")
         return df
     k = float(ratio.median())
+    srcs = df["source"].astype(str) if "source" in df.columns else pd.Series(["yahoo"])
+    base = srcs[~srcs.str.endswith(("-patch", "-splice"))]
+    tgt = base.mode().iloc[0] if len(base) else "yahoo"
+    if tgt not in ("tiingo", "wiki", "crsp") and str(pre["source"].iloc[0]) == "crsp" and "stock_splits" in pre:
+        # a raw CRSP prefix in front of a Yahoo series (SKYD <- old Viacom): Yahoo's closes and
+        # dividends are already divided by every later split, so put the prefix on that basis too
+        # (old Viacom's 1999 2-for-1) - the overlap ratio k then only has to bridge the rest
+        pre = pre.sort_values("date").reset_index(drop=True)
+        sp = pd.to_numeric(pre["stock_splits"], errors="coerce").fillna(1.0).replace(0, 1.0)
+        sp = sp.where(pre["date"] < r.before, 1.0)
+        later = sp[::-1].cumprod()[::-1].shift(-1).fillna(1.0)
+        for col in ("open", "high", "low", "close", "dividends"):
+            if col in pre:
+                pre[col] = pre[col] / later
     if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true"):
         # the label's own rows before the splice date are another security's quotes (Yahoo's
         # SKYD carries CBS's when-issued market for Dec 2005, while old Viacom - the same company -
