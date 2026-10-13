@@ -124,6 +124,8 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("IMNX-200207",  "2002-07-17"),   # North Fork replaced Immunex in July 2002 (effective 7/17); Amgen completed the acquisition 7/16 (Amgen's release of that date) - the upstream file ended Immunex on 7/16, leaving 499 lines that day
+    ("COC-B-200208", "2002-09-04"),   # R.J. Reynolds replaced Conoco after the close of Tue 9/3/2002 (RAI's index-trade volume 28x on 9/3); the Phillips merger closed Fri 8/30 (Conoco's last trade) - the upstream file left 499 lines on 9/3
     ("RATL-200302",  "2003-02-24"),   # AutoNation replaced Rational Software after the close of Fri 2/21/2003 (AN's index-trade volume 50x on 2/21); IBM closed the deal 2/21, RATL's last trade 2/20 - the upstream file ended it a day early (499 lines on 2/21)
     ("MAY-200508",   "2005-08-30"),   # Coventry replaced May Department Stores at Federated's 8/30/2005 closing; May's last trade was 8/29 (CRSP permno 13100), so the index held it through 8/29 - the upstream file ended it a day early (499 lines on 8/29)
     ("SGP-200911",   "2009-11-06"),   # Priceline replaced Schering-Plough "after the close of trading on a date to be announced" (S&P, 10/30/2009); Merck closed 11/3 and Priceline's index-trade volume came on 11/5 (199M vs ~40M); the upstream file left 499 lines on 11/4-11/5
@@ -309,6 +311,10 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
              ("S-202004",   "2005-08-01", "2020-05-01")],   # Sprint Nextel / Sprint -> SentinelOne
     "CR":   [("CR-202304",  "1900-01-01", "2023-04-04")],   # Crane Co. (S&P 500 to 2004-12-20) - the company renamed itself Crane NXT (CXT) at its
                                                             #   April 2023 separation; Yahoo's CR since 2023 is the new Crane Company, never a member
+    "ABX":  [("ABX-201812", "1900-01-01", "2019-01-02")],   # Barrick Gold (S&P 500 to 2002-07-19, one of the seven non-US names removed then); Barrick
+                                                            #   moved to GOLD on 2019-01-02 - Yahoo's ABX file is a later company, never a member
+    "UN":   [("UN-202011",  "1900-01-01", "2020-12-01")],   # Unilever N.V. NY shares (S&P 500 to 2002-07-19); the line ended at the 2020-11-30
+                                                            #   unification - Yahoo's UN file is not N.V.'s history
     "NFX":  [("NFX-201902", "1900-01-01", "2019-03-01")],   # Newfield Exploration -> now an ETF
     "STI":  [("STI-201912", "1900-01-01", "2020-01-01")],   # SunTrust -> reused 2024
     "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
