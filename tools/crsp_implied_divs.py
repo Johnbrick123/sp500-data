@@ -3,10 +3,12 @@ D = PRC[t-1] x (1 + RET[t]) - PRC[t] (raw basis), with ours divided by the serie
 every day where the two differ by more than 0.6 cents a share. Split days and moves over 30% are
 skipped. Added 2026-10-13 (the 2005 pass: Nike, General Mills and Moody's halves, Duke's triple,
 Sara Lee's, XTO's gaps, Sears's payments inside Sprint's line).
-Usage: crsp_implied_divs.py REPORT DATA_DIR YEAR OUT.csv   (REPORT as for crsp_cent_diff.py)"""
+Usage: crsp_implied_divs.py REPORT DATA_DIR YEAR OUT.csv [THRESH]   (REPORT as for crsp_cent_diff.py;
+THRESH in dollars, default 0.006 - 0.0008 finds sub-cent errors: RET's six decimals pin D to ~0.01 cent)"""
 import re, sys
 import numpy as np, pandas as pd
 rep, D, Y, out = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+TH = float(sys.argv[5]) if len(sys.argv) > 5 else 0.006
 t = open(rep).read()
 perm = {m.group(1): int(m.group(2)) for m in re.finditer(r'^check (\S+) \([a-z_\-]+\): permno (\d+)', t, re.M)}
 blocks = {int(m.group(1)): m.group(2) for m in re.finditer(rf'CRSP rows for permno (\d+) {Y}:\n((?:  \d{{4}}-[^\n]*\n)*)', t)}
@@ -29,7 +31,7 @@ for lab, pn in perm.items():
         if pd.isna(r.impl) or pd.isna(r.close): continue
         if abs(r.impl) > 0.3 * r.prc: continue
         d = r.our_raw - max(r.impl, 0)
-        if abs(d) > 0.006 and (r.our_raw > 0 or r.impl > 0.006):
+        if abs(d) > TH and (r.our_raw > 0 or r.impl > max(TH, 0.003)):
             mem = ((v.start <= r.date) & (v['end'].isna() | (v['end'] > r.date))).any()
             res.append(dict(label=lab, permno=pn, date=r.cd, src=r.source, member=mem, prc=r.prc, ret=r.ret, impl=round(r.impl, 4),
                             ours=r.dividends, basis=round(r.basis, 6), our_raw=round(r.our_raw, 4), diff=round(d, 4)))
