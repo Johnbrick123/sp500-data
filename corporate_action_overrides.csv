@@ -487,3 +487,5 @@ TXN,2003-01-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125
 TXN,2003-04-28,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
 TXN,2003-07-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
 TXN,2003-10-29,,0.02125,"Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 on 4/28, where Yahoo has 0.023, and 0.021-0.0213 on the others, where Yahoo rounds to 0.021) - as in 2004."
+JCP,2004-01-07,,0.125,J.C. Penney paid $0.125 a quarter (CRSP's RET implies 0.1250 on this ex-date); WIKI's line has 0.13. Found by the 2003 pass's tenth-of-a-cent check.
+JCP,2004-04-06,,0.125,J.C. Penney paid $0.125 a quarter (CRSP's RET implies 0.1250 on this ex-date); WIKI's line has 0.13. Found by the 2003 pass's tenth-of-a-cent check.
