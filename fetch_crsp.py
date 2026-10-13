@@ -109,7 +109,7 @@ if ours:
     near = []
     for ch in chunks():
         m = pd.Series(False, index=ch.index)
-        for ld, _, _ in ends.values():
+        for ld in {e[0] for e in ends.values()}:     # distinct days only (an as-of run shares one)
             m |= (ch.date >= ld - pd.Timedelta(days=45)) & (ch.date <= ld + pd.Timedelta(days=10))
         near.append(ch[m].dropna(subset=["prc"]))
     near = pd.concat(near, ignore_index=True)
@@ -134,7 +134,9 @@ if ours:
 # pass 2: the full rows of every permno we need
 keep = []
 for ch in chunks():
-    keep.append(ch[ch.permno.isin(want | set(chk_perm.values()))])
+    # a check permno is only compared from 2003 (VALID_FROM) - older rows are kept for the
+    # recovery permnos alone, which keeps a several-hundred-label check run within the runner's memory
+    keep.append(ch[ch.permno.isin(want) | (ch.permno.isin(set(chk_perm.values())) & (ch.date >= pd.Timestamp("2003-01-01")))])
 crsp = pd.concat(keep, ignore_index=True)
 
 for p, a, b in show:
