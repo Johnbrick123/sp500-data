@@ -124,6 +124,7 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("MAY-200508",   "2005-08-30"),   # Coventry replaced May Department Stores at Federated's 8/30/2005 closing; May's last trade was 8/29 (CRSP permno 13100), so the index held it through 8/29 - the upstream file ended it a day early (499 lines on 8/29)
     ("SGP-200911",   "2009-11-06"),   # Priceline replaced Schering-Plough "after the close of trading on a date to be announced" (S&P, 10/30/2009); Merck closed 11/3 and Priceline's index-trade volume came on 11/5 (199M vs ~40M); the upstream file left 499 lines on 11/4-11/5
     ("JAVA-201001",  "2010-01-29"),   # NRG replaced Sun Microsystems after the close of Thu 1/28/2010 (NRG's index-trade volume 20.8x on 1/28); Oracle closed 1/26-27 and S&P set the swap "on a date to be announced"; the upstream file left 499 lines on 1/27-1/28
     ("RX-201002",    "2010-03-01"),   # Helmerich & Payne replaced IMS Health after the close of Fri 2/26/2010 (HP's volume 16.6x on 2/26, with Discovery's add for Pepsi Bottling the same night); IMS's buyout closed 2/26; the upstream file left 499 lines on 2/26
@@ -173,6 +174,7 @@ HOLD_UNTIL = [
 # snapshot rows for the label on or after the date are dropped, so the
 # interval ends exactly there. (label, first non-member date) - S&P DJI releases.
 END_EARLY = [
+    ("S-200503", "2005-03-28"),   # Sears, Roebuck's last trade was 3/24/2005 (the Kmart merger closed that day; 3/25 was Good Friday) and Sears Holdings took its place on 3/28 (SHLD's index-trade volume 10x on 3/24). The upstream file keys Sears and Sprint by the same 'S' token, so the bridge had run Sears on to 8/10.
     ("FCPT", "2015-11-11"),   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
 ]
 
@@ -189,6 +191,7 @@ START_LATE = [
 # Additions the upstream snapshot file dates a trading day LATE: the label is added to
 # the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
 START_EARLY = [
+    ("S-202004", "1996-01-02"),   # Sprint (FON, renamed Sprint Nextel 'S' in Aug 2005) was a member all along; the upstream file's single 'S' token stood for Sears AND Sprint before 2005, so Sprint's line was missing (499 lines in early 2005) until the bridge's 8/10/2005 cut
     ("ADT-201604", "2012-10-01"),   # ADT replaced Lexmark after the close of Fri 9/28 at the Tyco separation (S&P DJI 2012-09-24); first regular-way day 10/1; the upstream file has 10/2 (499 members on 10/1)
 ]
 

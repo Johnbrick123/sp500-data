@@ -23,3 +23,4 @@ MIL-201007 tiingo   # Tiingo's MIL is a ~$13 stock in 2010, not Millipore (~$105
 TT-200806 tiingo   # Tiingo's TT returned Trane/Ingersoll-Rand history, not American Standard/Trane Inc. (~$46 at the 2008-06-05 Ingersoll-Rand deal); American Standard comes from CRSP (permno 81285: last trade 2008-06-05 at $46.49 vs $36.50 + 0.23 IR)
 WEN-200809 tiingo   # Tiingo's WEN is Triarc (now The Wendy's Company, ~$3.62 in Oct 2008), not Wendy's International; Wendy's International comes from CRSP (permno 63060: last trade 2008-09-29 at $19.21 = 4.25 Triarc shares)
 KMG-200608 tiingo   # Tiingo's KMG is KMG Chemicals (~$8.57 in 2006), not Kerr-McGee (acquired by Anadarko 2006-08-10 at $70.50 cash); Kerr-McGee comes from CRSP (permno 25769)
+T-200511 tiingo     # 2026-10-13: quarantined since 2026-10 - Tiingo's file is SBC (AT&T Inc), not AT&T Corp; AT&T Corp re-sourced from CRSP (permno 10401)
