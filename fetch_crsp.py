@@ -95,7 +95,14 @@ if ours:
     # coincide cannot be mistaken for it (our CCE line ended 2017-11-08 at 35.71, and so did an
     # unrelated permno, which once failed the whole validation)
     ends = {}
+    # MATCH_ASOF=YYYY-MM-DD matches each label on its last trade on or before that day instead (lets a
+    # live name, whose series runs past the dump's end, be found for a year's check - read-only use)
+    asof = os.environ.get("MATCH_ASOF", "").strip()
     for lab, o in ours.items():
+        if asof and lab not in fixed_perm:
+            o = o[o.date <= pd.Timestamp(asof)]
+            if not len(o):
+                continue
         ld, lc = o.date.max(), float(o.close.iloc[-1])
         ref = o[o.date <= ld - pd.Timedelta(days=30)]
         ends[lab] = (ld, lc, (ref.date.max(), float(ref.close.iloc[-1])) if len(ref) else None)
@@ -111,6 +118,8 @@ if ours:
         if lab in fixed_perm:
             chk_perm[lab] = fixed_perm[lab]; continue
         w = near[(near.date - ld).abs() <= pd.Timedelta(days=10)]
+        if asof and lab not in fixed_perm:
+            w = w[w.date <= ld]                    # a live permno trades on past our as-of day
         last = w.sort_values("date").groupby("permno").tail(1)
         cand = last[((last.date - ld).abs() <= pd.Timedelta(days=3)) & ((last.close / lc - 1).abs() < 0.005)]
         if ref is not None and len(cand):
@@ -161,6 +170,11 @@ if ours:
             yb = bad[bad.date.dt.year.isin(yrs)]
             if len(yb):
                 say(f"  {cy} disagreements for {lab}: {[(str(r.date.date()), r.close_o, r.close_c) for r in yb.itertuples()]}")
+        if cy and os.environ.get("CHECK_ROWS", "").strip():   # the year's CRSP rows, for a return-by-return comparison
+            w = crsp[(crsp.permno == p) & crsp.date.dt.year.isin(yrs)].sort_values("date")
+            say(f"CRSP rows for permno {p} {cy}:")
+            for r in w.itertuples():
+                say(f"  {r.date.date()}  prc {r.prc}  ret {r.ret}  shrout {r.shrout}")
         say(f"check {lab} ({o.source.iloc[0]}): permno {p}, {len(m)} days compared from 2003, {ok / max(len(m), 1) * 100:.2f}% within 0.5%"
             + (f"; e.g. {[(str(r.date.date()), r.close_o, r.close_c) for r in bad.head(4).itertuples()]}" if len(bad) else ""))
     pct = agree / max(tot, 1) * 100
