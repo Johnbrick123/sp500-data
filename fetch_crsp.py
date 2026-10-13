@@ -161,10 +161,12 @@ if ours:
 
 # pass 2: the full rows of every permno we need
 keep = []
+_cy = [int(y) for y in os.environ.get("CHECK_YEAR", "").replace(",", " ").split() if y.strip().isdigit()]
+KEEP_FROM = min([pd.Timestamp("2003-01-01")] + [pd.Timestamp(f"{y}-01-01") for y in _cy])   # a pre-2003 check year needs its rows too
 for ch in chunks():
     # a check permno is only compared from 2003 (VALID_FROM) - older rows are kept for the
     # recovery permnos alone, which keeps a several-hundred-label check run within the runner's memory
-    keep.append(ch[ch.permno.isin(want) | (ch.permno.isin(set(chk_perm.values())) & (ch.date >= pd.Timestamp("2003-01-01")))])
+    keep.append(ch[ch.permno.isin(want) | (ch.permno.isin(set(chk_perm.values())) & (ch.date >= KEEP_FROM))])
 crsp = pd.concat(keep, ignore_index=True)
 
 for p, a, b in show:
