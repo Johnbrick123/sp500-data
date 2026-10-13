@@ -293,12 +293,18 @@ def apply_splice(df, stem):
     pre = pd.read_parquet(pf)
     for x in (df, pre):
         d = pd.to_datetime(x["date"]); x["date"] = d.dt.tz_localize(None) if d.dt.tz is not None else d
-    j = df[["date", "close"]].merge(pre[["date", "close"]], on="date", suffixes=("", "_p")).dropna()
+    own = df[df.date >= r.before] if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true") else df
+    j = own[["date", "close"]].merge(pre[["date", "close"]], on="date", suffixes=("", "_p")).dropna()
     ratio = (j.close / j.close_p)
     if len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > 0.005:
         print(f"  splice {stem} <- {r.prefix}: REFUSED ({len(j)} overlapping days, ratio spread {(ratio.quantile(0.95)-ratio.quantile(0.05))/ratio.median():.4f})")
         return df
     k = float(ratio.median())
+    if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true"):
+        # the label's own rows before the splice date are another security's quotes (Yahoo's
+        # SKYD carries CBS's when-issued market for Dec 2005, while old Viacom - the same company -
+        # still traded regular-way): the prefix replaces them instead of filling around them
+        df = df[df.date >= r.before].reset_index(drop=True)
     add = pre[(pre.date < r.before) & (~pre.date.isin(set(df.date)))].copy()
     for col in ("open", "high", "low", "close", "dividends"):
         if col in add:
