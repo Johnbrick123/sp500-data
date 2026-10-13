@@ -178,6 +178,7 @@ HOLD_UNTIL = [
 # interval ends exactly there. (label, first non-member date) - S&P DJI releases.
 END_EARLY = [
     ("S-200503", "2005-03-28"),   # Sears, Roebuck's last trade was 3/24/2005 (the Kmart merger closed that day; 3/25 was Good Friday) and Sears Holdings took its place on 3/28 (SHLD's index-trade volume 10x on 3/24). The upstream file keys Sears and Sprint by the same 'S' token, so the bridge had run Sears on to 8/10.
+    ("CMCSK-201512", "2002-11-19", "2015-01-01"),   # Comcast's Class A Special was the index line until the AT&T Broadband merger closed 11/18/2002; the new Class A (CMCSA) from 11/19 (see RELABEL) - the file's snapshot falls on 11/22. The 2015 dual-class membership is separate.
     ("FCPT", "2015-11-11"),   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
 ]
 
@@ -194,6 +195,7 @@ START_LATE = [
 # Additions the upstream snapshot file dates a trading day LATE: the label is added to
 # the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
 START_EARLY = [
+    ("CMCSA", "2002-11-19"),   # the new Comcast Class A from the AT&T Broadband merger's first day (see RELABEL and END_EARLY)
     ("S-202004", "1996-01-02"),   # Sprint (FON, renamed Sprint Nextel 'S' in Aug 2005) was a member all along; the upstream file's single 'S' token stood for Sears AND Sprint before 2005, so Sprint's line was missing (499 lines in early 2005) until the bridge's 8/10/2005 cut
     ("ADT-201604", "2012-10-01"),   # ADT replaced Lexmark after the close of Fri 9/28 at the Tyco separation (S&P DJI 2012-09-24); first regular-way day 10/1; the upstream file has 10/2 (499 members on 10/1)
 ]
@@ -266,10 +268,11 @@ def start_late(all_m, label, start):
     return all_m[~m]
 
 
-def end_early(all_m, label, end):
+def end_early(all_m, label, end, before=None):
     """The snapshots are sparse (change dates), so ending a membership early
     means inserting a snapshot AT `end` that carries the prior composition
-    without the label, then dropping the label's own rows from `end` on."""
+    without the label, then dropping the label's own rows from `end` on
+    (only up to `before`, when the label has a later, separate membership)."""
     end = pd.Timestamp(end)
     dates = sorted(all_m.date.unique())
     if end not in set(dates):
@@ -277,6 +280,8 @@ def end_early(all_m, label, end):
         snap = all_m[(all_m.date == prev) & (all_m.ticker != label)].assign(date=end)
         all_m = pd.concat([all_m, snap], ignore_index=True)
     m = (all_m.ticker == label) & (all_m.date >= end)
+    if before is not None:
+        m &= all_m.date < pd.Timestamp(before)
     print(f"  end {label} before {end.date()}: -{int(m.sum())} snapshot dates"
           + ("" if end in set(dates) else f", snapshot inserted at {end.date()}"))
     return all_m[~m]
@@ -311,6 +316,10 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
              ("S-202004",   "2005-08-01", "2020-05-01")],   # Sprint Nextel / Sprint -> SentinelOne
     "CR":   [("CR-202304",  "1900-01-01", "2023-04-04")],   # Crane Co. (S&P 500 to 2004-12-20) - the company renamed itself Crane NXT (CXT) at its
                                                             #   April 2023 separation; Yahoo's CR since 2023 is the new Crane Company, never a member
+    "CMCSA": [("CMCSK-201512", "1900-01-01", "2002-11-19")],  # Comcast before the AT&T Broadband merger: the index line was the Class A Special
+                                                            #   (CMCSK, ~900M shares); the old Class A had 21.6M shares (CRSP permno 25022, ending
+                                                            #   11/18/2002). The Nasdaq-100 swapped CMCSK for the new Class A at the 11/19/2002 open
+                                                            #   and index funds held Comcast "A" by 12/31/2002 - the file lists CMCSA throughout
     "ABX":  [("ABX-201812", "1900-01-01", "2019-01-02")],   # Barrick Gold (S&P 500 to 2002-07-19, one of the seven non-US names removed then); Barrick
                                                             #   moved to GOLD on 2019-01-02 - Yahoo's ABX file is a later company, never a member
     "UN":   [("UN-202011",  "1900-01-01", "2020-12-01")],   # Unilever N.V. NY shares (S&P 500 to 2002-07-19); the line ended at the 2020-11-30
@@ -483,8 +492,8 @@ def main():
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
     for lab, end in HOLD_UNTIL:
         all_m = hold_until(all_m, lab, end)
-    for lab, end in END_EARLY:
-        all_m = end_early(all_m, lab, end)
+    for lab, end, *rest in END_EARLY:
+        all_m = end_early(all_m, lab, end, *rest)
     for lab, start in START_LATE:
         all_m = start_late(all_m, lab, start)
     for lab, start in START_EARLY:
