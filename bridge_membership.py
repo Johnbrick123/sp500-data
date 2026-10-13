@@ -124,6 +124,7 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("RATL-200302",  "2003-02-24"),   # AutoNation replaced Rational Software after the close of Fri 2/21/2003 (AN's index-trade volume 50x on 2/21); IBM closed the deal 2/21, RATL's last trade 2/20 - the upstream file ended it a day early (499 lines on 2/21)
     ("MAY-200508",   "2005-08-30"),   # Coventry replaced May Department Stores at Federated's 8/30/2005 closing; May's last trade was 8/29 (CRSP permno 13100), so the index held it through 8/29 - the upstream file ended it a day early (499 lines on 8/29)
     ("SGP-200911",   "2009-11-06"),   # Priceline replaced Schering-Plough "after the close of trading on a date to be announced" (S&P, 10/30/2009); Merck closed 11/3 and Priceline's index-trade volume came on 11/5 (199M vs ~40M); the upstream file left 499 lines on 11/4-11/5
     ("JAVA-201001",  "2010-01-29"),   # NRG replaced Sun Microsystems after the close of Thu 1/28/2010 (NRG's index-trade volume 20.8x on 1/28); Oracle closed 1/26-27 and S&P set the swap "on a date to be announced"; the upstream file left 499 lines on 1/27-1/28
