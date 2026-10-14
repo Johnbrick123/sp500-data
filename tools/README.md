@@ -18,5 +18,7 @@ Download the published build first (GitHub's release CLI is blocked in some sand
 | `div_scale_scan.py RAWDIR` | Yahoo dividends left on a different basis than the closes (AT&T before its 2022 spin-off). |
 | `div_pattern_scan.py DIR Y0 Y1` | Dividend schedules with a skipped payment, an interleaved extra stream, or an amount far from its neighbours. |
 | `release_sentences.py 'DIR/*.html'` | The S&P 500 sentences from saved S&P DJI press releases (adds, removals, effective dates). |
+| `crsp_fullcent_fit.py REPORTS DIR YEAR OUT.csv` | Every member-day close against CRSP's, a cent or more apart; each label's basis is fitted per split segment (the ratio that matches the most days; exactly 1 for raw Tiingo/WIKI/CRSP closes). `EXTRA_BREAKS=LABEL:DATE` adds a segment break where a vendor's adjusted line carries no split flag (Alcoa 2000-06-12, Moody's 2000-10-03). Added in the 2000 pass. |
+| `crsp_index_check.py REPORT DIR SPX.csv FLAGGED.csv OUT.csv [MIN_BP]` | Settles ours-vs-CRSP closes with the S&P 500's own daily return: the index's daily move is rebuilt from members' CRSP returns (CRSP market caps as weights), and a vendor close is kept only where it brings that rebuilt move closer to the published one (YEAR env picks the year). In 2000 CRSP's closes fit the index far better (Jul-Sep residual 3 bp vs 9 bp a day). |
 
 The year-by-year sign-off procedure and its results are in the project's verification log (`claude/data-verification-log.md`).
