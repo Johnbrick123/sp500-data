@@ -77,10 +77,10 @@ for lab, d, anchor in specs:
             mcap = abs(r.prc) * r.shrout / 1000.0      # shrout in thousands -> $M
             if mcap > float(os.environ.get("MIN_MCAP", "1000")):
                 c.append((p, r.date.date(), abs(r.prc), round(mcap), r.exchcd, first[p].date(),
-                          abs(abs(r.prc) / anchor - 1) if anchor else 0))
-    c.sort(key=lambda x: x[-1])
+                          abs(abs(r.prc) / anchor - 1) if anchor else (abs((r.date - d).days), -mcap)))
+    c.sort(key=lambda x: x[-1])      # no anchor: nearest last day first, then the largest market cap (added 2026-10-14)
     for x in c[:12]:
-        say(f"  permno {x[0]:>6}  last {x[1]}  prc {x[2]:9.3f}  mcap ${x[3]:,}M  exch {x[4]}  first {x[5]}" + (f"  off {x[6]*100:.1f}%" if anchor else ""))
+        say(f"  permno {x[0]:>6}  last {x[1]}  prc {x[2]:9.3f}  mcap ${x[3]:,}M  exch {x[4]}  first {x[5]}" + (f"  off {x[6]*100:.1f}%" if anchor else f"  days off {x[6][0]}"))
     if not c:
         say("  no candidate")
 codes = os.environ.get("SHRCD", "10,11,12,18").split(",")

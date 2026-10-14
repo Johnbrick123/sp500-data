@@ -124,6 +124,14 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("RNB-199912",   "2000-01-04"),   # NCR replaced Republic New York after the close of Mon 1/3/2000 (NCR's index-trade volume 21x on 1/3); HSBC closed the deal 12/31/1999 - the file ended RNB on 1/3 (499 lines that day)
+    ("CBS-200005",   "2000-05-05"),   # Sapient and Siebel replaced CBS and Reynolds Metals after the close of 5/4/2000 (Sapient's index-trade volume 29x on 5/4); Viacom closed CBS on 5/4, Alcoa closed Reynolds on 5/3 - the file ended both on 5/4 (498 lines)
+    ("RLM-200005",   "2000-05-05"),   #   (see CBS above)
+    ("UMG-200006",   "2000-06-16"),   # MedImmune replaced MediaOne on 6/16/2000; AT&T closed MediaOne 6/15 - the file ended it on 6/15 (499 lines)
+    ("CSR-200006",   "2000-06-19"),   # Central & South West (AEP closed 6/15/2000) held until Novellus/Charter One joined on 6/19 - the file ended it on 6/16 (499 lines)
+    ("WLA-200006",   "2000-06-21"),   # Sanmina and Tiffany joined after the close of 6/20/2000 (index-trade volume 14x and 17x on 6/20) for Warner-Lambert (Pfizer closed 6/19) and Silicon Graphics - the file ended Warner-Lambert on 6/20 (499 lines)
+    ("USW-200006",   "2000-07-06"),   # U S West (merged into Qwest 6/30/2000) held until Qwest's line joined on 7/6; Broadcom took GTE's slot on 7/3 (11x on 6/30) - the file left 499 lines on 7/3 and 7/5
+    ("FPC-200011",   "2000-12-05"),   # Robert Half joined after the close of 12/4/2000 (45x on 12/4) and Calpine on 12/1, for Associates First Capital and Florida Progress (both deals closed 11/30); which of the two Robert Half replaced is not in a free source - either hold gives the same count. The file left 499 lines on 12/1 and 12/4
     ("TWX-200101",   "2001-01-16"),   # Noble Drilling replaced Time Warner after the close of Fri 1/12/2001 (NE's index-trade volume 8x on 1/12); the AOL merger closed 1/11 - the upstream file ended Time Warner a day early (499 lines on 1/12)
     ("USB-200102",   "2001-02-27"),   # Citizens Utilities replaced the old U.S. Bancorp at Firstar's merger (FTR's index-trade volume 59x on Mon 2/26, effective 2/27) - the file ended old USB on 2/26 (499 lines that day)
     ("AGC-200108",   "2001-08-30"),   # Ciena and AmerisourceBergen joined after the close of 8/29/2001 (index-trade volume on 8/29); AIG closed American General 8/29 - the file ended AGC on 8/29 (499 lines that day)
@@ -208,6 +216,10 @@ START_EARLY = [
 
 # Members the upstream snapshot file never lists at all. (label, first member date, first
 # non-member date) - S&P announcements, company filings and the index-trade volume spikes.
+DROP_LABELS = [   # labels the upstream file carries as a second, duplicate token for a company already listed
+    "TMC-A-200006",   # Times Mirror: the file lists TMC and TMC.A side by side 1996-2000-06-13 (501 lines a day); the S&P 500 held one Times Mirror line (Series A common, NYSE: TMC)
+]
+
 ADD_SPANS = [
     ("TAP-200404", "2002-08-21", "2004-04-02"),   # Travelers Property Casualty (Class B): Citigroup distributed it on 8/20/2002 and S&P added it
                                                    #   the next day in Vitesse's place; St. Paul's merger closed 4/1/2004 and ACS took the slot on 4/2.
@@ -495,6 +507,8 @@ def main():
                 merge[bare] = sfx
     all_m["ticker"] = all_m["ticker"].map(lambda t: merge.get(t, t))
     print(f"merged {len(merge)} bare labels into their delisted-suffix ids")
+    all_m = all_m[~all_m.ticker.isin(DROP_LABELS)]
+    print(f"dropped duplicate labels: {DROP_LABELS}")
     for lab, end in HOLD_UNTIL:
         all_m = hold_until(all_m, lab, end)
     for lab, end, *rest in END_EARLY:
