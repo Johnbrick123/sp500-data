@@ -93,12 +93,16 @@ for lab, pts, mc in dspecs:
         rows = [krows.get((p, d)) for d, _ in pts]
         if any(r is None for r in rows): continue
         if not ("any" in codes or str(rows[0].shrcd).split(".")[0] in codes): continue
+        fb = os.environ.get("FIRST_BY", "")
+        if fb and first[p] > pd.Timestamp(fb): continue      # FIRST_BY: only lines that already existed by then (an old NYSE name starts 1968-01-02)
+        lb = os.environ.get("LAST_AFTER", "")
+        if lb and lastall[p] < pd.Timestamp(lb): continue    # LAST_AFTER: only lines still alive then
         sc = sum(abs(math.log(abs(r.prc) / v)) for r, (_, v) in zip(rows, pts)) / len(pts)
         m0 = abs(rows[0].prc) * rows[0].shrout / 1000.0
         if mc and m0 > 0: sc += 0.5 * abs(math.log(m0 / mc))
         c.append((sc, p, rows, m0))
     c.sort(key=lambda x: x[0])
-    for sc, p, rows, m0 in c[:12]:
+    for sc, p, rows, m0 in c[:int(os.environ.get("TOP", "12"))]:
         say(f"  permno {p:>6}  " + "  ".join(f"{r.date.date()} prc {abs(r.prc):9.3f}" for r in rows)
             + f"  mcap ${m0:,.0f}M  exch {rows[0].exchcd}  shrcd {rows[0].shrcd}  first {first[p].date()}  last {lastall[p].date()}  score {sc:.3f}")
     if not c:

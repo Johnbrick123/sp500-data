@@ -14,7 +14,7 @@ p = pd.read_parquet(f'{D}/prices.parquet', columns=['ticker','date','open','high
 iv = pd.read_parquet(f'{D}/membership_intervals.parquet')
 res = []; bases = []
 for lab, pn in perm.items():
-    if pn not in blocks: continue
+    if pn not in blocks or not blocks[pn].strip(): continue      # an empty block: the permno has no rows that year
     k = pd.DataFrame([l.split() for l in blocks[pn].splitlines()]).iloc[:, [0, 2, 4]]; k.columns = ['date', 'prc', 'ret']
     k['date'] = pd.to_datetime(k.date); k['prc'] = pd.to_numeric(k.prc, errors='coerce').abs()
     o = p[p.ticker == lab].sort_values('date')

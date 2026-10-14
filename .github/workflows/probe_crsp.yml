@@ -6,6 +6,7 @@ on:
       slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
       min_mcap: { description: "Minimum market cap on the last day, $M", required: false, default: "1000" }
       shrcd: { description: "CRSP share codes to accept (comma list, or any)", required: false, default: "10,11,12,18" }
+      filters: { description: "Known-day mode filters: FIRST_BY=YYYY-MM-DD LAST_AFTER=YYYY-MM-DD TOP=N (space-separated)", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -22,7 +23,7 @@ jobs:
         env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
       - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag && ls -la kag
         env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
-      - run: python probe_crsp.py "${{ github.event.inputs.specs }}"
+      - run: for kv in ${{ github.event.inputs.filters }}; do export "$kv"; done; python probe_crsp.py "${{ github.event.inputs.specs }}"
         env: { MIN_MCAP: "${{ github.event.inputs.min_mcap }}", SHRCD: "${{ github.event.inputs.shrcd }}" }
       - run: gh release upload data data/crsp_probe.txt --clobber
         if: always()

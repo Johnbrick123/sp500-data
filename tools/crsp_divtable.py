@@ -10,7 +10,7 @@ p = pd.read_parquet(f'{D}/prices.parquet', columns=['ticker','date','close','div
 iv = pd.read_parquet(f'{D}/membership_intervals.parquet')
 res = []
 for lab, pn in perm.items():
-    if pn not in blocks: continue
+    if pn not in blocks or not blocks[pn].strip(): continue      # an empty block: no rows that year
     c = pd.DataFrame([l.split() for l in blocks[pn].splitlines()]).iloc[:, [0, 2, 4]]; c.columns = ['cd', 'prc', 'ret']
     c['prc'] = pd.to_numeric(c.prc, errors='coerce').abs(); c['ret'] = pd.to_numeric(c.ret, errors='coerce')
     c['impl'] = c.prc.shift() * (1 + c.ret) - c.prc

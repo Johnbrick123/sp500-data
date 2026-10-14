@@ -4,5 +4,3 @@
 # up to 2015 returned today's owner of AGN (Actavis), cut off at 2015.
 # Evidence: daily returns 90-100% identical to the current owner, and/or price
 # levels inconsistent with the real company.
-HON-199912   # returned AlliedSignal, not the original Honeywell
-AIT-199910   # returned Applied Industrial Technologies, not Ameritech
