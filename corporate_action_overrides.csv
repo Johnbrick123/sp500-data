@@ -526,3 +526,65 @@ CCTYQ-201009,2002-10-01,1,5.1162,"Circuit City's CarMax separation (ex 2002-10-0
 LU-200611,2002-06-03,1,0.8621,"Lucent's Agere Systems spin-off (ex 2002-06-03; Agere Class A and Class B to Lucent holders): the CRSP-derived series read the day's price ratio (4.65 -> 3.64) as a 5-for-4 split. There was no split. Agere was not in our data, so the distribution is valued at what CRSP's RET implies (permno 83332: -3.1797%), $0.8621 a share."
 MWV-201507,2002-01-30,0.97,,"The Mead-Westvaco merger (2002-01-30): each Westvaco share became 0.97 MeadWestvaco share. Tiingo's MWV history before the merger is Westvaco's, unadjusted, so 1/30 showed +4.1%; CRSP's RET (permno 21186) is +0.99% = 31.90 x 0.97 / 30.64."
 CNP,2002-10-01,,0,"CenterPoint's Reliant Resources distribution (ex 2002-10-01) is booked in spinoffs.csv at CRSP's RET; Yahoo recorded both a 1.18624 factor and a 0.843 'dividend' for it (+16.1% against RET's +5.09%), so its 'dividend' is removed."
+CCU-200807,2001-01-08,,0.0,Not a Clear Channel payment: Tiingo books 0.1873 on a day CRSP's RET (permno 24046) equals the price change; Clear Channel paid nothing before 2003.
+CCU-200807,2001-05-04,,0.0,Not a Clear Channel payment: Tiingo books 0.5334 on a day CRSP's RET (permno 24046) equals the price change; Clear Channel paid nothing before 2003.
+DOW-201708,2001-02-07,,0.0,"Dow's $0.121 went ex 2001-02-01, not 2/7: CRSP's RET (permno 20626) shows it on 2/1 and nothing on 2/7. Moved."
+DOW-201708,2001-02-01,,0.121,"Dow's $0.121 quarterly (CRSP's RET implies 0.1211 on 2/1), moved from Yahoo's 2/7."
+XRX,2001-02-28,,0.0,"Xerox's $0.05 went ex 2001-02-27 (CRSP's RET, permno 27983, implies 0.0500 that day and nothing on 2/28). Moved."
+XRX,2001-02-27,,0.131752,"Xerox's $0.05 (its last dividend before the 2001 suspension), ex 2001-02-27, moved from Yahoo's 2/28; stored on Yahoo's 2.635046 basis."
+SNV,2001-03-19,,0.0,Not a Synovus payment on this day: CRSP's RET (permno 20053) equals the price change; the same Tiingo duplicate as in 2002-2006.
+TUP,2001-03-20,,0.0,Not a Tupperware payment on this day: CRSP's RET (permno 83462) equals the price change (WIKI's duplicate).
+TUP,2001-09-17,,0.22,"Tupperware's $0.22 quarterly: its ex-date fell in the 9/11 market closure and CRSP's RET books it on 9/17, the reopening (implies 0.2200); WIKI has no row."
+RSHCQ-201510,2001-03-27,,0.0,Not a RadioShack payment on this day: CRSP's RET (permno 15560) equals the price change (WIKI's line).
+RSHCQ-201510,2001-06-27,,0.055,RadioShack paid $0.055 (CRSP's RET implies 0.0550); WIKI's line has 0.06.
+RSHCQ-201510,2001-09-27,,0.055,RadioShack paid $0.055 (CRSP's RET implies 0.0550); WIKI's line has 0.06.
+JCI,2001-06-13,,0.0,"Tyco's $0.0125 went ex 2001-06-28 (CRSP's RET, permno 45356, implies 0.0125 that day and nothing on 6/13; Yahoo had 4x the amount on 6/13). Moved."
+JCI,2001-06-28,,0.026026,"Tyco's $0.0125 quarterly, ex 2001-06-28 (CRSP's RET implies 0.0125), moved from Yahoo's 6/13; stored on Yahoo's 2.082094 basis (the 2007 1-for-4 and the 2016 merger factor)."
+FE,2001-08-07,,0.0,"FirstEnergy's $0.375 went ex 2001-08-03 (CRSP's RET, permno 23026, implies 0.3750 that day and nothing on 8/7). Moved."
+FE,2001-08-03,,0.375,"FirstEnergy's $0.375 quarterly, ex 2001-08-03, moved from Yahoo's 8/7."
+FE,2001-11-08,,0.0958,FirstEnergy's November 2001 dividend was split around the GPU merger: $0.279 ex 11/7 and the remainder ex 11/8 - CRSP's RET implies 0.0958 on 11/8 (0.279 + 0.096 = the $0.375 quarterly); Yahoo had the full 0.375 again on 11/8.
+MAT,2001-09-06,,0.0,Not a Mattel payment: CRSP's RET (permno 39538) equals the price change on 2001-09-06; Mattel's annual $0.05 went ex 11/21 (in our data).
+ADP,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.08169, is $0.103 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+DVN,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.05, is $0.10 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+ECL,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.13, is $0.26 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+EMN,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.44, is $0.88 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+KO,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.18, is $0.36 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+MSI,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.02067, is $0.0057 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+PGR,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.07, is $0.84 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+RF,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.22679, is $0.28 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+TXT,2001-09-10,,0.0,"A duplicate dated 9/10/2001: the ex-date fell in the 9/11 market closure and CRSP's RET books the dividend on 9/17, the reopening, where our record already has it (Yahoo carries both; the 9/10 row, stored 0.325, is $0.65 as paid - for several names twice or more the payment). CRSP shows no distribution on 9/10."
+SWY-201501,2001-11-20,,0.0,Not a Safeway payment: CRSP's RET equals the price change; Safeway paid no dividends in 2001.
+HD,2001-11-27,,0.0,"Home Depot's $0.05 went ex 2001-11-28 (in our data, which CRSP's RET confirms); Yahoo's 11/27 row is a duplicate."
+MWV-201507,2001-03-07,,0.22,"Westvaco's $0.22 quarterly, missing from Tiingo's file (MWV's pre-2002 history is Westvaco's): CRSP's RET (permno 21186) implies 0.2200."
+MWV-201507,2001-05-30,,0.22,"Westvaco's $0.22 quarterly, missing from Tiingo's file (MWV's pre-2002 history is Westvaco's): CRSP's RET (permno 21186) implies 0.2200."
+MWV-201507,2001-09-05,,0.22,"Westvaco's $0.22 quarterly, missing from Tiingo's file (MWV's pre-2002 history is Westvaco's): CRSP's RET (permno 21186) implies 0.2200."
+MWV-201507,2001-12-05,,0.22,"Westvaco's $0.22 quarterly, missing from Tiingo's file (MWV's pre-2002 history is Westvaco's): CRSP's RET (permno 21186) implies 0.2200."
+SLM,2001-09-05,,0.020848,"USA Education (Sallie Mae) paid $0.175, missing from Yahoo: CRSP's RET implies 0.1750; stored on Yahoo's 0.119133 basis."
+CCE,2001-09-17,,0.04,Coca-Cola Enterprises' $0.04 quarterly: its ex-date fell in the 9/11 closure and CRSP's RET books it on 9/17 (implies 0.0400); WIKI has no row.
+KBH,2001-11-09,,0.0375,"KB Home's $0.075, missing from Yahoo (CRSP's RET implies 0.0750 on 11/9); stored on Yahoo's 0.5 basis."
+JCP,2001-01-08,,0.125,J.C. Penney paid $0.125 a quarter (CRSP's RET implies 0.1250); WIKI's line has 0.13 - as in 2002-2004.
+JCP,2001-10-05,,0.125,J.C. Penney paid $0.125 a quarter (CRSP's RET implies 0.1250); WIKI's line has 0.13 - as in 2002-2004.
+MDP,2001-02-26,,0.085,Meredith paid $0.085 on this ex-date (CRSP's RET implies 0.0850); WIKI's line has 0.09.
+MDP,2001-08-29,,0.085,Meredith paid $0.085 on this ex-date (CRSP's RET implies 0.0850); WIKI's line has 0.09.
+HSH-201408,2001-02-27,,0.145,"Sara Lee's payment as CRSP's RET (permno 22840) implies it, $0.145; Tiingo stores twice the amount on this line (as in 2002-2006)."
+HSH-201408,2001-05-30,,0.145,"Sara Lee's payment as CRSP's RET (permno 22840) implies it, $0.145; Tiingo stores twice the amount on this line (as in 2002-2006)."
+HSH-201408,2001-08-29,,0.145,"Sara Lee's payment as CRSP's RET (permno 22840) implies it, $0.145; Tiingo stores twice the amount on this line (as in 2002-2006)."
+HSH-201408,2001-11-29,,0.15,"Sara Lee's payment as CRSP's RET (permno 22840) implies it, $0.15; Tiingo stores twice the amount on this line (as in 2002-2006)."
+LUV,2001-06-04,,0.0045,Southwest paid $0.0045 (CRSP's RET implies 0.0045); Yahoo has 0.003.
+TXN,2001-01-29,,0.02125,Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 where Yahoo has 0.023) - as in 2002-2004.
+TXN,2001-04-26,,0.02125,Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 where Yahoo has 0.023) - as in 2002-2004.
+TXN,2001-07-27,,0.02125,Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 where Yahoo has 0.023) - as in 2002-2004.
+TXN,2001-10-29,,0.02125,Texas Instruments paid $0.02125 a quarter (WIKI 0.02125; CRSP's RET implies 0.0213 where Yahoo has 0.023) - as in 2002-2004.
+CAG,2001-08-01,,0.175097,ConAgra's $0.225 (CRSP's RET implies 0.2250; Yahoo had 0.203 as paid); stored on Yahoo's 0.77821 basis.
+BEN,2001-10-03,,0.021667,Franklin Resources' $0.065 (CRSP's RET implies 0.0650; Yahoo had a third of it); stored on Yahoo's 1/3 basis.
+GL,2001-10-03,,0.04,"Torchmark's $0.09 (CRSP's RET implies 0.0900; Yahoo had 0.04 as paid, i.e. stored 0.017778); stored on Yahoo's 0.444444 basis."
+TMO,2001-08-09,,0.817,"Thermo Electron's Kadant spin-off (ex 2001-08-09), which Yahoo books as a $0.82 dividend: valued at CRSP's RET (permno 62092), $0.8170. Kadant was not an S&P 500 member."
+TMO,2001-11-16,,2.6298,"Thermo Electron's Viasys Healthcare spin-off (ex 2001-11-16), which Yahoo books as a $2.52 dividend: valued at CRSP's RET (permno 62092), $2.6298. Viasys was not an S&P 500 member."
+PBI,2001-12-03,,0.8608,"Pitney Bowes' Imagistics International spin-off (1 IGI per 20 PBI, ex 2001-12-03), which Yahoo books as $0.972: valued at CRSP's RET (permno 24459), $0.8608. Imagistics was not an S&P 500 member."
+EMC-201609,2001-02-08,,1.3642,"EMC's McData distribution (0.0368069 McData Class A per EMC share, ex 2001-02-08 - the ISE/OCC adjustment memo); WIKI books 1.24234. McData was not an S&P 500 member, so it is valued at CRSP's RET (permno 10147: 65.39 -> 59.50, -6.9213%), $1.3642."
+T-200511,2001-07-09,1,0,"AT&T Corp's AT&T Wireless split-off (0.3218 AWE per T share, ex 2001-07-09) is booked in spinoffs.csv; the CRSP-derived series had read it as a 5-for-4 split plus a 0.5232 'dividend'."
+DLX,2001-01-02,,0,Deluxe's eFunds spin-off (ex 2001-01-02) is booked in spinoffs.csv at CRSP's RET; Yahoo recorded both a 1.250782 factor and a 5.07 'dividend' for it (-3.3% against RET's +0.33%).
+ETN,2001-01-02,,0,Eaton's Axcelis Technologies spin-off (ex 2001-01-02) is booked in spinoffs.csv at CRSP's RET; Yahoo recorded both a 1.152472 factor and a 'dividend' (10.464 as paid) for it (+19.2% against RET's +3.10%).
+PBG-201002,2001-12-04,1,,"Pepsi Bottling Group's 2-for-1 split went ex 2001-12-05 (CRSP: 45.12 on 12/4, 23.50 on 12/5, shares outstanding doubled, RET +4.17%); Tiingo dated the factor a day early, which made 12/4 +102%."
+PBG-201002,2001-12-05,2,,"Pepsi Bottling Group's 2-for-1 split, ex 2001-12-05 (moved from Tiingo's 12/4)."
+ROK,2001-07-02,,0,"Rockwell's Rockwell Collins spin-off (1 COL per ROK share, ex 2001-07-02) is booked in spinoffs.csv; Yahoo's 23.51 'dividend' for it is removed."
