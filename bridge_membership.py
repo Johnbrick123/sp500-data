@@ -343,6 +343,7 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
                                                             #   and index funds held Comcast "A" by 12/31/2002 - the file lists CMCSA throughout
     "ABX":  [("ABX-201812", "1900-01-01", "2019-01-02")],   # Barrick Gold (S&P 500 to 2002-07-19, one of the seven non-US names removed then); Barrick
                                                             #   moved to GOLD on 2019-01-02 - Yahoo's ABX file is a later company, never a member
+    "TEN":  [("TEN-202211", "1900-01-01", "2030-12-31")],   # Tenneco (S&P 500 1996-1999; CRSP permno 84375 to the 2022-11 Apollo buyout). The bare TEN symbol now belongs to Tsakos Energy Navigation, whose history Yahoo serves (and the nightly fetch restores) under TEN
     "UN":   [("UN-202011",  "1900-01-01", "2020-12-01")],   # Unilever N.V. NY shares (S&P 500 to 2002-07-19); the line ended at the 2020-11-30
                                                             #   unification - Yahoo's UN file is not N.V.'s history
     "NFX":  [("NFX-201902", "1900-01-01", "2019-03-01")],   # Newfield Exploration -> now an ETF
