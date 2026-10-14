@@ -663,3 +663,126 @@ USB-200102,2000-06-28,,0,"Firstar's $0.1625 dividend, not the old U.S. Bancorp's
 USB-200102,2000-09-27,,0,"Firstar's $0.1625 dividend, not the old U.S. Bancorp's: Tiingo's file carries it on 2000-09-27 (Firstar's ex-date) while CRSP's RET for the old U.S. Bancorp (permno 66157) implies none."
 USB-200102,2000-12-27,,0,"Firstar's $0.1625 dividend, not the old U.S. Bancorp's: Tiingo's file carries it on 2000-12-27 (Firstar's ex-date) while CRSP's RET for the old U.S. Bancorp (permno 66157) implies none."
 RAL-200112,2000-04-04,1,0,Ralston Purina's Energizer spin-off (ex 2000-04-04) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's 4-for-3 'split' and $0.0781 'dividend' for it are removed.
+ADP,1999-03-10,,0.060511,ADP paid $0.0763 (ex 1999-03-10; CRSP's RET implies $0.0763); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.793064).
+ADP,1999-06-09,,0.060511,ADP paid $0.0763 (ex 1999-06-09; CRSP's RET implies $0.0763); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.793064).
+AXP,1999-06-30,,0.065648,American Express paid $0.225 (ex 1999-06-30; CRSP's RET implies $0.2250); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.291767).
+BAX,1999-03-10,,0.079033,Baxter paid $0.291 (ex 1999-03-10; CRSP's RET implies $0.2910); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.271592).
+BAX,1999-06-09,,0.079033,Baxter paid $0.291 (ex 1999-06-09; CRSP's RET implies $0.2910); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.271592).
+BAX,1999-09-22,,0.079033,Baxter paid $0.291 (ex 1999-09-22; CRSP's RET implies $0.2910); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.271592).
+BEN,1999-06-28,,0.018333,Franklin Resources paid $0.055 (ex 1999-06-28; CRSP's RET implies $0.0550); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.333333).
+BMY,1999-06-30,,0.204632,Bristol-Myers paid $0.215 (ex 1999-06-30; CRSP's RET implies $0.2150); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.951777).
+CAH,1999-06-29,,0.016667,Cardinal Health paid $0.025 (ex 1999-06-29; CRSP's RET implies $0.0250); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.666667).
+COF,1999-08-10,,0.0267,Capital One paid $0.0267 (ex 1999-08-10; CRSP's RET implies $0.0267); Yahoo's record differs by 0.08 cents or more.
+CPB,1999-07-07,,0.225,Campbell paid $0.225 (ex 1999-07-07; CRSP's RET implies $0.2250); Yahoo's record differs by 0.08 cents or more.
+DHR,1999-06-23,,0.00252,Danaher paid $0.015 (ex 1999-06-23; CRSP's RET implies $0.0150); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.16803).
+DRI,1999-04-07,,0.023837,Darden paid $0.04 (ex 1999-04-07; CRSP's RET implies $0.0400); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.595933).
+DTE,1999-06-17,,0.438298,DTE Energy paid $0.515 (ex 1999-06-17; CRSP's RET implies $0.5150); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.851064).
+GAP,1999-03-03,,0.0222,Gap paid $0.0333 (ex 1999-03-03; CRSP's RET implies $0.0333); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.666667).
+INTC,1999-02-03,,0.010025,Intel paid $0.0401 (ex 1999-02-03; CRSP's RET implies $0.0401); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.25).
+JCI,1999-06-30,,0.026026,Tyco International (JCI's history before 2016) paid $0.025 (ex 1999-06-30; CRSP's RET implies $0.0250); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 1.04105).
+LNC,1999-07-07,,0.275,Lincoln National paid $0.275 (ex 1999-07-07; CRSP's RET implies $0.2750); Yahoo's record differs by 0.08 cents or more.
+MAR,1999-06-23,,0.025636,Marriott paid $0.055 (ex 1999-06-23; CRSP's RET implies $0.0550); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.466108).
+NTRS,1999-03-08,,0.12,Northern Trust paid $0.24 (ex 1999-03-08; CRSP's RET implies $0.2400); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.5).
+NTRS,1999-12-08,,0.135,Northern Trust paid $0.27 (ex 1999-12-08; CRSP's RET implies $0.2700); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.5).
+PCAR,1999-02-17,,0.026864,PACCAR paid $0.204 (ex 1999-02-17; CRSP's RET implies $0.2040); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.131687).
+ROK,1999-02-11,,0.255,Rockwell paid $0.255 (ex 1999-02-11; CRSP's RET implies $0.2550); Yahoo's record differs by 0.08 cents or more.
+RTX,1999-08-25,,0.062933,United Technologies paid $0.2 (ex 1999-08-25; CRSP's RET implies $0.2000); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.314663).
+SCHW,1999-08-10,,0.009333,Schwab paid $0.014 (ex 1999-08-10; CRSP's RET implies $0.0140); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.666667).
+SPGI,1999-02-22,,0.101703,McGraw-Hill paid $0.43 (ex 1999-02-22; CRSP's RET implies $0.4300); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.236518).
+T,1999-01-06,,0.176511,SBC Communications (T's history before 2005) paid $0.2337 (ex 1999-01-06; CRSP's RET implies $0.2337); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.755287).
+T,1999-04-07,,0.184063,SBC Communications (T's history before 2005) paid $0.2437 (ex 1999-04-07; CRSP's RET implies $0.2437); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.755287).
+UNH,1999-03-30,,0.00375,UnitedHealth paid $0.03 (ex 1999-03-30; CRSP's RET implies $0.0300); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.125).
+VZ,1999-07-07,,0.346239,Bell Atlantic paid $0.385 (ex 1999-07-07; CRSP's RET implies $0.3850); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.899323).
+EXC,1999-11-09,,0.089158,PECO Energy (EXC's history before 2000) paid $0.25 (ex 1999-11-09; CRSP's RET implies $0.2500); Yahoo's record differs by 0.08 cents or more. Stored on Yahoo's split basis (x 0.356633).
+EXC,1999-11-10,,0,"No PECO Energy distribution on 1999-11-10 (CRSP's RET implies none); Yahoo's $0.25 belongs to the day before, the real ex-date."
+CMS,1999-09-15,,0,"No distribution on 1999-09-15 (CRSP's RET implies none): CMS Energy's 1999 quarters went ex 1/29, 4/29, 7/29 and 11/1 ($0.33, $0.33, $0.365, $0.365 - all in Yahoo's record too)."
+DIS,1999-10-07,,0,No distribution on 1999-10-07 (CRSP's RET implies none): Disney's 1999 dividend was the $0.21 that went ex 11/12.
+DD-201708,1999-09-23,,0,No distribution on 1999-09-23 (CRSP's RET implies none): DuPont's 1999 quarters were $0.35 each.
+SNV,1999-03-22,,0,"No distribution on 1999-03-22 (CRSP's RET implies none): the quarter's $0.09 went ex 3/23, which Tiingo also has."
+TUP,1999-03-18,,0,"No distribution on 1999-03-18 (CRSP's RET implies none): the $0.22 went ex 3/19, which WIKI also has."
+RSHCQ-201510,1999-03-29,,0,No distribution on 1999-03-29 (CRSP's RET implies none): the $0.10 went ex 3/30.
+RSHCQ-201510,1999-03-30,,0.1,Tandy paid $0.10 (ex 1999-03-30; CRSP's RET implies $0.1000); WIKI's record has it a day early.
+RSHCQ-201510,1999-12-30,,0.055,Tandy paid $0.055 after its 2-for-1 split (ex 1999-12-30; CRSP's RET implies $0.0550); WIKI's record is $0.06.
+CB-201601,1999-03-24,,0.32,Chubb Corp paid $0.32 (ex 1999-03-24; CRSP's RET implies $0.3200); missing from WIKI's CB line.
+CB-201601,1999-06-23,,0.32,Chubb Corp paid $0.32 (ex 1999-06-23; CRSP's RET implies $0.3200); missing from WIKI's CB line.
+CB-201601,1999-09-22,,0.32,Chubb Corp paid $0.32 (ex 1999-09-22; CRSP's RET implies $0.3200); missing from WIKI's CB line.
+CB-201601,1999-12-22,,0.32,Chubb Corp paid $0.32 (ex 1999-12-22; CRSP's RET implies $0.3200); missing from WIKI's CB line.
+CTB,1999-03-04,,0.105,Cooper Tire paid $0.105 (ex 1999-03-04; CRSP's RET implies $0.1050); Tiingo's record is $0.11.
+CTB,1999-05-28,,0.105,Cooper Tire paid $0.105 (ex 1999-05-28; CRSP's RET implies $0.1050); Tiingo's record is $0.11.
+CTB,1999-09-07,,0.105,Cooper Tire paid $0.105 (ex 1999-09-07; CRSP's RET implies $0.1050); Tiingo's record is $0.11.
+CTB,1999-11-26,,0.105,Cooper Tire paid $0.105 (ex 1999-11-26; CRSP's RET implies $0.1050); Tiingo's record is $0.11.
+HSH-201408,1999-02-25,,0.125,Sara Lee paid $0.125 (ex 1999-02-25; CRSP's RET implies $0.1250); Tiingo's record doubles it.
+HSH-201408,1999-05-27,,0.125,Sara Lee paid $0.125 (ex 1999-05-27; CRSP's RET implies $0.1250); Tiingo's record doubles it.
+HSH-201408,1999-08-30,,0.125,Sara Lee paid $0.125 (ex 1999-08-30; CRSP's RET implies $0.1250); Tiingo's record doubles it.
+HSH-201408,1999-11-29,,0.135,Sara Lee paid $0.135 (ex 1999-11-29; CRSP's RET implies $0.1350); Tiingo's record doubles it.
+JCP,1999-01-06,,0.545,J.C. Penney paid $0.545 (ex 1999-01-06; CRSP's RET implies $0.5450); WIKI's record is $0.55.
+JCP,1999-04-07,,0.545,J.C. Penney paid $0.545 (ex 1999-04-07; CRSP's RET implies $0.5450); WIKI's record is $0.55.
+JCP,1999-07-07,,0.545,J.C. Penney paid $0.545 (ex 1999-07-07; CRSP's RET implies $0.5450); WIKI's record is $0.55.
+JCP,1999-10-06,,0.545,J.C. Penney paid $0.545 (ex 1999-10-06; CRSP's RET implies $0.5450); WIKI's record is $0.55.
+KATE-201707,1999-02-16,,0.1125,Liz Claiborne paid $0.1125 (ex 1999-02-16; CRSP's RET implies $0.1125); Tiingo's record is $0.11.
+KATE-201707,1999-04-29,,0.1125,Liz Claiborne paid $0.1125 (ex 1999-04-29; CRSP's RET implies $0.1125); Tiingo's record is $0.11.
+KATE-201707,1999-08-11,,0.1125,Liz Claiborne paid $0.1125 (ex 1999-08-11; CRSP's RET implies $0.1125); Tiingo's record is $0.11.
+KATE-201707,1999-11-09,,0.1125,Liz Claiborne paid $0.1125 (ex 1999-11-09; CRSP's RET implies $0.1125); Tiingo's record is $0.11.
+MCO,1999-02-17,,0.069488,The Dun & Bradstreet Corp paid $0.185 (ex 1999-02-17; CRSP's RET implies $0.1850); missing from Yahoo's record. Stored on Yahoo's basis for the old D&B line (x 0.37561).
+MCO,1999-05-18,,0.069488,The Dun & Bradstreet Corp paid $0.185 (ex 1999-05-18; CRSP's RET implies $0.1850); missing from Yahoo's record. Stored on Yahoo's basis for the old D&B line (x 0.37561).
+MCO,1999-08-18,,0.069488,The Dun & Bradstreet Corp paid $0.185 (ex 1999-08-18; CRSP's RET implies $0.1850); missing from Yahoo's record. Stored on Yahoo's basis for the old D&B line (x 0.37561).
+MCO,1999-11-17,,0.069488,The Dun & Bradstreet Corp paid $0.185 (ex 1999-11-17; CRSP's RET implies $0.1850); missing from Yahoo's record. Stored on Yahoo's basis for the old D&B line (x 0.37561).
+MDP,1999-02-24,,0.075,Meredith paid $0.075 (ex 1999-02-24; CRSP's RET implies $0.0750); WIKI's record is $0.08.
+MDP,1999-05-26,,0.075,Meredith paid $0.075 (ex 1999-05-26; CRSP's RET implies $0.0750); WIKI's record is $0.08.
+MDP,1999-08-27,,0.075,Meredith paid $0.075 (ex 1999-08-27; CRSP's RET implies $0.0750); WIKI's record is $0.08.
+MDP,1999-11-26,,0.075,Meredith paid $0.075 (ex 1999-11-26; CRSP's RET implies $0.0750); WIKI's record is $0.08.
+MDR,1999-03-11,,0.05,McDermott paid $0.05 (ex 1999-03-11; CRSP's RET implies $0.0500); Tiingo's record is $0.033.
+MDR,1999-06-11,,0.05,McDermott paid $0.05 (ex 1999-06-11; CRSP's RET implies $0.0500); Tiingo's record is $0.033.
+MDR,1999-09-13,,0.05,McDermott paid $0.05 (ex 1999-09-13; CRSP's RET implies $0.0500); Tiingo's record is $0.033.
+MDR,1999-12-13,,0.05,McDermott paid $0.05 (ex 1999-12-13; CRSP's RET implies $0.0500); Tiingo's record is $0.033.
+MWV-201507,1999-03-03,,0.22,Westvaco paid $0.22 (ex 1999-03-03; CRSP's RET implies $0.2200); missing from Tiingo's record.
+MWV-201507,1999-06-02,,0.22,Westvaco paid $0.22 (ex 1999-06-02; CRSP's RET implies $0.2200); missing from Tiingo's record.
+MWV-201507,1999-09-01,,0.22,Westvaco paid $0.22 (ex 1999-09-01; CRSP's RET implies $0.2200); missing from Tiingo's record.
+MWV-201507,1999-12-01,,0.22,Westvaco paid $0.22 (ex 1999-12-01; CRSP's RET implies $0.2200); missing from Tiingo's record.
+PLL-201508,1999-01-21,,0.16,Pall paid $0.16 (ex 1999-01-21; CRSP's RET implies $0.1600); missing from WIKI's record.
+PLL-201508,1999-04-29,,0.16,Pall paid $0.16 (ex 1999-04-29; CRSP's RET implies $0.1600); missing from WIKI's record.
+PLL-201508,1999-07-08,,0.16,Pall paid $0.16 (ex 1999-07-08; CRSP's RET implies $0.1600); missing from WIKI's record.
+PLL-201508,1999-10-25,,0.16,Pall paid $0.16 (ex 1999-10-25; CRSP's RET implies $0.1600); missing from WIKI's record.
+RAD,1999-01-15,,0.115,Rite Aid paid $0.115 (ex 1999-01-15; CRSP's RET implies $0.1150); WIKI's record is $0.12.
+RAD,1999-04-15,,0.115,Rite Aid paid $0.115 (ex 1999-04-15; CRSP's RET implies $0.1150); WIKI's record is $0.12.
+RAD,1999-07-15,,0.115,Rite Aid paid $0.115 (ex 1999-07-15; CRSP's RET implies $0.1150); WIKI's record is $0.12.
+RAD,1999-10-14,,0.115,Rite Aid paid $0.115 (ex 1999-10-14; CRSP's RET implies $0.1150); WIKI's record is $0.12.
+PBY-201602,1999-01-07,,0.065,Pep Boys paid $0.065 (ex 1999-01-07; CRSP's RET implies $0.0650); WIKI's record is $0.07.
+PBY-201602,1999-04-08,,0.0675,Pep Boys paid $0.0675 (ex 1999-04-08; CRSP's RET implies $0.0675); WIKI's record is $0.07.
+PBY-201602,1999-07-08,,0.0675,Pep Boys paid $0.0675 (ex 1999-07-08; CRSP's RET implies $0.0675); WIKI's record is $0.07.
+S-202004,1999-03-05,,0.25,Sprint FON paid $0.25 (ex 1999-03-05; CRSP's RET implies $0.2500; $0.125 after the 2-for-1 of 6/1999); Tiingo's record differs.
+S-202004,1999-06-09,,0.125,Sprint FON paid $0.125 (ex 1999-06-09; CRSP's RET implies $0.1250; $0.125 after the 2-for-1 of 6/1999); Tiingo's record misses it.
+S-202004,1999-09-03,,0.125,Sprint FON paid $0.125 (ex 1999-09-03; CRSP's RET implies $0.1250; $0.125 after the 2-for-1 of 6/1999); Tiingo's record differs.
+S-202004,1999-12-06,,0.125,Sprint FON paid $0.125 (ex 1999-12-06; CRSP's RET implies $0.1250; $0.125 after the 2-for-1 of 6/1999); Tiingo's record differs.
+SNV,1999-06-22,,0.09,Synovus paid $0.09 (ex 1999-06-22; CRSP's RET implies $0.0900); Tiingo's record is $0.04.
+SNV,1999-09-21,,0.09,Synovus paid $0.09 (ex 1999-09-21; CRSP's RET implies $0.0900); Tiingo's record is $0.04.
+SNV,1999-12-21,,0.09,Synovus paid $0.09 (ex 1999-12-21; CRSP's RET implies $0.0900); Tiingo's record is $0.04.
+SVU,1999-02-25,,0.1325,Supervalu paid $0.1325 (ex 1999-02-25; CRSP's RET implies $0.1325); Tiingo's record differs.
+SVU,1999-05-27,,0.1325,Supervalu paid $0.1325 (ex 1999-05-27; CRSP's RET implies $0.1325); Tiingo's record differs.
+SVU,1999-08-11,,0.135,Supervalu paid $0.135 (ex 1999-08-11; CRSP's RET implies $0.1350); Tiingo's record differs.
+SVU,1999-11-29,,0.135,Supervalu paid $0.135 (ex 1999-11-29; CRSP's RET implies $0.1350); Tiingo's record differs.
+FWLT-201412,1999-02-11,,0.21,Foster Wheeler paid $0.21 (ex 1999-02-11; CRSP's RET implies $0.2100); Tiingo's record has a decimal slip ($0.021).
+FWLT-201412,1999-05-12,,0.21,Foster Wheeler paid $0.21 (ex 1999-05-12; CRSP's RET implies $0.2100); Tiingo's record has a decimal slip ($0.021).
+FWLT-201412,1999-08-12,,0.06,Foster Wheeler paid $0.06 (ex 1999-08-12; CRSP's RET implies $0.0600); Tiingo's record has a decimal slip ($0.006).
+FWLT-201412,1999-11-10,,0.06,Foster Wheeler paid $0.06 (ex 1999-11-10; CRSP's RET implies $0.0600); Tiingo's record has a decimal slip ($0.006).
+USB-200102,1999-02-25,,0.195,The old U.S. Bancorp paid $0.195 (ex 1999-02-25; CRSP's RET implies $0.1950); Tiingo's record differs (Firstar's and others' payments are mixed into the line).
+USB-200102,1999-05-27,,0.195,The old U.S. Bancorp paid $0.195 (ex 1999-05-27; CRSP's RET implies $0.1950); Tiingo's record differs (Firstar's and others' payments are mixed into the line).
+USB-200102,1999-08-30,,0.195,The old U.S. Bancorp paid $0.195 (ex 1999-08-30; CRSP's RET implies $0.1950); Tiingo's record differs (Firstar's and others' payments are mixed into the line).
+USB-200102,1999-11-29,,0.195,The old U.S. Bancorp paid $0.195 (ex 1999-11-29; CRSP's RET implies $0.1950); Tiingo's record differs (Firstar's and others' payments are mixed into the line).
+USB-200102,1999-03-29,,0,Not the old U.S. Bancorp's: CRSP's RET (permno 66157) implies no distribution on 1999-03-29; Tiingo's file carries another company's payment here.
+USB-200102,1999-06-28,,0,Not the old U.S. Bancorp's: CRSP's RET (permno 66157) implies no distribution on 1999-06-28; Tiingo's file carries another company's payment here.
+USB-200102,1999-09-15,,0,Not the old U.S. Bancorp's: CRSP's RET (permno 66157) implies no distribution on 1999-09-15; Tiingo's file carries another company's payment here.
+USB-200102,1999-12-29,,0,Not the old U.S. Bancorp's: CRSP's RET (permno 66157) implies no distribution on 1999-12-29; Tiingo's file carries another company's payment here.
+HWM,1999-02-04,,0.173538,Alcoa paid $0.4025 before its 2-for-1 split (ex 1999-02-04; CRSP's RET implies $0.4025). Stored on the archive line's basis (x 0.43115).
+HWM,1999-08-04,,0.173538,Alcoa paid $0.20125 (ex 1999-08-04; CRSP's RET implies $0.2013). Stored on the archive line's basis (x 0.862299).
+ROK,1999-01-04,,0,Rockwell's Conexant spin-off (ex 1999-01-04) is booked in spinoffs.csv at CRSP's RET; Yahoo's $9.40 'dividend' for it is removed.
+BBWI,1999-08-24,,0,The Limited's Limited Too spin-off (ex 1999-08-24) is booked in spinoffs.csv at CRSP's RET; Yahoo's 'dividend' for it (2.357 as paid) is removed.
+SLB,1999-12-31,,0,"Schlumberger's Transocean Sedco Forex distribution (0.1936 RIG per share, ex 1999-12-31) is booked in spinoffs.csv; Yahoo's 'dividend' for it (6.585 as paid) is removed."
+MTLQQ-201103,1999-05-28,,0,"General Motors' Delphi distribution (0.7 DPH per share, ex 1999-05-28) is booked in spinoffs.csv; the CRSP-derived line's $13.72 'cash dividend' for it is removed."
+ABI-200811,1999-05-06,,0,"PE Corp's recapitalization (0.5 Celera Genomics tracking share per PE Biosystems share, ex 1999-05-06) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $10.625 'cash dividend' for it is removed."
+H-200107,1999-10-25,,0,Harcourt General's Neiman Marcus spin-off (ex 1999-10-25) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $6.70 'cash dividend' for it is removed.
+HCA-200611,1999-05-12,,0,Columbia/HCA's LifePoint and Triad spin-offs (ex 1999-05-12) are booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $1.35 'cash dividend' for them is removed.
+RX-201002,1999-07-27,,0,IMS Health's Gartner distribution (ex 1999-07-27) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $2.86 'cash dividend' for it is removed.
+CR-202304,1999-12-17,,0,Crane's Huttig Building Products spin-off (ex 1999-12-17) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $0.94 'cash dividend' for it is removed.
+BSC-200805,1999-02-10,1.05,0,"Bear Stearns' 5% stock dividend (ex 1999-02-10): the CRSP-derived line booked it as a $2.2 cash dividend; booked as a 1.05 factor instead - the same return, CRSP's RET."
+BSC-200805,1999-11-09,1.05,0,"Bear Stearns' 5% stock dividend (ex 1999-11-09): the CRSP-derived line booked it as a $2.1219 cash dividend; booked as a 1.05 factor instead - the same return, CRSP's RET."
