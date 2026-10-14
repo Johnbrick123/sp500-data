@@ -124,6 +124,8 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("AIT-199910",   "1999-10-12"),   # Analog Devices replaced Ameritech after the close of Mon 10/11/1999 (ADI's index-trade volume 8x on 10/11); SBC closed Ameritech on Fri 10/8 - the file ended it on 10/8 (499 lines on 10/11)
+    ("PPW-199911",   "1999-12-01"),   # Citrix and Molex joined on 12/1/1999 (Citrix's index-trade volume 3.7x on 11/30) for PacifiCorp and Mobil; ScottishPower closed PacifiCorp on 11/29 - the file ended it on 11/29 (499 lines on 11/30)
     ("RNB-199912",   "2000-01-04"),   # NCR replaced Republic New York after the close of Mon 1/3/2000 (NCR's index-trade volume 21x on 1/3); HSBC closed the deal 12/31/1999 - the file ended RNB on 1/3 (499 lines that day)
     ("CBS-200005",   "2000-05-05"),   # Sapient and Siebel replaced CBS and Reynolds Metals after the close of 5/4/2000 (Sapient's index-trade volume 29x on 5/4); Viacom closed CBS on 5/4, Alcoa closed Reynolds on 5/3 - the file ended both on 5/4 (498 lines)
     ("RLM-200005",   "2000-05-05"),   #   (see CBS above)
