@@ -784,5 +784,6 @@ H-200107,1999-10-25,,0,Harcourt General's Neiman Marcus spin-off (ex 1999-10-25)
 HCA-200611,1999-05-12,,0,Columbia/HCA's LifePoint and Triad spin-offs (ex 1999-05-12) are booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $1.35 'cash dividend' for them is removed.
 RX-201002,1999-07-27,,0,IMS Health's Gartner distribution (ex 1999-07-27) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $2.86 'cash dividend' for it is removed.
 CR-202304,1999-12-17,,0,Crane's Huttig Building Products spin-off (ex 1999-12-17) is booked in spinoffs.csv at CRSP's RET; the CRSP-derived line's $0.94 'cash dividend' for it is removed.
-BSC-200805,1999-02-10,1.05,0,"Bear Stearns' 5% stock dividend (ex 1999-02-10): the CRSP-derived line booked it as a $2.2 cash dividend; booked as a 1.05 factor instead - the same return, CRSP's RET."
-BSC-200805,1999-11-09,1.05,0,"Bear Stearns' 5% stock dividend (ex 1999-11-09): the CRSP-derived line booked it as a $2.1219 cash dividend; booked as a 1.05 factor instead - the same return, CRSP's RET."
+BSC-200805,1999-02-10,1.05,0.15,"Bear Stearns' 5% stock dividend and $0.15 cash dividend, both ex 1999-02-10: the CRSP-derived line booked them as one $2.2 cash dividend; booked as a 1.05 factor plus $0.15 instead - the same return, CRSP's RET."
+BSC-200805,1999-11-09,1.05,0.15,"Bear Stearns' 5% stock dividend and $0.15 cash dividend, both ex 1999-11-09: the CRSP-derived line booked them as one $2.1219 cash dividend; booked as a 1.05 factor plus $0.15 instead - the same return, CRSP's RET."
+USB-200102,1999-04-16,1,,"No split on 1999-04-16: Tiingo's file records a 3-for-1 that the closes do not show (35.75 -> 35.44; CRSP permno 66157 has no split), which made the day +197%."
