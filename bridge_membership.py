@@ -124,6 +124,11 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("TWX-200101",   "2001-01-16"),   # Noble Drilling replaced Time Warner after the close of Fri 1/12/2001 (NE's index-trade volume 8x on 1/12); the AOL merger closed 1/11 - the upstream file ended Time Warner a day early (499 lines on 1/12)
+    ("USB-200102",   "2001-02-27"),   # Citizens Utilities replaced the old U.S. Bancorp at Firstar's merger (FTR's index-trade volume 59x on Mon 2/26, effective 2/27) - the file ended old USB on 2/26 (499 lines that day)
+    ("AGC-200108",   "2001-08-30"),   # Ciena and AmerisourceBergen joined after the close of 8/29/2001 (index-trade volume on 8/29); AIG closed American General 8/29 - the file ended AGC on 8/29 (499 lines that day)
+    ("TOS-200109",   "2001-09-21"),   # Phillips closed Tosco on 9/14/2001, while the market was shut after 9/11; Immunex joined on 9/21 - the file left 499 lines on 9/17-9/20, the first four days of trading after the reopening
+    ("RAL-200112",   "2001-12-14"),   # Genzyme General replaced Ralston Purina on 12/14/2001; Nestle closed the deal 12/12 - the file ended Ralston on 12/13 (499 lines that day)
     ("IMNX-200207",  "2002-07-17"),   # North Fork replaced Immunex in July 2002 (effective 7/17); Amgen completed the acquisition 7/16 (Amgen's release of that date) - the upstream file ended Immunex on 7/16, leaving 499 lines that day
     ("COC-B-200208", "2002-09-04"),   # R.J. Reynolds replaced Conoco after the close of Tue 9/3/2002 (RAI's index-trade volume 28x on 9/3); the Phillips merger closed Fri 8/30 (Conoco's last trade) - the upstream file left 499 lines on 9/3
     ("RATL-200302",  "2003-02-24"),   # AutoNation replaced Rational Software after the close of Fri 2/21/2003 (AN's index-trade volume 50x on 2/21); IBM closed the deal 2/21, RATL's last trade 2/20 - the upstream file ended it a day early (499 lines on 2/21)

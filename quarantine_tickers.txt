@@ -8,4 +8,3 @@ JPM-200012   # returned Chase, not the original J.P. Morgan & Co
 HON-199912   # returned AlliedSignal, not the original Honeywell
 CSR-200006   # returned today's CSR (Centerspace)
 AIT-199910   # returned Applied Industrial Technologies, not Ameritech
-TWX-200101   # $52.88 mid-2000 = AOL's price, not Time Warner's ~$76
