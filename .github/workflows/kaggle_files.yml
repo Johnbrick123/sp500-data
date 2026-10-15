@@ -1,0 +1,48 @@
+name: List a Kaggle dataset's files (and peek at one)
+
+# Read-only: prints each dataset's metadata and file list, and - when `peek` names
+# a file - the first lines of that file. Nothing is uploaded. Added 2026-10-15 to
+# look for a CRSP names table (permno -> ticker/company name over time), the
+# identity test for permnos found by their last trading day.
+on:
+  workflow_dispatch:
+    inputs:
+      datasets: { description: "Kaggle slugs, space-separated", required: true }
+      peek: { description: "Optional SLUG:FILE ... to print the first lines of", required: false, default: "" }
+      lines: { description: "Lines to print per peeked file", required: false, default: "8" }
+
+jobs:
+  files:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q 'kaggle>=1.8.0' pandas pyarrow
+      - name: Metadata and files
+        run: |
+          for d in ${{ github.event.inputs.datasets }}; do
+            echo "=================== $d"
+            mkdir -p "meta/$d" && kaggle datasets metadata -d "$d" -p "meta/$d" >/dev/null 2>&1 && python -c "import json,sys; m=json.load(open(sys.argv[1])); print(m.get('title')); print((m.get('subtitle') or '')[:300]); print((m.get('description') or '')[:1500]); print('licenses', m.get('licenses'))" "meta/$d/dataset-metadata.json" || true
+            kaggle datasets files -d "$d" --page-size 200 || true
+          done
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - name: Peek
+        if: ${{ github.event.inputs.peek != '' }}
+        run: |
+          for x in ${{ github.event.inputs.peek }}; do
+            d="${x%%:*}"; f="${x#*:}"
+            echo "=================== $d / $f"
+            rm -rf pk && mkdir pk
+            kaggle datasets download -d "$d" -f "$f" -p pk >/dev/null 2>&1 || { echo "download failed"; continue; }
+            ls -la pk
+            for z in pk/*; do
+              case "$z" in
+                *.zip) unzip -p "$z" | head -n "${{ github.event.inputs.lines }}" ;;
+                *.gz) zcat "$z" | head -n "${{ github.event.inputs.lines }}" ;;
+                *.parquet) python -c "import sys; import pandas as pd; d=pd.read_parquet(sys.argv[1]); print(d.shape); print(d.head(int(sys.argv[2])).to_string())" "$z" "${{ github.event.inputs.lines }}" ;;
+                *) head -n "${{ github.event.inputs.lines }}" "$z" ;;
+              esac
+            done
+          done
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
