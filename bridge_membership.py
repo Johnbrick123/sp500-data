@@ -216,6 +216,7 @@ START_LATE = [
 # Additions the upstream snapshot file dates a trading day LATE: the label is added to
 # the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
 START_EARLY = [
+    ("MAR", "1996-01-02"),   # Marriott International was a member all along: the upstream file never lists the old Marriott International (CRSP permno 79764) and adds MAR only on 5/21/1998, when the new Marriott common converted into Class A - one line short every day until then. Its history before 5/21/1998 is CRSP's (series_splices.csv)
     ("CMCSA", "2002-11-19"),   # the new Comcast Class A from the AT&T Broadband merger's first day (see RELABEL and END_EARLY)
     ("S-202004", "1996-01-02"),   # Sprint (FON, renamed Sprint Nextel 'S' in Aug 2005) was a member all along; the upstream file's single 'S' token stood for Sears AND Sprint before 2005, so Sprint's line was missing (499 lines in early 2005) until the bridge's 8/10/2005 cut
     ("ADT-201604", "2012-10-01"),   # ADT replaced Lexmark after the close of Fri 9/28 at the Tyco separation (S&P DJI 2012-09-24); first regular-way day 10/1; the upstream file has 10/2 (499 members on 10/1)

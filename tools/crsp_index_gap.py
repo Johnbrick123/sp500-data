@@ -6,7 +6,8 @@ regresses on that company's excess return with slope ~ w. Every CRSP permno with
 >= 90% of the days is scored; the slope is compared with the weight its own market cap
 would give (TOTAL_MCAP, $M, the index's total on the first day).
 Read-only. Env: RESID="YYYY-MM-DD=bp ..." SPX="YYYY-MM-DD=ret ..." TOTAL_MCAP=8000000 TOP=30
-(CSV unpacked in kag/) -> data/crsp_index_gap.txt. Added 2026-10-15 (the 1998 pass)."""
+(CSV unpacked in kag/) -> data/crsp_index_gap.txt. Added 2026-10-15 (the 1998 pass). Weak: a missing
+member worth 0.2% of the index moves the residual by well under 1 bp a day against 3-4 bp of noise."""
 import glob, os
 import numpy as np, pandas as pd
 
