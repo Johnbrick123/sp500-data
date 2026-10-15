@@ -40,7 +40,7 @@ jobs:
               case "$z" in
                 *.zip) unzip -p "$z" | head -n "${{ github.event.inputs.lines }}" ;;
                 *.gz) zcat "$z" | head -n "${{ github.event.inputs.lines }}" ;;
-                *.parquet) python -c "import sys; import pandas as pd; d=pd.read_parquet(sys.argv[1]); print(d.shape); print(d.head(int(sys.argv[2])).to_string())" "$z" "${{ github.event.inputs.lines }}" ;;
+                *.parquet) python -c "import sys, pyarrow.parquet as pq; f=pq.ParquetFile(sys.argv[1]); print(f.metadata); print(f.schema_arrow); b=next(f.iter_batches(batch_size=int(sys.argv[2]))); print(b.to_pandas().to_string())" "$z" "${{ github.event.inputs.lines }}" ;;
                 *) head -n "${{ github.event.inputs.lines }}" "$z" ;;
               esac
             done
