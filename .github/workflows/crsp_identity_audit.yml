@@ -1,0 +1,22 @@
+name: Identity audit of the CRSP permnos we use (read-only)
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas 'kaggle>=1.8.0'
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python tools/crsp_identity_audit.py crsp_permnos.csv
+      - run: gh release upload data data/crsp_identity.csv --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
