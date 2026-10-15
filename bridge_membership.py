@@ -124,6 +124,7 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("GRA-199609",   "1996-10-01"),   # the old W.R. Grace (last trade 9/27/1996, CRSP permno 25005; it merged its National Medical Care unit with Fresenius and spun off the new Grace) held until the new Grace first traded regular-way on 10/1 (see GRA-199803 in START_LATE)
     ("PVN-199706",   "1997-06-13"),   # Providian Corp. (AEGON closed 6/10/1997, its last trade) held until Providian Financial, spun off in the deal, first traded regular-way on 6/13 (CRSP permno 85073 starts that day) - the file switches the two on 6/11, when the new company had no price
     ("BOAT-199701",  "1997-01-08"),   # HealthSouth replaced Boatmen's Bancshares on 1/8/1997 (EHC's index-trade volume 3.7M on 1/7 vs ~0.3M); NationsBank closed Boatmen's 1/7 - the file ended it on 1/7 (499 lines that day)
     ("PAC-199703",   "1997-04-03"),   # Parametric Technology replaced Pacific Telesis on 4/3/1997 (PMTC's index-trade volume 15.9M on 4/2 vs ~3M); SBC closed PacTel 4/1 - the file ended it on 4/1 (499 lines on 4/1-4/2)
@@ -211,6 +212,7 @@ END_EARLY = [
 # dropped from snapshot dates before its real first member day, so its interval
 # starts exactly there. (label, first member date) - S&P DJI releases.
 START_LATE = [
+    ("GRA-199803",   "1996-10-01"),   # the new W.R. Grace first traded regular-way on 10/1/1996 (CRSP permno 83988 starts that day); the upstream file adds it 9/17 while the old Grace is still listed - two lines for one company 9/17-9/27
     ("PVN-200509",   "1997-06-13"),   # Providian Financial (the credit-card business AEGON did not buy) first traded regular-way on 6/13/1997, CRSP's first day for it; the upstream file adds it 6/11 (see PVN-199706 in HOLD_UNTIL)
     ("GRA",          "1998-04-01"),   # the new W.R. Grace first traded regular-way on 4/1/1998, when the old Grace became Sealed Air; the upstream file adds GRA on 3/24 while the old Grace (GRA-199803) is still listed, and the GRA file's rows before 4/1 are the old company's ($84 vs $20) - two lines for one company 3/24-3/31
     ("COC-B-200208", "1999-08-16"),   # Conoco Class B (the shares DuPont split off) first traded regular-way on 8/16/1999 (CRSP permno 87029 starts that day); the upstream file adds it 8/9, when it replaced Battle Mountain Gold - no price exists for 8/9-8/13, so the swap is dated 8/16 (S&P's 1999 release is not online)
@@ -237,6 +239,9 @@ DROP_LABELS = [   # labels the upstream file carries as a second, duplicate toke
 ]
 
 ADD_SPANS = [
+    ("ALS-199608", "1996-01-02", "1996-08-16"),   # Allegheny Ludlum (CRSP permno 75002), a member until its merger with Teledyne closed on 8/15/1996 (its last trade);
+                                                   #   the combined Allegheny Teledyne carried on Teledyne's line (ATI). The upstream file never lists it
+                                                   #   and fills the slot on 8/16 with a second add (HFS and Seagate for Allegheny Ludlum and COV) - 499 lines a day before.
     ("TAP-200404", "2002-08-21", "2004-04-02"),   # Travelers Property Casualty (Class B): Citigroup distributed it on 8/20/2002 and S&P added it
                                                    #   the next day in Vitesse's place; St. Paul's merger closed 4/1/2004 and ACS took the slot on 4/2.
                                                    #   The upstream file never lists it (it counts XL twice instead), leaving 499 lines a day for 19 months.
