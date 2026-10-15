@@ -291,6 +291,12 @@ def apply_splice(df, stem):
     if not pf.exists():
         print(f"  splice {stem} <- {r.prefix}: prefix file missing"); return df
     pre = pd.read_parquet(pf)
+    if "ticker" not in pre.columns:
+        pre["ticker"] = r.prefix
+    # the prefix's own corporate_action_overrides.csv rows (keyed by the prefix's name), so a
+    # factor the CRSP-derived prefix missed is in its split column before the rescaling below:
+    # ATI_crsp 1996-08-16, Teledyne's 1.925-for-1 merger into Allegheny Teledyne (the 1996 pass)
+    pre = apply_overrides(pre.sort_values("date").reset_index(drop=True))
     for x in (df, pre):
         d = pd.to_datetime(x["date"]); x["date"] = d.dt.tz_localize(None) if d.dt.tz is not None else d
     own = df[df.date >= r.before] if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true") else df
