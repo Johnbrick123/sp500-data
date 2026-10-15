@@ -124,6 +124,9 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("CFL-199804",   "1998-04-29"),   # Franklin Resources replaced CoreStates after the close of 4/28/1998 (BEN's index-trade volume 46.7M on 4/28 vs ~1.5M); First Union closed CoreStates 4/28, its last trade 4/27 - the file ended it on 4/28 (498 lines that day)
+    ("MCIC-199809",  "1998-09-16"),   # RJR Nabisco Holdings replaced MCI on 9/16/1998; WorldCom closed MCI 9/15, its last trade 9/14 - the file ended it on 9/15 (499 lines that day)
+    ("DI-199809",    "1998-10-01"),   # Paychex, BMC and Union Pacific Resources joined on 10/1/1998 (PAYX's index-trade volume 48M on 9/30 vs ~3M) for Dresser, BankAmerica and Ahmanson; Halliburton closed Dresser 9/29 - the file ended it on 9/30 (499 lines that day)
     ("BMGCA-200101", "1999-08-16"),   #   Battle Mountain Gold held until Conoco Class B joined (see COC-B-200208 in START_LATE)
     ("AIT-199910",   "1999-10-12"),   # Analog Devices replaced Ameritech after the close of Mon 10/11/1999 (ADI's index-trade volume 8x on 10/11); SBC closed Ameritech on Fri 10/8 - the file ended it on 10/8 (499 lines on 10/11)
     ("PPW-199911",   "1999-12-01"),   # Citrix and Molex joined on 12/1/1999 (Citrix's index-trade volume 3.7x on 11/30) for PacifiCorp and Mobil; ScottishPower closed PacifiCorp on 11/29 - the file ended it on 11/29 (499 lines on 11/30)
@@ -203,6 +206,7 @@ END_EARLY = [
 # dropped from snapshot dates before its real first member day, so its interval
 # starts exactly there. (label, first member date) - S&P DJI releases.
 START_LATE = [
+    ("GRA",          "1998-04-01"),   # the new W.R. Grace first traded regular-way on 4/1/1998, when the old Grace became Sealed Air; the upstream file adds GRA on 3/24 while the old Grace (GRA-199803) is still listed, and the GRA file's rows before 4/1 are the old company's ($84 vs $20) - two lines for one company 3/24-3/31
     ("COC-B-200208", "1999-08-16"),   # Conoco Class B (the shares DuPont split off) first traded regular-way on 8/16/1999 (CRSP permno 87029 starts that day); the upstream file adds it 8/9, when it replaced Battle Mountain Gold - no price exists for 8/9-8/13, so the swap is dated 8/16 (S&P's 1999 release is not online)
     ("CCI", "2012-03-14"),   # Crown Castle joined after the close of Tue 3/13 (see CEG-201203 above); the upstream file has 3/13
     ("XEC", "2014-06-23"),   # Cimarex joined after the close of Fri 6/20 (S&P DJI 2014-06-12), i.e. before the 6/23 open; the upstream file has 6/20
