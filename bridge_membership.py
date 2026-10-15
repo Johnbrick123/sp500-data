@@ -124,6 +124,11 @@ KNOWN_RENAMES = {
 # its last price once it stops trading), so the name stays a member through
 # the day before that date. (label, effective removal date) - S&P DJI releases.
 HOLD_UNTIL = [
+    ("PVN-199706",   "1997-06-13"),   # Providian Corp. (AEGON closed 6/10/1997, its last trade) held until Providian Financial, spun off in the deal, first traded regular-way on 6/13 (CRSP permno 85073 starts that day) - the file switches the two on 6/11, when the new company had no price
+    ("BOAT-199701",  "1997-01-08"),   # HealthSouth replaced Boatmen's Bancshares on 1/8/1997 (EHC's index-trade volume 3.7M on 1/7 vs ~0.3M); NationsBank closed Boatmen's 1/7 - the file ended it on 1/7 (499 lines that day)
+    ("PAC-199703",   "1997-04-03"),   # Parametric Technology replaced Pacific Telesis on 4/3/1997 (PMTC's index-trade volume 15.9M on 4/2 vs ~3M); SBC closed PacTel 4/1 - the file ended it on 4/1 (499 lines on 4/1-4/2)
+    ("MD-199707",    "1997-08-04"),   # Owens-Illinois and Progressive joined on 8/4/1997 (index-trade volume 7.2M and 40.3M on 8/1) for McDonnell Douglas and U.S. Bancorp; Boeing closed McDonnell Douglas 8/1 - the file ended it on 8/1 (499 lines that day)
+    ("NYN-199708",   "1997-08-18"),   # State Street replaced NYNEX on 8/18/1997 (STT's index-trade volume 17.2M on 8/15 vs ~1M); Bell Atlantic closed NYNEX 8/14 - the file ended it on 8/15 (499 lines that day)
     ("CFL-199804",   "1998-04-29"),   # Franklin Resources replaced CoreStates after the close of 4/28/1998 (BEN's index-trade volume 46.7M on 4/28 vs ~1.5M); First Union closed CoreStates 4/28, its last trade 4/27 - the file ended it on 4/28 (498 lines that day)
     ("MCIC-199809",  "1998-09-16"),   # RJR Nabisco Holdings replaced MCI on 9/16/1998; WorldCom closed MCI 9/15, its last trade 9/14 - the file ended it on 9/15 (499 lines that day)
     ("DI-199809",    "1998-10-01"),   # Paychex, BMC and Union Pacific Resources joined on 10/1/1998 (PAYX's index-trade volume 48M on 9/30 vs ~3M) for Dresser, BankAmerica and Ahmanson; Halliburton closed Dresser 9/29 - the file ended it on 9/30 (499 lines that day)
@@ -206,6 +211,7 @@ END_EARLY = [
 # dropped from snapshot dates before its real first member day, so its interval
 # starts exactly there. (label, first member date) - S&P DJI releases.
 START_LATE = [
+    ("PVN-200509",   "1997-06-13"),   # Providian Financial (the credit-card business AEGON did not buy) first traded regular-way on 6/13/1997, CRSP's first day for it; the upstream file adds it 6/11 (see PVN-199706 in HOLD_UNTIL)
     ("GRA",          "1998-04-01"),   # the new W.R. Grace first traded regular-way on 4/1/1998, when the old Grace became Sealed Air; the upstream file adds GRA on 3/24 while the old Grace (GRA-199803) is still listed, and the GRA file's rows before 4/1 are the old company's ($84 vs $20) - two lines for one company 3/24-3/31
     ("COC-B-200208", "1999-08-16"),   # Conoco Class B (the shares DuPont split off) first traded regular-way on 8/16/1999 (CRSP permno 87029 starts that day); the upstream file adds it 8/9, when it replaced Battle Mountain Gold - no price exists for 8/9-8/13, so the swap is dated 8/16 (S&P's 1999 release is not online)
     ("CCI", "2012-03-14"),   # Crown Castle joined after the close of Tue 3/13 (see CEG-201203 above); the upstream file has 3/13
@@ -216,6 +222,7 @@ START_LATE = [
 # Additions the upstream snapshot file dates a trading day LATE: the label is added to
 # the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
 START_EARLY = [
+    ("SNV", "1997-11-28"),   # Synovus replaced Salomon on 11/28/1997, the day Travelers closed the merger (SNV's index-trade volume 19.1M on Wed 11/26 vs ~0.7M, before the Thanksgiving holiday); the upstream file has 12/1 (499 lines on 11/28)
     ("MAR", "1996-01-02"),   # Marriott International was a member all along: the upstream file never lists the old Marriott International (CRSP permno 79764) and adds MAR only on 5/21/1998, when the new Marriott common converted into Class A - one line short every day until then. Its history before 5/21/1998 is CRSP's (series_splices.csv)
     ("CMCSA", "2002-11-19"),   # the new Comcast Class A from the AT&T Broadband merger's first day (see RELABEL and END_EARLY)
     ("S-202004", "1996-01-02"),   # Sprint (FON, renamed Sprint Nextel 'S' in Aug 2005) was a member all along; the upstream file's single 'S' token stood for Sears AND Sprint before 2005, so Sprint's line was missing (499 lines in early 2005) until the bridge's 8/10/2005 cut
