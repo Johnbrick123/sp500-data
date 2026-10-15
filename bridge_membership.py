@@ -241,9 +241,10 @@ DROP_LABELS = [   # labels the upstream file carries as a second, duplicate toke
 ]
 
 ADD_SPANS = [
-    ("ALS-199608", "1996-01-02", "1996-08-16"),   # Allegheny Ludlum (CRSP permno 75002), a member until its merger with Teledyne closed on 8/15/1996 (its last trade);
-                                                   #   the combined Allegheny Teledyne carried on Teledyne's line (ATI). The upstream file never lists it
-                                                   #   and fills the slot on 8/16 with a second add (HFS and Seagate for Allegheny Ludlum and COV) - 499 lines a day before.
+    ("DL-199608", "1996-01-02", "1996-08-16"),    # Dial Corp (CRSP permno 19721; Greyhound Dial until 1991, renamed Viad when it spun off the new Dial on 8/15/1996),
+                                                   #   a member until 8/15/1996 per CRSP's S&P 500 list (WRDS). The upstream file never lists it and fills the slot
+                                                   #   on 8/16 with a second add (HFS and Seagate for Dial and COV) - 499 lines a day before. Until 2026-10-15 this
+                                                   #   slot was filled with Allegheny Ludlum (permno 75002), which CRSP's list shows was never a member.
     ("TAP-200404", "2002-08-21", "2004-04-02"),   # Travelers Property Casualty (Class B): Citigroup distributed it on 8/20/2002 and S&P added it
                                                    #   the next day in Vitesse's place; St. Paul's merger closed 4/1/2004 and ACS took the slot on 4/2.
                                                    #   The upstream file never lists it (it counts XL twice instead), leaving 499 lines a day for 19 months.
