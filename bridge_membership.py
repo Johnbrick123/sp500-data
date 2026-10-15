@@ -204,7 +204,8 @@ HOLD_UNTIL = [
 END_EARLY = [
     ("S-200503", "2005-03-28"),   # Sears, Roebuck's last trade was 3/24/2005 (the Kmart merger closed that day; 3/25 was Good Friday) and Sears Holdings took its place on 3/28 (SHLD's index-trade volume 10x on 3/24). The upstream file keys Sears and Sprint by the same 'S' token, so the bridge had run Sears on to 8/10.
     ("CMCSK-201512", "2002-11-19", "2015-01-01"),   # Comcast's Class A Special was the index line until the AT&T Broadband merger closed 11/18/2002; the new Class A (CMCSA) from 11/19 (see RELABEL) - the file's snapshot falls on 11/22. The 2015 dual-class membership is separate.
-    ("FCPT", "2015-11-11"),   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
+    ("FCPT", "2015-11-11"),
+    ("TEN-199612", "1996-12-12"),   # the old Tenneco's last trade was 12/11/1996 (merged into El Paso); the new Tenneco (TEN-202211, its spin-off) first traded regular-way 12/12 (CRSP permno 84375) and took its place - the file's snapshot falls on 12/19 (see RELABEL)   # Four Corners (Darden's spin) joined the S&P 500 after the 11/9 close and moved to the SmallCap 600 after the close of Tue 11/10 - one member day (S&P DJI 2015-11-02). The upstream file carries it through 11/16.
 ]
 
 
@@ -224,6 +225,7 @@ START_LATE = [
 # Additions the upstream snapshot file dates a trading day LATE: the label is added to
 # the snapshot dates from its real first member day. (label, first member date) - S&P DJI releases.
 START_EARLY = [
+    ("TEN-202211", "1996-12-12"),   # the new Tenneco from its first regular-way day (see END_EARLY and RELABEL)
     ("SNV", "1997-11-28"),   # Synovus replaced Salomon on 11/28/1997, the day Travelers closed the merger (SNV's index-trade volume 19.1M on Wed 11/26 vs ~0.7M, before the Thanksgiving holiday); the upstream file has 12/1 (499 lines on 11/28)
     ("MAR", "1996-01-02"),   # Marriott International was a member all along: the upstream file never lists the old Marriott International (CRSP permno 79764) and adds MAR only on 5/21/1998, when the new Marriott common converted into Class A - one line short every day until then. Its history before 5/21/1998 is CRSP's (series_splices.csv)
     ("CMCSA", "2002-11-19"),   # the new Comcast Class A from the AT&T Broadband merger's first day (see RELABEL and END_EARLY)
@@ -360,7 +362,9 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
                                                             #   and index funds held Comcast "A" by 12/31/2002 - the file lists CMCSA throughout
     "ABX":  [("ABX-201812", "1900-01-01", "2019-01-02")],   # Barrick Gold (S&P 500 to 2002-07-19, one of the seven non-US names removed then); Barrick
                                                             #   moved to GOLD on 2019-01-02 - Yahoo's ABX file is a later company, never a member
-    "TEN":  [("TEN-202211", "1900-01-01", "2030-12-31")],   # Tenneco (S&P 500 1996-1999; CRSP permno 84375 to the 2022-11 Apollo buyout). The bare TEN symbol now belongs to Tsakos Energy Navigation, whose history Yahoo serves (and the nightly fetch restores) under TEN
+    "TEN":  [("TEN-199612", "1900-01-01", "1996-12-12"),    # the OLD Tenneco (CRSP permno 26542), a member until its 12/11/1996 merger into El Paso,
+                                                            #   which first spun off Newport News Shipbuilding and the new Tenneco (added 2026-10-15, the 1996 pass)
+             ("TEN-202211", "1996-12-12", "2030-12-31")],   # Tenneco (S&P 500 1996-1999; CRSP permno 84375 to the 2022-11 Apollo buyout). The bare TEN symbol now belongs to Tsakos Energy Navigation, whose history Yahoo serves (and the nightly fetch restores) under TEN
     "UN":   [("UN-202011",  "1900-01-01", "2020-12-01")],   # Unilever N.V. NY shares (S&P 500 to 2002-07-19); the line ended at the 2020-11-30
                                                             #   unification - Yahoo's UN file is not N.V.'s history
     "NFX":  [("NFX-201902", "1900-01-01", "2019-03-01")],   # Newfield Exploration -> now an ETF

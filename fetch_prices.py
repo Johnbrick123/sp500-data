@@ -123,12 +123,16 @@ def main():
     if DROP_F.exists():
         for line in DROP_F.read_text().splitlines():
             parts = line.split("#")[0].split()
-            if len(parts) != 2:
+            if len(parts) not in (2, 3):
                 continue
-            lab, src = parts
+            lab, src = parts[:2]
             f = RAW / f"{lab}.parquet"
             if f.exists():
                 cur = pd.read_parquet(f, columns=["source"])["source"].iloc[0] if "source" in pd.read_parquet(f).columns else "yahoo"
+                if len(parts) == 3:          # optional first=CLOSE: only the file whose earliest close is that value
+                    fc = pd.read_parquet(f, columns=["date", "close"]).sort_values("date")["close"].iloc[0]
+                    if abs(float(fc) - float(parts[2].split("=", 1)[1])) >= 1e-6:
+                        continue
                 if str(cur) == src:          # only the offending file, so a later correct recovery survives
                     f.unlink(); print(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt", flush=True)
     open_members = {t for t, (a, b) in membership_spans().items() if pd.isna(b)}

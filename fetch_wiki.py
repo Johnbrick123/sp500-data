@@ -93,11 +93,13 @@ def main():
     if drop_f.exists():
         for line in drop_f.read_text().splitlines():
             parts = line.split("#")[0].split()
-            if len(parts) != 2:
+            if len(parts) not in (2, 3):
                 continue
-            lab, src = parts
+            lab, src = parts[:2]
             f = RAW / f"{lab}.parquet"
-            if f.exists() and str(pd.read_parquet(f, columns=["source"])["source"].iloc[0]) == src:
+            if f.exists() and str(pd.read_parquet(f, columns=["source"])["source"].iloc[0]) == src and (
+                    len(parts) == 2 or abs(float(pd.read_parquet(f, columns=["date", "close"]).sort_values("date")["close"].iloc[0])
+                                           - float(parts[2].split("=", 1)[1])) < 1e-6):   # optional first=CLOSE fingerprint
                 f.unlink(); say(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt")
     have = {p.stem for p in RAW.glob("*.parquet")}
 

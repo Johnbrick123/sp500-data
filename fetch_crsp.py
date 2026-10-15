@@ -47,6 +47,18 @@ def say(s=""): print(s, flush=True); out.append(str(s))
 def done(code=0):
     os.makedirs("data", exist_ok=True); open("data/crsp_fetch_report.txt", "w").write("\n".join(out)); sys.exit(code)
 
+def first_close_is(fp, extra):
+    """drop_raw_files.txt's optional third token, first=CLOSE: drop the file only when its
+    earliest close is that value - so a correct file recovered later under the same label
+    and source survives (NLC-199912: the 1999 pass recovered Premark's CRSP line, permno
+    71001, as Nalco's; added 2026-10-15, the 1996 pass)."""
+    if not extra:
+        return True
+    want = float(extra[0].split("=", 1)[1])
+    d = pd.read_parquet(fp, columns=["date", "close"]).sort_values("date")
+    return len(d) > 0 and abs(float(d["close"].iloc[0]) - want) < 1e-6
+
+
 # Honor drop_raw_files.txt (as fetch_prices.py and fetch_wiki.py do): a condemned file - the wrong
 # company under the label (old Allergan's and LSI Corp's Tiingo files were Actavis and Life Storage) -
 # would otherwise make this recovery refuse the label.
@@ -54,11 +66,11 @@ drop_f = ROOT / "drop_raw_files.txt"
 if drop_f.exists():
     for line in drop_f.read_text().splitlines():
         parts = line.split("#")[0].split()
-        if len(parts) != 2:
+        if len(parts) not in (2, 3):
             continue
-        lab, src = parts
+        lab, src = parts[:2]
         fp = RAW / f"{lab}.parquet"
-        if fp.exists() and str(pd.read_parquet(fp, columns=["source"])["source"].iloc[0]) == src:
+        if fp.exists() and str(pd.read_parquet(fp, columns=["source"])["source"].iloc[0]) == src and first_close_is(fp, parts[2:]):
             fp.unlink(); say(f"dropped raw file {lab} ({src}) per drop_raw_files.txt")
 
 # ---- the check labels' own series (ours) -> their last day / last close

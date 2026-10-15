@@ -1,5 +1,6 @@
 # Raw files deleted at the start of every nightly fetch when their SOURCE matches.
-# Format: LABEL SOURCE  # note.  Use for a file that holds the WRONG company; the
+# Format: LABEL SOURCE [first=CLOSE]  # note. With first=CLOSE only the file whose earliest close is CLOSE is
+# deleted, so a correct file recovered later under the same label and source survives.  Use for a file that holds the WRONG company; the
 # recovery passes will not recreate it because their identity checks now cover the case.
 ARNC tiingo   # 2026-10-08: Tiingo's ARNC is Arconic Corp (2020-23), not the index member Arconic Inc; the Kaggle copy is right
 CA tiingo     # 2026-10-08: Tiingo's CA (2023-) is a new owner of the symbol, not CA Inc (acquired 2018)
@@ -40,3 +41,4 @@ FCN-199810 tiingo   # 2026-10-15: Tiingo's FCN-199810 file is a ~$11 stock with 
 MAR_crsp crsp   # 2026-10-15: a first cut of old Marriott International's prefix (CRSP permno 79764 to 1998-03-27); superseded by MAR_crsp98 (the same permno to 1998-05-20, when the new Marriott common it became converted into Class A)
 MD-199707 tiingo   # 2026-10-15: Tiingo's MD-199707 file is a ~$37 stock trading ~50,000 shares a day, not McDonnell Douglas (~$65, 200M shares); McDonnell Douglas recovered from CRSP (permno 26729: last trade 1997-07-31 at $76.69, into Boeing)
 CRR-199706 tiingo   # 2026-10-15: Tiingo's CRR-199706 file is a ~$21 stock trading a few thousand shares a day (from 1996-04-23), not Conrail (~$100); Conrail recovered from CRSP (permno 71765: last trade 1997-06-02 at $115.00, CSX and Norfolk Southern's cash)
+NLC-199912 crsp first=44.125  # 2026-10-15 (the 1996 pass): the 1999 pass recovered CRSP permno 71001 as Nalco - it is Premark International (first trade 1986-11-24 at its spin-off from Dart & Kraft; the Tupperware spin-off on 5/31/1996 is on it; ITW deal 11/1999). Nalco Chemical is permno 41179 (NYSE since before 1968, last trade 1999-12-21, $52.81 on 11/1/1999 against Suez's $53 tender); recovered under the same label
