@@ -296,7 +296,13 @@ def apply_splice(df, stem):
     own = df[df.date >= r.before] if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true") else df
     j = own[["date", "close"]].merge(pre[["date", "close"]], on="date", suffixes=("", "_p")).dropna()
     ratio = (j.close / j.close_p)
-    if len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > 0.005:
+    fixed = pd.to_numeric(r.get("ratio", np.nan), errors="coerce")
+    if pd.notna(fixed) and len(j) == 0:
+        # no overlap to measure: a share-for-share conversion between two CRSP permnos (U S WEST
+        # Media Group's tracking stock -> MediaOne Group, 1998-06-12), both raw closes - the ratio
+        # is declared in the file (added 2026-10-15, the 1998 pass)
+        ratio = pd.Series([float(fixed)] * 60)
+    elif len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > 0.005:
         print(f"  splice {stem} <- {r.prefix}: REFUSED ({len(j)} overlapping days, ratio spread {(ratio.quantile(0.95)-ratio.quantile(0.05))/ratio.median():.4f})")
         return df
     k = float(ratio.median())
