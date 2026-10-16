@@ -50,6 +50,11 @@ def apply_overrides(df):
                 d = d.dt.tz_localize(None)
             for _, r in rs.iterrows():
                 m = (d < r["before"]) & (df["dividends"].fillna(0) != 0)
+                # only the vendor's own rows: a spliced prefix (T's CRSP history before 1995) is already
+                # on the closes' basis - rescaling it cut AT&T/SBC's 1984-1994 dividends by 24.5%
+                # (found 2026-10-16 by the full CRSP check's drift report: -0.9 to -1.9pp a year)
+                if "source" in df.columns:
+                    m &= ~df["source"].astype(str).str.endswith("-splice")
                 df.loc[m, "dividends"] = df.loc[m, "dividends"] / float(r["divide_by"])
                 RESCALED.append((df.ticker.iloc[0], str(r["before"].date()), float(r["divide_by"]), int(m.sum())))
     if not OVERRIDES.exists():
@@ -96,14 +101,14 @@ def adjust_one(df):
     # A dividend is paid per share ON the ex-date, i.e. on the post-split basis
     # when a split lands the same day, while prev_close is pre-split. Put both
     # on the same basis: prev_close_new = prev_close / split.
-    # Two conventions, used where each is right:
-    #   ordinary dividends -> f = 1 - D/P_prev, the same formula Yahoo uses, so
-    #     our series stays exactly reconcilable with an independent copy.
-    #   large distributions (>5% of the prior close: spin-offs, special
-    #     dividends) -> f = P_t/(P_t + D), the total-return convention. The
-    #     Yahoo formula divides by (P_prev - D) and overstates the event-day
-    #     return as D approaches P_prev: measured at up to 15.7pp (Danaher /
-    #     Fortive 2016), and it is what made KSU's factor go negative.
+    # Every distribution uses the total-return convention, f = P_t/(P_t + D): the
+    # ex-date return is then (P_t + D)/P_prev - 1, what a holder actually had (the
+    # shares plus the dividend receivable) and what CRSP's RET and S&P's total-return
+    # indices compute. Until 2026-10-16 ordinary dividends used Yahoo's formula,
+    # f = 1 - D/P_prev, which gives P_t/(P_prev - D) - 1: off by about the yield times
+    # the day's move (Occidental 2020-03-09, ex-dividend on a -54% day: 1.53pp; 3.4% of
+    # cumulative wealth since 2005), and for large distributions up to 15.7pp
+    # (Danaher / Fortive 2016) - it is what made KSU's factor go negative.
     d_eff = div * eff_split
     # NOTE: div is per POST-split share, as is close, so the large-distribution
     # factor uses div (not d_eff); the split is applied once, below.
@@ -128,7 +133,7 @@ def adjust_one(df):
     small = 1.0 - np.divide(d_eff, prev_close, out=np.zeros(len(df)), where=prev_close > 0)
     denom = close + div
     large = np.divide(close, denom, out=np.ones(len(df)), where=denom > 0)
-    use_large = is_large & ~inconsistent
+    use_large = (div > 0) & ~inconsistent      # every distribution (see above); is_large still feeds the checks
     div_factor = np.where(use_large, large, np.where(prev_close > 0, small, 1.0))
     factor = pd.Series(div_factor, index=df.index) / eff_split
 
