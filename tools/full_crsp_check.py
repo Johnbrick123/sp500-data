@@ -3,7 +3,7 @@
 1. Each label's CRSP permno, month by month (a year's best match, overridden for a month whose own
    best match is clearly better): the 1970-1995 spells carry theirs (pre1996/membership.csv);
    for 1996 on, the permno whose daily RET correlates best with the label's own daily returns that year
-   among the 1,500 largest CRSP permnos at the start of the year (plus every permno we already use).
+   among the 3,000 largest CRSP permnos at the start of the year (plus every permno we already use).
    A label-year whose best correlation is under 0.9 is reported as unmapped.
 2. For every member-day (published membership) the label's total return (adj_close[t]/adj_close[t-1]-1)
    against the mapped permno's RET. Days over TOL percentage points apart are listed.
@@ -23,8 +23,8 @@ f = glob.glob("kag/**/*.csv", recursive=True)[0]
 COLS = {"permno", "date", "prc", "ret", "shrout"}
 
 # pass 1: each permno's market cap on its first day of each year (the year's first trading day, or
-# its listing day) -> the year's candidates: the 1,500 largest at the start of the year, plus any
-# permno listing during the year at least as large as the 1,500th (spin-offs, IPOs)
+# its listing day) -> the year's candidates: the 3,000 largest at the start of the year, plus any
+# permno listing during the year at least as large as the 3,000th (spin-offs, IPOs)
 fy = []
 for ch in pd.read_csv(f, chunksize=5_000_000, usecols=lambda c: c.lower() in COLS, low_memory=False):
     ch.columns = [c.lower() for c in ch.columns]
@@ -38,7 +38,7 @@ cand = {}
 for y, g in fy.groupby("y"):
     d0 = g.d.min()
     start = g[g.d == d0].sort_values("cap", ascending=False)
-    top = start.head(1500)
+    top = start.head(3000)
     thr = top.cap.min() if len(top) else 0
     late = g[(g.d > d0) & (g.cap >= thr)]
     cand[y] = set(top.permno) | set(late.permno) | known
@@ -104,7 +104,12 @@ for y in range(1970, LAST + 1):
     Bv = Ry.values
     mon = dd.month.values
 
-    def best(vals, msk):
+    cols = {q: j for j, q in enumerate(Ry.columns)}
+
+    def best(vals, msk, k=8):
+        """The permno that fits the label's returns on these days: among the k best by correlation,
+        the one with the largest share of days within 0.5pp (correlation alone cannot tell two share
+        classes apart - UAA/UA, NWS/NWSA - nor, in a market-wide selloff, two similar stocks)."""
         a = vals[msk]; b = Bv[msk]
         ok = ~np.isnan(b)
         am = a - a.mean()
@@ -117,38 +122,38 @@ for y in range(1970, LAST + 1):
             cc = num / np.where(den == 0, np.nan, den)
         cc = np.where(ok.sum(0) >= max(5, int(0.8 * msk.sum())), cc, np.nan)
         if np.all(np.isnan(cc)):
-            return None, np.nan
-        j = int(np.nanargmax(cc))
-        return int(Ry.columns[j]), float(cc[j])
-
-    cols = {q: j for j, q in enumerate(Ry.columns)}
+            return None, np.nan, np.nan
+        top = [j for j in np.argsort(-np.nan_to_num(cc, nan=-9))[:k] if not np.isnan(cc[j])]
+        hit = [float(np.nanmean(np.where(ok[:, j], np.abs(a - np.where(ok[:, j], b[:, j], 0)) < 0.005, np.nan))) for j in top]
+        j = top[int(np.argmax([h + 1e-6 * c for h, c in zip(hit, cc[top])]))]
+        return int(Ry.columns[j]), float(cc[j]), float(hit[top.index(j)])
 
     def fit(vals, msk, q):
         b = Bv[msk, cols[q]]; a = vals[msk]; ok = ~np.isnan(b)
-        return float(np.corrcoef(a[ok], b[ok])[0, 1]) if ok.sum() >= max(5, int(0.8 * msk.sum())) else np.nan
+        if ok.sum() < max(5, int(0.8 * msk.sum())):
+            return np.nan, np.nan
+        return float(np.corrcoef(a[ok], b[ok])[0, 1]), float(np.mean(np.abs(a[ok] - b[ok]) < 0.005))
 
     for l in Oy.columns:
         vals = Oy[l].values
         msk = ~np.isnan(vals)
-        qy, cy = best(vals, msk)   # None when no single permno covers 80% of the year (a mid-year switch)
+        qy, cy, hy = best(vals, msk)   # None when no single permno covers 80% of the year (a mid-year switch)
         # month by month: a permno can change inside a year (a merger that keeps the symbol, a
-        # spin-off's when-issued days). A month keeps the year's permno unless the month's own best
-        # match fits clearly better; the correlation reported is the month's own for the permno chosen
+        # spin-off's when-issued days). A month keeps the year's permno unless that permno has no
+        # prices that month or matches under half its days while the month's own best matches 80%
         for mo in sorted(set(mon[msk])):
             mm = msk & (mon == mo)
-            cq = fit(vals, mm, qy) if qy is not None else np.nan
-            q, cm = qy, cq
-            if mm.sum() >= 8 or qy is None:
-                q2, c2 = best(vals, mm)
-                if q2 is not None and q2 != qy and c2 >= 0.9 and not (cq >= c2 - 0.02):
-                    q, cm = q2, c2
+            cq, hq = fit(vals, mm, qy) if qy is not None else (np.nan, np.nan)
+            q, cm, hm = qy, cq, hq
+            if qy is None or np.isnan(cq) or (hq < 0.5 and mm.sum() >= 8):
+                q2, c2, h2 = best(vals, mm)
+                if q2 is not None and q2 != qy and c2 >= 0.9 and h2 >= 0.8:
+                    q, cm, hm = q2, c2, h2
             if q is None:
                 continue
             if mm.sum() < 8 and q == qy:
                 cm = cy   # too few days to judge the month alone: the year's fit stands
-            bq = Bv[mm, cols[q]]
-            match = float(np.mean(np.abs(vals[mm] - bq) < 0.005)) if len(bq) else np.nan
-            rows.append((l, y, int(mo), q, cm, int(mm.sum()), match))
+            rows.append((l, y, int(mo), q, cm, int(mm.sum()), hm))
     print(y, len(Oy.columns), "labels mapped", flush=True)
 mp = pd.DataFrame(rows, columns=["label", "year", "month", "permno", "corr", "n", "match"])
 mp.to_csv(f"{out}/permno_map.csv", index=False)
