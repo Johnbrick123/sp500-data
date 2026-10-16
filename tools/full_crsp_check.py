@@ -140,14 +140,18 @@ for y in range(1970, LAST + 1):
         qy, cy, hy = best(vals, msk)   # None when no single permno covers 80% of the year (a mid-year switch)
         # month by month: a permno can change inside a year (a merger that keeps the symbol, a
         # spin-off's when-issued days). A month keeps the year's permno unless that permno has no
-        # prices that month or matches under half its days while the month's own best matches 80%
+        # prices that month, or the month's own best matches 80% of its days and 20 points more
         for mo in sorted(set(mon[msk])):
             mm = msk & (mon == mo)
             cq, hq = fit(vals, mm, qy) if qy is not None else (np.nan, np.nan)
             q, cm, hm = qy, cq, hq
-            if qy is None or np.isnan(cq) or (hq < 0.5 and mm.sum() >= 8):
+            if qy is None or np.isnan(cq) or (hq < 0.95 and mm.sum() >= 8):
+                # the month's own best takes over when it matches 80% of the month's days and clearly
+                # better than the year's choice - which can itself be wrong when no permno covers 80% of
+                # the year (Starwood 2006: the paired-share line to April, the new one after; the year's
+                # best was another hotel stock matching about half the days)
                 q2, c2, h2 = best(vals, mm)
-                if q2 is not None and q2 != qy and c2 >= 0.9 and h2 >= 0.8:
+                if q2 is not None and q2 != qy and c2 >= 0.9 and h2 >= 0.8 and not (hq >= h2 - 0.2):
                     q, cm, hm = q2, c2, h2
             if q is None:
                 continue
