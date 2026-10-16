@@ -1,0 +1,39 @@
+name: Nightly guard on the published data (read-only test)
+
+# Runs tools/nightly_guard.py against the published dataset (as "tonight") and a chosen release as
+# "last night", without building or publishing anything. Added 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      prev: { description: "Release tag to use as last night's data (data, snapshot-YYYY-MM) or 'none'", required: false, default: "data" }
+      asof: { description: "As-of date (blank = latest)", required: false, default: "" }
+      ignore_events: { description: "LABEL:YYYY-MM-DD,... treated as unbooked (to test detection)", required: false, default: "" }
+      strict: { description: "1 = scheduled-run rules", required: false, default: "1" }
+permissions:
+  contents: write
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: |
+          mkdir -p data/universe data/prev
+          gh release download data --pattern prices.parquet --dir data --clobber
+          gh release download data --pattern membership_intervals.parquet --dir data/universe --clobber
+          [ "${{ github.event.inputs.prev }}" = "none" ] || gh release download "${{ github.event.inputs.prev }}" --pattern prices.parquet --dir data/prev --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: time python tools/nightly_guard.py
+        env:
+          GUARD_ASOF: "${{ github.event.inputs.asof }}"
+          GUARD_IGNORE_EVENTS: "${{ github.event.inputs.ignore_events }}"
+          GUARD_STRICT: "${{ github.event.inputs.strict }}"
+      - name: Publish the test reports
+        if: always()
+        run: |
+          cp data/nightly_guard.txt nightly_guard_test.txt; cp data/nightly_alert.txt nightly_alert_test.txt
+          gh release upload data nightly_guard_test.txt nightly_alert_test.txt --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
