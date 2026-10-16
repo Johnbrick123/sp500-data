@@ -238,7 +238,8 @@ for lab, p, lo, hi in specs:
     ret = pd.to_numeric(g.ret, errors="coerce")
     x = close.shift() * (1 + ret)                      # what yesterday's share was worth today, incl. distributions
     k = x / close
-    NICE = np.array([2, 3, 4, 5, 1.5, 1.25, 4 / 3, 10, 0.5, 1 / 3, 0.25, 0.2, 0.1, 2 / 3, 0.8])
+    # 5-for-2, 6-for-5 and 5-for-3 added 2026-10-15 (pre-1996 extension: Micron, Hasbro, Trane ...)
+    NICE = np.array([2, 3, 4, 5, 1.5, 1.25, 4 / 3, 10, 0.5, 1 / 3, 0.25, 0.2, 0.1, 2 / 3, 0.8, 2.5, 1.2, 5 / 3])
     split = pd.Series(1.0, index=g.index)
     div = pd.Series(0.0, index=g.index)
     odd = []
@@ -247,10 +248,13 @@ for lab, p, lo, hi in specs:
             continue
         if k[i] >= 1.2 or k[i] <= 0.85:
             j = np.argmin(np.abs(NICE / k[i] - 1))
-            if abs(NICE[j] / k[i] - 1) < 0.03:
+            # within 0.5%: a true split matches its ratio to a few hundredths of a percent; a spin-off
+            # can fall within 3% of a round ratio (General Mills/Darden 1995-05-30, k = 1.21 was booked
+            # 1.25 under the old 3% rule) - tightened 2026-10-15; anything else is reported with its exact k
+            if abs(NICE[j] / k[i] - 1) < 0.005:
                 split[i] = NICE[j]
             else:
-                odd.append((str(g.date[i].date()), round(float(k[i]), 4)))     # a big distribution or a data break: reported, not guessed
+                odd.append((str(g.date[i].date()), round(float(k[i]), 6)))     # a big distribution or a data break: reported, not guessed
                 continue
         d = x[i] - close[i] * split[i]
         if d > 0.001:

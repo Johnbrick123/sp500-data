@@ -27,9 +27,12 @@ jobs:
           curl -sSL -o spx.rda https://raw.githubusercontent.com/loelschlaeger/fHMM/master/data/spx.rda
           python -c "import rdata, pandas as pd; d=rdata.read_rda('spx.rda'); s=pd.DataFrame(list(d.values())[0]); s[['Date','Close']].to_csv('spx.csv', index=False)"
       - run: mkdir -p data/pre1996_check && python tools/pre1996_index_check.py "${{ github.event.inputs.membership }}" spx.csv "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" data/pre1996_check | tee data/pre1996_check/report.txt
+      - name: Split audit of the CRSP lines (every split-like day, CRSP's exact factor)
+        if: always()
+        run: python tools/crsp_split_audit.py data/crsp_split_audit.csv crsp_permnos.csv pre1996_permnos.csv | tee data/crsp_split_audit.txt
       - name: Publish
         if: always()
         run: |
           cp data/pre1996_check/index_daily.csv data/pre1996_index_daily.csv && cp data/pre1996_check/report.txt data/pre1996_check_report.txt
-          gh release upload data data/pre1996_index_daily.csv data/pre1996_check_report.txt --clobber
+          gh release upload data data/pre1996_index_daily.csv data/pre1996_check_report.txt data/crsp_split_audit.csv data/crsp_split_audit.txt --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
