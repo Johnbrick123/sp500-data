@@ -1276,3 +1276,4 @@ ATI_crsp,1990-04-23,2.020081,,A distribution or reorganization CRSP's RET values
 ATI_crsp,1999-11-30,0.564623,,A distribution or reorganization CRSP's RET values at 0.564623 (permno 43123): booked as that factor so the adjusted series keeps CRSP's total return (pre-1996 extension 2026-10-16; not itemized)
 HW-197508,1970-05-28,1.248588,,CRSP's RET values the day at 1.248588 (permno 12343) - booked as a round 1.25 split - above CRSP's factor; the exact factor keeps CRSP's total return (split audit 2026-10-16)
 
+OLN-197502,1974-06-03,0.909524,,"Olin (permno 13610): CRSP's close rises 12.0% (15.625 to 17.50) while its RET is +1.87%; the closes before and after agree with RET. The published S&P 500 sides with RET (rebuild residual -3.8 bp with it against about -12 bp with the price move at Olin's ~0.08% weight). Booked as a factor so the adjusted series follows RET; what changed the share basis is not known (accuracy pass 2026-10-16)."
