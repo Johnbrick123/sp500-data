@@ -30,6 +30,8 @@ jobs:
           gh release download data --pattern 'tiingo_progress.json' --dir data || true
           gh release download data --pattern 'relabels.csv' --dir data || true
           gh release download data --pattern 'cross_source_ledger.csv' --dir data || true
+          # last night's published prices, for the nightly guard's history comparison
+          mkdir -p data/prev && gh release download data --pattern 'prices.parquet' --dir data/prev || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
       - run: python build_universe.py
@@ -43,6 +45,12 @@ jobs:
       - run: python compute_adjusted.py
       - run: python verify.py
         env: { TIINGO_API_KEY: "${{ secrets.TIINGO_API_KEY }}" }
+      # The nightly guard (2026-10-16): the last 5 days of every member against Nasdaq, unexplained
+      # big moves, history and dividends against last night's published data, index changes. A FAIL
+      # stops the publish; warnings go to nightly_alert.txt, which the evening caretaker reads.
+      - name: Nightly guard
+        run: python tools/nightly_guard.py
+        env: { GUARD_STRICT: "${{ github.event_name == 'schedule' && '1' || '' }}" }
 
       # If verification refuses to publish, still publish the REASON, so it can
       # be read without a GitHub login: releases/download/data/verification_report_FAILED.txt
@@ -52,6 +60,7 @@ jobs:
           [ -f data/verification_report.txt ] || exit 0
           cp data/verification_report.txt data/verification_report_FAILED.txt
           gh release upload data data/verification_report_FAILED.txt --clobber || true
+          [ -f data/nightly_alert.txt ] && gh release upload data data/nightly_alert.txt data/nightly_guard.txt --clobber || true
           [ -f data/cross_source_ledger.csv ] && gh release upload data data/cross_source_ledger.csv --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
@@ -76,6 +85,7 @@ jobs:
           [ -f data/dropped_placeholders.csv ] && gh release upload data data/dropped_placeholders.csv --clobber || true
           [ -f data/no_trade_days.csv ] && gh release upload data data/no_trade_days.csv --clobber || true
           [ -f data/exit_gaps.csv ] && gh release upload data data/exit_gaps.csv --clobber || true
+          [ -f data/nightly_alert.txt ] && gh release upload data data/nightly_alert.txt data/nightly_guard.txt --clobber || true
         env: { GH_TOKEN: "${{ github.token }}" }
 
       # Monthly immutable snapshot. The 'data' release is overwritten every
