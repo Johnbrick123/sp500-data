@@ -33,6 +33,6 @@ jobs:
       - name: Publish the reports
         if: always()
         run: |
-          cd fc && cp report.txt ../full_check_report.txt; cp flagged.csv ../full_check_flagged.csv; cp permno_map.csv ../full_check_permno_map.csv; cp by_year.csv ../full_check_by_year.csv; cp adjudicated.csv ../full_check_adjudicated.csv; cp adjudicate.txt ../full_check_adjudicate.txt; cd ..
-          gh release upload data full_check_report.txt full_check_flagged.csv full_check_permno_map.csv full_check_by_year.csv full_check_adjudicated.csv full_check_adjudicate.txt --clobber
+          cd fc && cp report.txt ../full_check_report.txt; cp flagged.csv ../full_check_flagged.csv; cp permno_map.csv ../full_check_permno_map.csv; cp by_year.csv ../full_check_by_year.csv; cp adjudicated.csv ../full_check_adjudicated.csv; cp adjudicate.txt ../full_check_adjudicate.txt; cp drift.csv ../full_check_drift.csv; cd ..
+          gh release upload data full_check_report.txt full_check_flagged.csv full_check_permno_map.csv full_check_by_year.csv full_check_adjudicated.csv full_check_adjudicate.txt full_check_drift.csv --clobber
         env: { GH_TOKEN: "${{ github.token }}" }

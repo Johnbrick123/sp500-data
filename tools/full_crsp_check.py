@@ -211,10 +211,20 @@ bad.to_csv(f"{out}/flagged.csv", index=False)
 both["y"] = both.date.dt.year
 summ = both.assign(bad=both.diff_pp.abs() > TOL, big=both.diff_pp.abs() > 2).groupby("y").agg(days=("bad", "size"), over_tol=("bad", "sum"), over_2pp=("big", "sum"))
 summ.to_csv(f"{out}/by_year.csv")
+# drift: each label-year's summed daily difference. A bad close shows as two offsetting days and
+# cancels; a missing, extra or wrong dividend (or distribution) does not - this is the test for the
+# ones under the daily tolerance (a 0.3% quarterly dividend). Listed over DRIFT pp (default 0.1).
+DRIFT = float(os.environ.get("DRIFT", "0.1"))
+dr = both.groupby(["label", "y"]).agg(days=("diff_pp", "size"), drift_pp=("diff_pp", "sum"),
+                                      worst_day=("diff_pp", lambda s: s.loc[s.abs().idxmax()]),
+                                      worst_date=("date", lambda s: s.loc[both.loc[s.index, "diff_pp"].abs().idxmax()].date()))
+dr = dr[dr.drift_pp.abs() > DRIFT].sort_values("drift_pp", key=abs, ascending=False).reset_index()
+dr.to_csv(f"{out}/drift.csv", index=False)
 pd.set_option("display.width", 220); pd.set_option("display.max_rows", 500)
 print(f"\n{len(both):,} member-days compared; within {TOL}pp: {100 * (1 - len(bad) / len(both)):.4f}%; over 2pp: {(both.diff_pp.abs() > 2).sum()}; "
       f"member-days with no CRSP return: {x.ret.isna().sum()}, with no return of ours: {x.ours.isna().sum()}")
 print(summ.to_string())
 print("\nby source of our row:\n" + bad.groupby(bad.source.astype(str)).size().to_string())
 print("\nlabels with most flagged days:\n" + bad.groupby("label").size().sort_values(ascending=False).head(60).to_string())
+print(f"\nlabel-years whose summed difference exceeds {DRIFT}pp (a dividend or distribution off): {len(dr)}\n" + dr.head(80).to_string())
 print("\nlargest:\n" + bad.reindex(bad.diff_pp.abs().sort_values(ascending=False).index).head(100).to_string())
