@@ -20,6 +20,7 @@ Outputs:
 """
 from pathlib import Path
 import pandas as pd
+import re
 import numpy as np
 
 ROOT = Path(__file__).parent
@@ -514,7 +515,11 @@ def main():
     qf = ROOT / "quarantine_tickers.txt"
     quarantined = {l.split("#")[0].strip() for l in qf.read_text().splitlines()} - {""} if qf.exists() else set()
     prefixes = set(SPLICES.prefix) if not SPLICES.empty else set()     # merged into their label, not published on their own
-    files = sorted(f for f in RAW.glob("*.parquet") if f.stem not in quarantined and f.stem not in prefixes)
+    # a CRSP prefix file (<label>_c85, _c68b ...) is never published on its own, listed in
+    # series_splices.csv yet or not (a fetch on a work branch adds them to the shared raw store
+    # before the merge - 2026-10-16)
+    files = sorted(f for f in RAW.glob("*.parquet") if f.stem not in quarantined and f.stem not in prefixes
+                   and not re.search(r"_c\d\db?$", f.stem))
     print(f"quarantined labels skipped: {len(quarantined)}")
     out = []
     for i, f in enumerate(files):
