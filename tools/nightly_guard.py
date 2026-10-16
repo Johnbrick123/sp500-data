@@ -124,9 +124,19 @@ def nasdaq(tk):
 
 NQ = {}
 if not os.environ.get("GUARD_SKIP_NASDAQ"):
-    with ThreadPoolExecutor(max_workers=4) as ex:
+    with ThreadPoolExecutor(max_workers=2) as ex:
         for tk, s in ex.map(nasdaq, current):
             NQ[tk] = s
+    # Nasdaq throttles bursts: names that did not come back get up to two slower passes
+    for pas in range(2):
+        retry = [t for t in current if NQ.get(t) is None]
+        if not retry:
+            break
+        time.sleep(20)
+        say(f"  retry pass {pas + 1}: {len(retry)} names")
+        for t in retry:
+            NQ[t] = nasdaq(t)[1]
+            time.sleep(1.0)
     unavailable = [t for t in current if NQ.get(t) is None]
     say(f"  Nasdaq served {len(current) - len(unavailable)} of {len(current)} current members"
         + (f"; not served: {', '.join(unavailable[:40])}{' ...' if len(unavailable) > 40 else ''}" if unavailable else ""))
