@@ -1,0 +1,27 @@
+name: Yahoo second source for chosen labels in recent years (read-only)
+
+# tools/yahoo_recent_check.py - prices and dividends of a few labels against Yahoo's raw record,
+# for members no other free source covers (2025-2026 acquisitions held from Tiingo). Added 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      labels: { description: "Comma list", required: true }
+      first_year: { description: "First year", required: true, default: "2025" }
+      last_year: { description: "Last year", required: true, default: "2026" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q yfinance pandas pyarrow
+      - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python tools/yahoo_recent_check.py rel/prices.parquet rel/membership_intervals.parquet "${{ github.event.inputs.labels }}" "${{ github.event.inputs.first_year }}" "${{ github.event.inputs.last_year }}" yahoo_recent_check.txt
+      - run: gh release upload data yahoo_recent_check.txt --clobber
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
