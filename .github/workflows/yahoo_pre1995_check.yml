@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tol: { description: "Tolerance in percentage points", required: false, default: "1.0" }
+      want: { description: "Optional label,date CSV in the repo: Yahoo's return on those days", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -19,10 +20,10 @@ jobs:
       - run: pip install -q yfinance pandas pyarrow
       - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
-      - run: mkdir -p yc && python tools/yahoo_pre1995_check.py rel/prices.parquet rel/membership_intervals.parquet yc "${{ github.event.inputs.tol }}" 2>&1 | tee yc/report.txt
+      - run: mkdir -p yc && WANT="${{ github.event.inputs.want }}" python tools/yahoo_pre1995_check.py rel/prices.parquet rel/membership_intervals.parquet yc "${{ github.event.inputs.tol }}" 2>&1 | tee yc/report.txt
       - name: Publish
         if: always()
         run: |
-          cp yc/report.txt yahoo_pre1995_report.txt; cp yc/flagged.csv yahoo_pre1995_flagged.csv; cp yc/summary.csv yahoo_pre1995_summary.csv
-          gh release upload data yahoo_pre1995_report.txt yahoo_pre1995_flagged.csv yahoo_pre1995_summary.csv --clobber
+          cp yc/report.txt yahoo_pre1995_report.txt; cp yc/flagged.csv yahoo_pre1995_flagged.csv; cp yc/summary.csv yahoo_pre1995_summary.csv; cp yc/wanted.csv yahoo_pre1995_wanted.csv
+          gh release upload data yahoo_pre1995_report.txt yahoo_pre1995_flagged.csv yahoo_pre1995_summary.csv yahoo_pre1995_wanted.csv --clobber
         env: { GH_TOKEN: "${{ github.token }}" }

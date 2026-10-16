@@ -23,6 +23,10 @@ print(len(labs), "bare labels with pre-1995 membership", flush=True)
 p = pd.read_parquet(pf, columns=["ticker", "date", "adj_close"])
 p = p[p.ticker.isin(labs) & (p.date < E)].copy(); p["date"] = pd.to_datetime(p.date)
 p = p.sort_values(["ticker", "date"]); p["ours"] = p.groupby("ticker").adj_close.pct_change()
+# WANT=file.csv (label,date): also write Yahoo's daily total return on those label-days (to fill a
+# day the CRSP file has no price for from a second source rather than carrying the close flat)
+WANT = pd.read_csv(os.environ["WANT"], parse_dates=["date"]) if os.environ.get("WANT") else pd.DataFrame(columns=["label", "date"])
+wanted = []
 rows, summ = [], []
 for i in range(0, len(labs), 25):
     batch = labs[i:i + 25]
@@ -41,6 +45,8 @@ for i in range(0, len(labs), 25):
             summ.append((t, 0, 0, np.nan, "no Yahoo data")); continue
         y.index = pd.to_datetime(y.index).tz_localize(None) if getattr(y.index, "tz", None) else pd.to_datetime(y.index)
         yr = y.pct_change()
+        for d in WANT[WANT.label == t].date:
+            wanted.append((t, d.date(), yr.get(d, np.nan), y.get(d, np.nan)))
         sp = pre[pre.ticker == t]
         o = p[p.ticker == t].set_index("date").ours
         mem = o.index[[bool(((sp.start <= d) & (sp.end > d)).any()) for d in o.index]]
@@ -53,6 +59,7 @@ for i in range(0, len(labs), 25):
         for d, r in bad.iterrows():
             rows.append((t, d.date(), r.ours, r.yahoo, r.diff_pp))
     time.sleep(1)
+pd.DataFrame(wanted, columns=["label", "date", "yahoo_ret", "yahoo_close"]).to_csv(f"{out}/wanted.csv", index=False)
 S = pd.DataFrame(summ, columns=["label", "days", "over_tol", "corr", "note"])
 F = pd.DataFrame(rows, columns=["label", "date", "ours", "yahoo", "diff_pp"])
 S.to_csv(f"{out}/summary.csv", index=False); F.to_csv(f"{out}/flagged.csv", index=False)
