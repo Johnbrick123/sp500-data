@@ -46,7 +46,10 @@ for i in range(0, len(labs), 25):
         y.index = pd.to_datetime(y.index).tz_localize(None) if getattr(y.index, "tz", None) else pd.to_datetime(y.index)
         yr = y.pct_change()
         for d in WANT[WANT.label == t].date:
-            wanted.append((t, d.date(), yr.get(d, np.nan), y.get(d, np.nan)))
+            nx = y.index[y.index > d]
+            n1 = nx[0] if len(nx) else None
+            wanted.append((t, d.date(), yr.get(d, np.nan), y.get(d, np.nan), y.get(y.index[y.index < d].max(), np.nan) if (y.index < d).any() else np.nan,
+                           n1.date() if n1 is not None else None, yr.get(n1, np.nan) if n1 is not None else np.nan))
         sp = pre[pre.ticker == t]
         o = p[p.ticker == t].set_index("date").ours
         mem = o.index[[bool(((sp.start <= d) & (sp.end > d)).any()) for d in o.index]]
@@ -59,7 +62,7 @@ for i in range(0, len(labs), 25):
         for d, r in bad.iterrows():
             rows.append((t, d.date(), r.ours, r.yahoo, r.diff_pp))
     time.sleep(1)
-pd.DataFrame(wanted, columns=["label", "date", "yahoo_ret", "yahoo_close"]).to_csv(f"{out}/wanted.csv", index=False)
+pd.DataFrame(wanted, columns=["label", "date", "yahoo_ret", "yahoo_close", "yahoo_prev_close", "next_date", "next_ret"]).to_csv(f"{out}/wanted.csv", index=False)
 S = pd.DataFrame(summ, columns=["label", "days", "over_tol", "corr", "note"])
 F = pd.DataFrame(rows, columns=["label", "date", "ours", "yahoo", "diff_pp"])
 S.to_csv(f"{out}/summary.csv", index=False); F.to_csv(f"{out}/flagged.csv", index=False)

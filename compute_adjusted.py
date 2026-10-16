@@ -394,6 +394,27 @@ ENDS = pd.read_csv(ENDS_F, parse_dates=["last_day"]) if ENDS_F.exists() else pd.
 CUT_TAILS = []          # (label, last day kept, rows dropped)
 
 
+STARTS_F = ROOT / "series_start.csv"
+STARTS = pd.read_csv(STARTS_F, parse_dates=["first_day"]) if STARTS_F.exists() else pd.DataFrame(columns=["label", "first_day"])
+CUT_HEADS = []
+
+
+def apply_series_start(df, stem):
+    """series_start.csv: the first day a label's rows are this security. A vendor's rows before it
+    belong to another one (Tiingo's VIAB before 2006-01-03 are old Viacom's closes, 27.6% under new
+    Viacom's first regular-way close), and a backtest that holds a new member from the prior close
+    would book that gap as a return. Rows before the first day are dropped (2026-10-16)."""
+    if STARTS.empty or stem not in set(STARTS.label):
+        return df
+    first = STARTS.loc[STARTS.label == stem, "first_day"].iloc[0]
+    d = pd.to_datetime(df["date"])
+    d = d.dt.tz_localize(None) if d.dt.tz is not None else d
+    keep = (d >= first).to_numpy()
+    if (~keep).any():
+        CUT_HEADS.append((stem, str(first.date()), int((~keep).sum())))
+    return df[keep].reset_index(drop=True)
+
+
 def apply_series_end(df, stem):
     """series_end.csv: a dead company's last trading day, where the vendor's
     series runs on with someone else's prices - Tiingo continued old DuPont
@@ -524,7 +545,7 @@ def main():
     out = []
     for i, f in enumerate(files):
         try:
-            out.append(adjust_one(trim_filler(apply_patches(drop_placeholders(apply_series_end(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem), f.stem), f.stem)))
+            out.append(adjust_one(trim_filler(apply_patches(drop_placeholders(apply_series_start(apply_series_end(apply_splice(pd.read_parquet(f), f.stem), f.stem), f.stem), f.stem), f.stem), f.stem)))
         except Exception as e:
             print(f"  skip {f.stem}: {e}")
         if (i + 1) % 250 == 0:
@@ -547,6 +568,16 @@ def main():
     pd.DataFrame(PLACEHOLDERS, columns=["ticker", "date", "source"]).to_csv(ROOT / "data" / "dropped_placeholders.csv", index=False)
     print(f"placeholder bars dropped (zero volume, flat at prior close): {len(PLACEHOLDERS):,} (data/dropped_placeholders.csv)")
     print(f"end-of-membership no-trade bars kept (halt / deal closed before removal): {CARRIED}")
+    # Every row that is not a trade: a member-day with no price anywhere (CRSP has none - a halt, a
+    # suspension, an over-the-counter spell; Yahoo agrees where it has the stock), carried at the prior
+    # close, and the vendor's no-trade bars kept at the end of a membership. Their return is zero by
+    # construction, so a strategy must not read them as a calm day (a low-volatility screen would pick
+    # a suspended stock) or trade on them (2026-10-16).
+    nt = all_df.loc[all_df.source.eq("carried-patch"), ["ticker", "date"]].assign(kind="no price anywhere: carried at the prior close")
+    nt = pd.concat([nt, pd.DataFrame(CARRIED, columns=["ticker", "date"]).assign(
+        date=lambda x: pd.to_datetime(x.date), kind="vendor no-trade bar kept at the end of a membership")], ignore_index=True)
+    nt.sort_values(["ticker", "date"]).to_csv(ROOT / "data" / "no_trade_days.csv", index=False)
+    print(f"no-trade rows (data/no_trade_days.csv): {len(nt):,}")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
     print(f"dividends put back on the closes' basis (ticker, before, divided by, rows): {RESCALED}")
@@ -556,6 +587,7 @@ def main():
     print(f"series splices (label, prefix, rows, ratio, overlap days): {SPLICED}")
     print(f"series carved out of another label's file (label, source, rows, factor, outcome): {CARVED}")
     print(f"rows after a dead company's last trading day dropped (label, last day, rows): {CUT_TAILS}")
+    print(f"rows before a label's first day as this security dropped (label, first day, rows): {CUT_HEADS}")
     print(f"trailing filler trimmed: {sum(t[2] for t in TRIMMED):,} rows from {len(TRIMMED)} dead series (data/trimmed_filler.csv)")
     pd.DataFrame(ANOMALIES, columns=["ticker", "date", "prev_close", "dividend", "factor", "action"]) \
         .to_csv(ROOT / "data" / "adjustment_anomalies.csv", index=False)
