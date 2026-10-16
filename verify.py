@@ -152,7 +152,11 @@ def check_adjustment(df):
                 nxt = {idx[i + 1] for i, d in enumerate(idx[:-1]) if d in pd_}
                 skip = pd_ | nxt
                 ra, rb = ra[~ra.index.isin(skip)], rb[~rb.index.isin(skip)]
-        max_err = (ra - rb).abs().max() * 100
+        # ex-dividend days differ by design: ours is the holder's total return, (P_t + D)/P_prev - 1
+        # (CRSP's and S&P's convention since 2026-10-16), Yahoo's is P_t/(P_prev - D) - 1 - about the
+        # yield times the day's move apart. The cumulative wealth test still covers them.
+        exd = set(df[(df.ticker == tk) & (df.dividends.fillna(0) > 0)].date)
+        max_err = (ra - rb)[~ra.index.isin(exd)].abs().max() * 100
         wealth_err = abs((1 + ra).prod() / (1 + rb).prod() - 1) * 100
         record("adjust " + tk, "PASS" if (max_err < 0.05 and wealth_err < 0.5) else "FAIL",
                f"{tk}: max daily error {max_err:.4f}pp, cumulative wealth error {wealth_err:.3f}%")
