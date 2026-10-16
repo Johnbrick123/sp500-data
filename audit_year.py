@@ -31,6 +31,9 @@ if SET == "etf":
     _src = (ROOT / "build_universe.py").read_text()
     _blk = _src[_src.index("ETFS = ["):_src.index("]", _src.index("ETFS = ["))]
     members = sorted(set(_re.findall(r'"([A-Z]+)"', _blk)))
+_only = [x.strip() for x in __import__("os").environ.get("AUDIT_TICKERS", "").split(",") if x.strip()]
+if _only:
+    members = [t for t in members if t in _only] or _only
 say(f"AUDIT {YEAR}: {len(members)} {'ETFs' if SET == 'etf' else 'index members during the year'}")
 yr = df[(df.date >= y0) & (df.date <= y1)]
 have = set(yr.ticker)
@@ -43,10 +46,10 @@ for i, tk in enumerate(members):
         continue
     o = yr[yr.ticker == tk]
     rows = []
-    for ac in ("stocks", "etf"):
+    for ac, sym in [(a, v) for v in dict.fromkeys([tk, tk.replace("-", "."), tk.replace("-", "/"), tk.replace("-", "")]) for a in ("stocks", "etf")]:
         try:
             # same request shape the nightly check uses (a bounded past window returned nothing)
-            u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass={ac}"
+            u = (f"https://api.nasdaq.com/api/quote/{sym}/historical?assetclass={ac}"
                  f"&fromdate={YEAR - 1}-12-15&todate={date.today():%Y-%m-%d}&limit=9999")
             d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
             rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
@@ -101,4 +104,4 @@ if offdays:
     for o in sorted(offdays, key=lambda x: (x[1], x[0])): say(f"  {o}")
 if errs:
     say(f"\nfirst request errors: {errs}")
-(ROOT / "data" / (f"audit_etf_{YEAR}.txt" if SET == "etf" else f"audit_{YEAR}.txt")).write_text("\n".join(out))
+(ROOT / "data" / (f"audit_{'etf_' if SET == 'etf' else ''}{YEAR}{'_subset' if _only else ''}.txt")).write_text("\n".join(out))

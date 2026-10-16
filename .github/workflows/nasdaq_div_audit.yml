@@ -8,6 +8,7 @@ on:
     inputs:
       first_year: { description: "First year", required: true, default: "2025" }
       last_year: { description: "Last year", required: true, default: "2026" }
+      mode: { description: "history (per company; Nasdaq-listed only) or calendar (every ex-date, NYSE included)", required: false, default: "history" }
 permissions:
   contents: write
 jobs:
@@ -22,6 +23,7 @@ jobs:
       - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
       - run: mkdir -p nd && python tools/nasdaq_div_audit.py rel/prices.parquet rel/membership_intervals.parquet "${{ github.event.inputs.first_year }}" "${{ github.event.inputs.last_year }}" nd 2>&1 | tee nd/report.txt
+        env: { MODE: "${{ github.event.inputs.mode }}" }
       - name: Publish
         if: always()
         run: |
