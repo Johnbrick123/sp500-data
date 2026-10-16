@@ -10,11 +10,35 @@ day, plus ETFs. No paid data vendor.
 >   dividend cross-checked against CRSP and at least one vendor or archive,
 >   membership matched to S&P's own announcements.
 > - **1970–1995** — membership from CRSP's own S&P 500 list and prices from
->   CRSP alone (no free vendor carries the companies that disappeared before
+>   CRSP (no free vendor carries the companies that disappeared before
 >   1996). Checked against the published S&P 500 (the index rebuilt from
->   these members tracks it within ~3–5 basis points a day) and against
->   CRSP's own returns; about 0.05% of member-days are carried at a prior
->   close where the CRSP file has no price. No open/high/low/volume.
+>   these members tracks it within ~3–5 basis points a day), against CRSP's
+>   own returns, and against Yahoo for the 174 survivors. No
+>   open/high/low/volume.
+>
+> **Every member-day from 1970 to 2024 is compared with CRSP's daily total
+> return** (`tools/full_crsp_check.py`, published as `full_check_*` files).
+> Disagreements over 0.5pp go to the published S&P 500's own daily return,
+> which decides when the member is big enough. Results:
+> - 99.990% of 6,943,082 member-days are within 0.5pp. The 674 that are not are
+>   listed in `full_check_flagged.csv`.
+> - Where the index can judge, it never sides with CRSP against this data: 12 runs
+>   favour ours, and the other 333 are too small or too close to call (mostly
+>   1995–2004 fractional-price closes, where CRSP and the vendors print
+>   different eighths).
+> - Dividends are tested by each label-year's summed difference: 109 of the 28,710
+>   label-years drift more than 0.1pp, each listed in `full_check_drift.csv`.
+>
+> **Two files to use in any backtest:**
+> - `no_trade_days.csv` lists the 3,019 member-days that are not trades:
+>   halts, suspensions and CRSP's missing days, carried at the prior close
+>   (source `carried-patch`). Don't trade on them. Don't read their zero
+>   return as a calm day: a low-volatility screen would otherwise pick a
+>   suspended stock.
+> - `exit_gaps.csv` lists removals whose last member day was not a trade:
+>   SVB and Signature Bank 2023, HealthSouth 2003 and five 1970s companies.
+>   A holder could not sell at that close. Book the next trade instead:
+>   SVB −99.6% and Signature −99.8% on 3/28/2023.
 
 ## What you have
 
@@ -106,10 +130,18 @@ backtest. The bug was invisible in the price series and obvious in the returns.
 
 ## Known limitations — read before trusting a backtest
 
-- **Before 1996 the data rests on CRSP alone** (see the top of this file).
-  The 1996-onward years were verified day by day against several sources;
-  1970–1995 were verified in aggregate against the published index and
-  CRSP's returns.
+- **Before 1996 the data rests on CRSP** (see the top of this file), with
+  Yahoo as a second source only for the companies that still trade under
+  their own symbol. The 1996-onward years were verified day by day against
+  several sources.
+- **2025 and 2026 are not in the CRSP check** (the free CRSP file ends in
+  December 2024). They rest on the nightly Nasdaq ledger and the Tiingo
+  audits.
+- **Dividends use the total-return convention**: the ex-date return is
+  (close + dividend) / previous close − 1, which is CRSP's and S&P's
+  convention. Since 2026-10-16 this replaces Yahoo's formula, which was off
+  by about the yield times the day's move. `adj_close` therefore differs
+  slightly from Yahoo's adjusted close on ex-dividend days.
 - **Membership 2019 -> today is replayed from Wikipedia's change log**
   (`bridge_membership.py`). Wikipedia dropped that table from the live page in
   mid-2026, so the script reads it from an older page revision. Renamed symbols
