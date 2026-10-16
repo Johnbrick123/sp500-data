@@ -180,10 +180,23 @@ for r in spans.itertuples():
         Ry = RY[y]; dd = Ry.index[(Ry.index >= a) & (Ry.index <= b)]
         for mo in sorted(set(dd.month)):
             q = M.get((r.label, y, mo))
-            if q is None or q not in Ry.columns:
-                continue
             dm = dd[dd.month == mo]
-            o = O[r.label].reindex(dm); k = Ry.loc[dm, q]
+            o = O[r.label].reindex(dm)
+            if q is None or q not in Ry.columns:
+                # an unmapped month split between two permnos (WBD 2022-04: Discovery's line to 4/8,
+                # the new one from 4/11): each day takes the previous month's permno where it has a
+                # return, else the next month's
+                pq = M.get((r.label, y, mo - 1)) if mo > 1 else M.get((r.label, y - 1, 12))
+                nq = M.get((r.label, y, mo + 1)) if mo < 12 else M.get((r.label, y + 1, 1))
+                ks = [Ry.loc[dm, c] for c in (pq, nq) if c is not None and c in Ry.columns]
+                if not ks:
+                    continue
+                k = ks[0].copy()
+                for k2 in ks[1:]:
+                    k = k.fillna(k2)
+                q = pq if pq is not None else nq
+            else:
+                k = Ry.loc[dm, q]
             res.append(pd.DataFrame({"label": r.label, "permno": q, "date": dm, "ours": o.values, "ret": k.values}))
 x = pd.concat(res, ignore_index=True)
 both = x.dropna(subset=["ours", "ret"]).copy()
