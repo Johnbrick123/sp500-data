@@ -419,6 +419,26 @@ def norm(t):
     return str(t).strip().replace(".", "-")
 
 
+PRE1996 = ROOT / "pre1996" / "membership.csv"
+
+
+def prepend_pre1996(all_m):
+    """Membership before the upstream file's first snapshot (1996-01-02), built from CRSP's own
+    S&P 500 list by tools/pre1996_membership.py (label, permno, start, end; end = first day out,
+    1996-01-02 for a member that carries on). One snapshot per change date is put in front of
+    the upstream snapshots, so build_intervals joins a carried-on member's spans. Added 2026-10-15."""
+    if not PRE1996.exists():
+        return all_m
+    iv = pd.read_csv(PRE1996, parse_dates=["start", "end"])
+    first = all_m.date.min()
+    dates = sorted(d for d in set(iv.start) | set(iv.end) if d < first)
+    snaps = [pd.DataFrame({"date": d, "ticker": iv[(iv.start <= d) & (iv.end > d)].label.values}) for d in dates]
+    out = pd.concat(snaps + [all_m], ignore_index=True)
+    print(f"pre-1996 membership: {len(iv)} spans from {iv.start.min().date()}, {len(dates)} snapshot dates "
+          f"({iv[iv.end < first].label.nunique()} companies that left before {first.date()})")
+    return out
+
+
 def build_intervals(snapshots):
     """Snapshots (date, ticker) -> [start, end) membership intervals.
     The end of a span is the next SNAPSHOT date, not the ticker's next
@@ -573,6 +593,7 @@ def main():
         all_m = pd.concat([all_m, pd.DataFrame({"date": gap, "ticker": t})], ignore_index=True)
         bridged.append(f"{t} {pd.Timestamp(last_before_today).date()}->today")
     print(f"bridged {len(bridged)} current members across unlogged gaps: {bridged}")
+    all_m = prepend_pre1996(all_m)
     raw = ROOT / "data" / "raw"                       # move any price file saved under the bare label
     for bare, sfx in merge.items():
         if (raw / f"{bare}.parquet").exists():

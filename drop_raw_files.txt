@@ -61,3 +61,10 @@ FE_crsp crsp first=18.875  # 2026-10-15 (pre-1996, 1991-95): refetched from 1985
 MS_crsp crsp first=59.375  # 2026-10-15 (pre-1996, 1991-95): refetched from 1985-01-02 for the extension back before 1996 (same permno 69032, same end)
 BCO_c85 crsp   # 2026-10-15 (pre-1996): superseded by BCO_c85b, the same permno 18649 run on to 1996-06-28 so it overlaps Yahoo's BCO (from 1996-01-03)
 ITT_c85 crsp   # 2026-10-15 (pre-1996): superseded by ITT_c85b, the same permno run on to 1996-06-28 so it overlaps Yahoo's ITT (from 1995-12-15)
+DRI_c85 crsp   # 2026-10-15 (pre-1996): Darden's CRSP line starts 1995-05-30, so there is nothing before 1995 to splice; the file is not a published series
+AET-201811_c85 crsp   # 2026-10-15 (pre-1996): superseded by AET-201811_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+GIS_c85 crsp   # 2026-10-15 (pre-1996): superseded by GIS_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+KMB_c85 crsp   # 2026-10-15 (pre-1996): superseded by KMB_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+MCO_c85 crsp   # 2026-10-15 (pre-1996): superseded by MCO_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+MDP_c85 crsp   # 2026-10-15 (pre-1996): superseded by MDP_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+PCAR_c85 crsp   # 2026-10-15 (pre-1996): superseded by PCAR_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
