@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       year: { description: "Calendar year", required: true, default: "2023" }
+      set: { description: "members or etf", required: false, default: "members" }
 permissions:
   contents: write
 jobs:
@@ -20,6 +21,7 @@ jobs:
           gh release download data --pattern 'membership_intervals.parquet' --dir data/universe --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
       - run: python audit_year.py "${{ github.event.inputs.year }}"
-      - run: gh release upload data "data/audit_${{ github.event.inputs.year }}.txt" --clobber
+        env: { AUDIT_SET: "${{ github.event.inputs.set }}" }
+      - run: for f in data/audit_*${{ github.event.inputs.year }}.txt; do gh release upload data "$f" --clobber; done
         if: always()
         env: { GH_TOKEN: "${{ github.token }}" }

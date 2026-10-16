@@ -22,7 +22,16 @@ iv = pd.read_parquet(ROOT / "data" / "universe" / "membership_intervals.parquet"
 iv["start"] = pd.to_datetime(iv["start"]); iv["end"] = pd.to_datetime(iv["end"])
 y0, y1 = pd.Timestamp(f"{YEAR}-01-01"), pd.Timestamp(f"{YEAR}-12-31")
 members = sorted(iv[(iv.start <= y1) & (iv["end"].isna() | (iv["end"] > y0))].ticker.unique())
-say(f"AUDIT {YEAR}: {len(members)} index members during the year")
+SET = __import__("os").environ.get("AUDIT_SET", "members").strip() or "members"
+if SET == "etf":
+    # the ETFs (build_universe.py's list): never in the member audits, and the benchmark every
+    # backtest is measured against (2026-10-16: SPY, RSP, QQQ and XLK show 2026-06-26 moves their own
+    # holdings contradict)
+    import re as _re
+    _src = (ROOT / "build_universe.py").read_text()
+    _blk = _src[_src.index("ETFS = ["):_src.index("]", _src.index("ETFS = ["))]
+    members = sorted(set(_re.findall(r'"([A-Z]+)"', _blk)))
+say(f"AUDIT {YEAR}: {len(members)} {'ETFs' if SET == 'etf' else 'index members during the year'}")
 yr = df[(df.date >= y0) & (df.date <= y1)]
 have = set(yr.ticker)
 missing = [t for t in members if t not in have]
@@ -92,4 +101,4 @@ if offdays:
     for o in sorted(offdays, key=lambda x: (x[1], x[0])): say(f"  {o}")
 if errs:
     say(f"\nfirst request errors: {errs}")
-(ROOT / "data" / f"audit_{YEAR}.txt").write_text("\n".join(out))
+(ROOT / "data" / (f"audit_etf_{YEAR}.txt" if SET == "etf" else f"audit_{YEAR}.txt")).write_text("\n".join(out))
