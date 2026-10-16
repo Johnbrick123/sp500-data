@@ -21,22 +21,26 @@ known = set(pre.permno) | set(pd.read_csv("crsp_permnos.csv").permno)
 f = glob.glob("kag/**/*.csv", recursive=True)[0]
 COLS = {"permno", "date", "prc", "ret", "shrout"}
 
-# pass 1: market caps on each year's first trading day -> the year's candidate permnos
-first = {}
+# pass 1: each permno's market cap on its first day of each year (the year's first trading day, or
+# its listing day) -> the year's candidates: the 1,500 largest at the start of the year, plus any
+# permno listing during the year at least as large as the 1,500th (spin-offs, IPOs)
+fy = []
 for ch in pd.read_csv(f, chunksize=5_000_000, usecols=lambda c: c.lower() in COLS, low_memory=False):
     ch.columns = [c.lower() for c in ch.columns]
     ch["date"] = pd.to_datetime(ch["date"].astype(str), errors="coerce")
     ch["y"] = ch.date.dt.year
-    for y, g in ch.groupby("y"):
-        d0 = g.date.min()
-        if y not in first or d0 < first[y][0]:
-            first[y] = (d0, g[g.date == d0])
-        elif d0 == first[y][0]:
-            first[y] = (d0, pd.concat([first[y][1], g[g.date == d0]]))
+    ch["cap"] = pd.to_numeric(ch.prc, errors="coerce").abs() * pd.to_numeric(ch.shrout, errors="coerce")
+    ch = ch.dropna(subset=["cap"]).sort_values("date")
+    fy.append(ch.groupby(["y", "permno"]).agg(d=("date", "first"), cap=("cap", "first")).reset_index())
+fy = pd.concat(fy).sort_values("d").groupby(["y", "permno"]).first().reset_index()
 cand = {}
-for y, (d0, g) in first.items():
-    g = g.assign(cap=pd.to_numeric(g.prc, errors="coerce").abs() * pd.to_numeric(g.shrout, errors="coerce"))
-    cand[y] = set(g.sort_values("cap", ascending=False).permno.head(1500)) | known
+for y, g in fy.groupby("y"):
+    d0 = g.d.min()
+    start = g[g.d == d0].sort_values("cap", ascending=False)
+    top = start.head(1500)
+    thr = top.cap.min() if len(top) else 0
+    late = g[(g.d > d0) & (g.cap >= thr)]
+    cand[y] = set(top.permno) | set(late.permno) | known
 print("candidate sets built", flush=True)
 
 # pass 2: RET for each year's candidates
