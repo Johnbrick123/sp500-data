@@ -1,0 +1,28 @@
+name: Yahoo second source for 1970-1994 (read-only)
+
+# Compares our pre-1995 member-day returns (CRSP-built) with Yahoo's long histories for the
+# members still listed under the same symbol (tools/yahoo_pre1995_check.py). Added 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      tol: { description: "Tolerance in percentage points", required: false, default: "1.0" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q yfinance pandas pyarrow
+      - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: mkdir -p yc && python tools/yahoo_pre1995_check.py rel/prices.parquet rel/membership_intervals.parquet yc "${{ github.event.inputs.tol }}" 2>&1 | tee yc/report.txt
+      - name: Publish
+        if: always()
+        run: |
+          cp yc/report.txt yahoo_pre1995_report.txt; cp yc/flagged.csv yahoo_pre1995_flagged.csv; cp yc/summary.csv yahoo_pre1995_summary.csv
+          gh release upload data yahoo_pre1995_report.txt yahoo_pre1995_flagged.csv yahoo_pre1995_summary.csv --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
