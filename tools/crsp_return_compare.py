@@ -42,6 +42,15 @@ x.to_csv(out, index=False)
 bad[["label", "permno", "date", "ours", "ret", "diff_pct", "close", "source"]].to_csv(out.replace(".csv", "_flagged.csv"), index=False)
 print(f"{len(both):,} member-days compared ({x.label.nunique()} labels); within {tol}%: {100 * (1 - len(bad) / max(len(both), 1)):.3f}%; "
       f"ours without CRSP: {x.ret.isna().sum()}, CRSP without ours: {x.ours.isna().sum()}")
+# coverage: member-days (on CRSP's trading calendar) with no row of ours at all
+cal = np.array(sorted(c.date.unique()))
+gaps = []
+for r in m.itertuples():
+    days = cal[(cal >= np.datetime64(r.start)) & (cal < np.datetime64(r.end))]
+    have = set(p.loc[p.ticker == r.label, "date"].values)
+    gaps += [(r.label, pd.Timestamp(d).date()) for d in days if d not in have]
+print(f"COVERAGE: {sum(((cal >= np.datetime64(r.start)) & (cal < np.datetime64(r.end))).sum() for r in m.itertuples()):,} member-days on CRSP's calendar, {len(gaps)} without a row of ours"
+      + (f"; by label: {pd.Series([g[0] for g in gaps]).value_counts().head(30).to_dict()}; first: {gaps[:10]}" if gaps else ""))
 pd.set_option("display.width", 220); pd.set_option("display.max_rows", 400)
 print("\nlabels with the most differing days:\n" + bad.groupby("label").size().sort_values(ascending=False).head(40).to_string())
 print("\nby the source of our row:\n" + both.assign(bad=both.diff_pct.abs() > tol).groupby(both.source.astype(str)).bad.agg(["size", "sum"]).to_string())
