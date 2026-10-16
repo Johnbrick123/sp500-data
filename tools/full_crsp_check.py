@@ -99,13 +99,23 @@ for y in range(1970, LAST + 1):
     Oy = Oy.loc[:, Oy.notna().sum() >= 10]
     if Oy.empty:
         continue
-    A = (Oy - Oy.mean()).fillna(0).values; B = (Ry - Ry.mean()).fillna(0).values
-    num = A.T @ B
-    den = np.sqrt((A ** 2).sum(0))[:, None] * np.sqrt((B ** 2).sum(0))[None, :]
-    C = num / np.where(den == 0, np.nan, den)
-    best = np.nanargmax(np.nan_to_num(C, nan=-2), axis=1)
-    for i, l in enumerate(Oy.columns):
-        rows.append((l, y, int(Ry.columns[best[i]]), float(C[i, best[i]]), int(Oy[l].notna().sum())))
+    Bv = Ry.values
+    for l in Oy.columns:
+        msk = Oy[l].notna().values
+        a = Oy[l].values[msk]; b = Bv[msk]
+        ok = ~np.isnan(b)
+        b = np.where(ok, b, np.nan)
+        am = a - a.mean()
+        bm = b - np.nanmean(b, axis=0)
+        bm = np.where(ok, bm, 0.0)
+        num = am @ bm
+        den = np.sqrt((am ** 2).sum()) * np.sqrt((bm ** 2).sum(0))
+        cc = num / np.where(den == 0, np.nan, den)
+        cc = np.where(ok.sum(0) >= max(5, int(0.8 * msk.sum())), cc, np.nan)
+        if np.all(np.isnan(cc)):
+            continue
+        j = int(np.nanargmax(cc))
+        rows.append((l, y, int(Ry.columns[j]), float(cc[j]), int(msk.sum())))
     print(y, len(Oy.columns), "labels mapped", flush=True)
 mp = pd.DataFrame(rows, columns=["label", "year", "permno", "corr", "n"])
 mp.to_csv(f"{out}/permno_map.csv", index=False)
