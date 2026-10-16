@@ -53,6 +53,34 @@ def amt(x):
         return np.nan
 
 
+# MODE=calendar: Nasdaq's market-wide dividend calendar (one request per ex-date, NYSE names
+# included) instead of the per-company history, which serves Nasdaq-listed names only
+CAL = None
+if os.environ.get("MODE", "").strip() == "calendar":
+    recs = []
+    days = sorted(d for d in p.date.unique() if A <= d <= B)
+    for i, d in enumerate(days):
+        u = f"https://api.nasdaq.com/api/calendar/dividends?date={pd.Timestamp(d):%Y-%m-%d}"
+        for attempt in range(3):
+            try:
+                js = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
+                rows = ((((js.get("data") or {}).get("calendar") or {}).get("rows")) or [])
+                for r in rows:
+                    recs.append((str(r.get("symbol", "")).upper(), r.get("dividend_Ex_Date"), r.get("dividend_Rate"), "calendar"))
+                break
+            except Exception:
+                time.sleep(3)
+        time.sleep(0.5)
+        if (i + 1) % 50 == 0:
+            print(f"  calendar {i + 1}/{len(days)} days, {len(recs)} rows", flush=True)
+    CAL = pd.DataFrame(recs, columns=["sym", "exOrEffDate", "amount", "type"])
+    print(f"calendar rows: {len(CAL)}", flush=True)
+
+    def nasdaq(sym):                                   # noqa: F811 - the calendar replaces the per-company call
+        keys = {sym, sym.replace("-", "."), sym.replace("-", "/"), sym.replace("-", " ")}
+        r = CAL[CAL.sym.isin(keys)]
+        return sym, r.drop(columns="sym").to_dict("records")
+
 res, cov = [], []
 cal = sorted(p.date.unique())
 ci = {d: i for i, d in enumerate(cal)}
@@ -69,11 +97,14 @@ for t in labs:
     ours = pd.DataFrame({"date": g.date[mem & (raw > 0)], "ours": raw[mem & (raw > 0)]})
     sym = re.sub(r"-\d{6}$", "", t)
     used, rows = nasdaq(sym)
-    time.sleep(0.6)
+    if CAL is None:
+        time.sleep(0.6)
     if not rows:
         cov.append((t, sym, "no data", len(ours), 0)); continue
     n = pd.DataFrame(rows)
     n["date"] = pd.to_datetime(n.get("exOrEffDate"), format="%m/%d/%Y", errors="coerce")
+    if n["date"].isna().all():
+        n["date"] = pd.to_datetime(n.get("exOrEffDate"), errors="coerce")
     n["nasdaq"] = n.get("amount").map(amt)
     n["type"] = n.get("type", "").astype(str)
     memdays = set(g.date[mem])
