@@ -1,25 +1,32 @@
 # S&P 500 + ETF Historical Dataset
 
-Free, reproducible daily price history back to 1995. No paid data vendor.
+Free, reproducible, point-in-time S&P 500 history: who was in the index on
+every trading day since **1970**, with a price for every one of them on every
+day, plus ETFs. No paid data vendor.
 
-> **Read this first.** Membership is point-in-time (who was in the index on
-> each date). Price coverage of those members is NOT complete: about 38% in
-> 1996, 48% in 2000, 63% in 2008, 76% in 2015, 97% in 2024. The missing names
-> are the ones that later disappeared, so any backtest on this data is
-> flattered, badly so before ~2010. `verify.py` prints the coverage table on
-> every run. This dataset is not survivorship-bias-free; it is honest about
-> how far from it it is.
+> **Read this first.** Two tiers, checked differently (details in the
+> verification log):
+> - **1996 to today** — every member priced on every day, every close and
+>   dividend cross-checked against CRSP and at least one vendor or archive,
+>   membership matched to S&P's own announcements.
+> - **1970–1995** — membership from CRSP's own S&P 500 list and prices from
+>   CRSP alone (no free vendor carries the companies that disappeared before
+>   1996). Checked against the published S&P 500 (the index rebuilt from
+>   these members tracks it within ~3–5 basis points a day) and against
+>   CRSP's own returns; about 0.05% of member-days are carried at a prior
+>   close where the CRSP file has no price. No open/high/low/volume.
 
 ## What you have
 
 | | |
 |---|---|
-| Rows | 4,603,994 |
-| Tickers | 706 |
-| Range | 1995-01-03 → 2026-09-18 |
-| Size | 108 MB (Parquet) |
+| Rows | 12,285,625 |
+| Tickers | 1,895 (1,742 that were ever index members) |
+| Prices | 1968-01-02 → today (nightly) |
+| Membership | 1970-01-02 → today, 500-505 members every day |
+| Size | 235 MB (Parquet) |
 
-`data/prices.parquet` — one tidy table (`close` is split-adjusted, not the literal tape price; `adj_close` is split+dividend adjusted): `date, ticker, open, high, low, close, volume, adj_close, dividends, stock_splits, source`
+`data/prices.parquet` — one tidy table (`close` is as its `source` stores it — Yahoo's is split-adjusted, Tiingo's, WIKI's and CRSP's are as traded — so use `adj_close`, split+dividend adjusted, for returns): `date, ticker, open, high, low, close, volume, adj_close, dividends, stock_splits, source`
 
 ## Run it
 
@@ -41,14 +48,15 @@ missing. A full cold backfill takes ~20 minutes. A nightly update takes seconds.
 
 ## Three things that will bite you (and what was done about them)
 
-**1. Survivorship bias.** 1,233 tickers have been in the S&P 500 since 1996;
-503 are in it today. 730 names left. A "current members" dataset silently
-deletes all of them and will flatter every backtest you run.
+**1. Survivorship bias.** 1,742 companies have been in the S&P 500 since 1970;
+503 are in it today. A "current members" dataset silently deletes the rest and
+will flatter every backtest you run.
 
-*Handled for membership, not for prices:* `membership_intervals.parquet` holds
-[start, end) spans per ticker, verified against S&P announcements for known
-changes. The `v_sp500` view joins prices to those spans. It cannot conjure
-prices for the names Yahoo purged - see the coverage table above.
+*Handled:* `membership_intervals.parquet` holds [start, end) spans per label
+(dead companies carry a `-YYYYMM` suffix), and every member has a price on
+every day it was a member — the dead ones recovered from Tiingo, Quandl's WIKI
+file, archives and, for most of them, CRSP. The `v_sp500` view joins prices to
+those spans.
 
 **2. Yahoo's `Adj Close` is unstable.** It gets silently restated every time a
 new dividend posts, so last month's snapshot won't reproduce today.
@@ -98,12 +106,10 @@ backtest. The bug was invisible in the price series and obvious in the returns.
 
 ## Known limitations — read before trusting a backtest
 
-- **588 of 1,231 historical index members have no price data.** Yahoo has purged most long-dead
-  companies. This is an unavoidable hole in free data and it reintroduces some
-  survivorship bias through the back door. Listed in `data/no_data_tickers.txt`.
-  `fetch_delisted_tiingo.py` recovers most of them from Tiingo's free tier
-  (it retains delisted history; ~500 symbols/month, so two runs). Whatever is
-  still missing after that is what CRSP and Norgate charge for.
+- **Before 1996 the data rests on CRSP alone** (see the top of this file).
+  The 1996-onward years were verified day by day against several sources;
+  1970–1995 were verified in aggregate against the published index and
+  CRSP's returns.
 - **Membership 2019 -> today is replayed from Wikipedia's change log**
   (`bridge_membership.py`). Wikipedia dropped that table from the live page in
   mid-2026, so the script reads it from an older page revision. Renamed symbols
