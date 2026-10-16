@@ -287,7 +287,17 @@ def apply_splice(df, stem):
     rows = SPLICES[SPLICES.label == stem]
     if rows.empty:
         return df
-    r = rows.iloc[0]
+    if len(rows) > 1:
+        # several prefixes, applied newest first, each in front of the series the later ones made:
+        # HWM <- ARNC (Alcoa/Arconic's Yahoo-lineage archive) before 2016-11-01, then <- HWM_c68
+        # (CRSP, permno 24643) before 1996-01-02 in place of the archive's coarse 1970-1995 rows
+        for _, r in rows.sort_values("before", ascending=False).iterrows():
+            df = _splice_one(df, stem, r)
+        return df
+    return _splice_one(df, stem, rows.iloc[0])
+
+
+def _splice_one(df, stem, r):
     # the ratio may vary by 0.5% across the overlap, or by the row's own tol (a vendor's rounded
     # 1995 closes against CRSP's; added 2026-10-15 for the pre-1996 prefixes)
     TOL = float(pd.to_numeric(r.get("tol", np.nan), errors="coerce")) if pd.notna(pd.to_numeric(r.get("tol", np.nan), errors="coerce")) else 0.005
@@ -578,6 +588,38 @@ def main():
         date=lambda x: pd.to_datetime(x.date), kind="vendor no-trade bar kept at the end of a membership")], ignore_index=True)
     nt.sort_values(["ticker", "date"]).to_csv(ROOT / "data" / "no_trade_days.csv", index=False)
     print(f"no-trade rows (data/no_trade_days.csv): {len(nt):,}")
+    # Exit gaps: a member whose last member-day close is not what a holder could get. A halted
+    # company removed before it trades again (SVB and Signature Bank, March 2023: carried at their
+    # last trades through the 3/15 removal, first over-the-counter trades 3/28 at -99.6% and -99.8%;
+    # HealthSouth 2003) - or one with no price for a long time after removal (1970s CRSP gaps).
+    # For each removal: the last member-day close, the first later trade at a different price, the
+    # gap and the change on the adjusted basis. Listed when the gap is 5+ days and the change over 25%.
+    eg = []
+    srt = all_df.sort_values(["ticker", "date"])
+    for t, g in srt.groupby("ticker", sort=False):
+        for e in MEMBER_ENDS.get(t, []):
+            mem = g[g.date < e]
+            if mem.empty:
+                continue
+            last = mem.iloc[-1]
+            # the last real trade: walk back over carried / no-trade rows at the same close
+            same = mem[mem.close == last.close]
+            lt = mem[mem.close != last.close]
+            last_trade = same.date.min() if lt.empty else g[(g.date > lt.date.max())].date.min()
+            nxt = g[(g.date > last.date) & (g.close != last.close)].head(1)
+            if nxt.empty:
+                continue
+            n = nxt.iloc[0]
+            gap = (n.date - last.date).days
+            chg = float(n.adj_close / last.adj_close - 1)
+            # only exits whose last member day was not a trade (a halt, a suspension, a CRSP gap): a
+            # holder could not sell at that close. A real last trade followed by missing rows is not one.
+            if gap >= 5 and abs(chg) > 0.25 and last_trade != last.date:
+                eg.append((t, e.date(), last.date.date(), last_trade.date(), round(float(last.close), 4),
+                           n.date.date(), round(float(n.close), 4), gap, round(chg, 4)))
+    pd.DataFrame(eg, columns=["ticker", "removed", "last_member_day", "last_trade", "last_close", "next_trade",
+                              "next_close", "gap_days", "change"]).to_csv(ROOT / "data" / "exit_gaps.csv", index=False)
+    print(f"exit gaps (data/exit_gaps.csv): {eg}")
     print(f"hand-verified patch rows added: {PATCHED}")
     print(f"hand-verified bars replaced (ticker, date, old close, new close, outcome): {REPLACED}")
     print(f"dividends put back on the closes' basis (ticker, before, divided by, rows): {RESCALED}")
