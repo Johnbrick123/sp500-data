@@ -1,0 +1,32 @@
+name: Every member-day since 1970 against CRSP (read-only)
+
+# Maps every label-year to its CRSP permno and compares every member-day's total return with
+# CRSP's RET (tools/full_crsp_check.py) on the published release. Added 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      tol: { description: "Tolerance in percentage points", required: false, default: "0.5" }
+      last_year: { description: "Last year to compare (the CRSP file ends 2024)", required: false, default: "2024" }
+      slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow 'kaggle>=1.8.0'
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: mkdir -p fc && python tools/full_crsp_check.py rel/prices.parquet rel/membership_intervals.parquet fc "${{ github.event.inputs.tol }}" "${{ github.event.inputs.last_year }}" 2>&1 | tee fc/report.txt
+      - name: Publish the reports
+        if: always()
+        run: |
+          cd fc && cp report.txt ../full_check_report.txt; cp flagged.csv ../full_check_flagged.csv; cp permno_map.csv ../full_check_permno_map.csv; cp by_year.csv ../full_check_by_year.csv; cd ..
+          gh release upload data full_check_report.txt full_check_flagged.csv full_check_permno_map.csv full_check_by_year.csv --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
