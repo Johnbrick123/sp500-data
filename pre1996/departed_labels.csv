@@ -198,3 +198,321 @@ permno,label,name
 18278,ISS-199206,Interco
 12888,LCE-199404,Lone Star Industries
 27086,MCA-199101,MCA Inc.
+10006,ACF-198406,American Car & Fdry Co
+10102,AN-197805,Air Reduction Inc
+10137,AYP-201102,West Penn Electric Co
+10276,ACS-197302,American Crystal Sugar Co
+10436,ZA-197106,American Zinc Lead & Smlt Co
+10479,ASR-198402,American Sugar Co
+10495,A-197701,Anaconda Co
+10524,AM-197012,Armour & Co
+10727,BYK-198206,Bayuk Cigars Inc
+10751,BX-198301,Bendix Corp
+10823,KSE-199805,Keyspan Energy Corp
+10970,CIT-198001,Commercial Investment Trust Co
+11041,CP-199607,Canadian Pacific Railway Co
+11068,JI-197008,Case J I Threshing Mach Co
+11092,CDP-197602,Cerro De Pasco Copper Corp
+11156,CO-198010,Chessie System Inc
+11447,CCC-198411,Continental Can Inc
+11471,CLL-198109,Conoco Inc
+11543,CUD-197107,Cudahy Co
+11658,CFF-197902,California Packing Corp
+11746,ESB-197409,Electric Storage Battery Co
+11826,EJN-197006,Endicott Johnson Corp
+11949,FST-197402,First National Stores Inc
+11981,FT-198104,Freeport Sulphur Co
+12044,CUC-199708,General Cigar Inc
+12124,GI-197311,Gimbel Brothers Inc
+12167,GUX-197707,Grand Union Co
+12183,GN-197003,Great Northern Railway Co
+12343,HW-197508,Howe Sound Co Del
+12466,IC-197807,Inspiration Consolidated Cppr Co
+12626,JWT-198411,Jewel Companies Inc
+12650,KSU-202112,Kansas City Southern
+12669,KYR-197510,Kayser Julius & Co
+12706,KN-198106,Kennecott Corp
+12730,ND-198009,Kraft Inc
+12781,LG-197606,Spire Inc (still trading; suffix = index exit)
+12837,LM-198008,Liggett Group Inc
+12909,LN-197106,Louisville & Nashville Rr Co
+13012,MSH-198804,Manhattan Industries Inc
+13063,M-197607,Montgomery Ward & Co
+13143,MGM-198604,Metro Goldwyn Mayer Inc
+13290,MUN-200007,Munsingwear Inc
+13311,BI-198107,Nabisco Inc
+13370,NTY-198201,National Tea Co
+13522,NFK-198206,Norfolk & Western Railway Co
+13573,NP-197003,Northern Pacific Railway Co
+13610,OLN-197502,Olin Corp (still trading; suffix = index exit)
+13637,OT-197607,Otis Elevator Co
+13792,PC-197810,Penn Central Co
+14066,PU-198009,Pullman Co
+14154,RDGE-200112,Reading Entertainment Inc
+14189,RS-198406,Republic Iron & Steel Co
+14250,SJO-198108,St Joseph Lead Co
+14357,SUO-198506,Shell Oil Co
+14402,SIM-197901,Simmons Company
+14461,SIH-201201,Hotel Corp Amer
+14496,SX-198312,Southern Pacific Co
+14509,SR-198206,Southern Railway Co
+14533,SB-198107,Standard Brands Inc
+14760,TG-198109,Texasgulf Inc
+14859,TF-198106,Fox Film Corp
+14867,UV-198003,U V Industries Inc
+14912,R-198509,Uniroyal Inc
+15237,WW-197112,Walworth Company
+15544,MS-197603,Mccrory Stores Corp
+15763,AMF-198510,American Mach & Fdry Co
+15843,ABA-198612,American Bakeries Co
+15915,DXC-198602,Penn Dixie Industries Inc
+16029,DN-198212,Diamond International Corp
+16109,GF-198511,Postum Cereal Co Inc Del
+16280,KW-197310,Kelsey Wheel Co
+16336,IQ-198210,Dunhill International Inc
+16598,GK-198105,G K Technologies Inc
+16619,KBR-197404,United Biscuit Co Amer
+16707,MAN-198811,Johns Manville Corp
+16731,LPT-197710,Lehigh Portland Cem Co
+16758,CEH-197901,Cutler Hammer Inc
+16803,NAC-198505,Mc Keesport Tin Plate Co
+16969,GTY-197509,Grant W T Co
+17267,PET-197808,Pet Inc
+17435,EVY-198511,Evans Products Co
+17558,ASC-197907,American Stores Co
+17646,RVB-198612,Republic Brass Corp
+18091,CW-197004,Curtiss Wright Corp (still trading; suffix = index exit)
+18315,AHP-199005,Alpha Portland Inds Inc
+18331,BF-197804,Budd Co
+18825,ACN-197601,American Chain & Cable Inc
+18884,MF-198206,Marshall Field & Co Il
+18980,AIN-199305,Addressograph Multigraph Corp
+19019,NS-198309,National Steel Corp
+19174,GBG-199801,General Baking Co
+19238,WHX-199407,Wheeling Pittsburgh Stl Corp
+19297,CPS-198206,Columbia Pictures Inds Inc
+19334,WH-198009,White Motor Co
+19414,GET-198402,Pacific Westn Oil Corp
+19430,RXM-198103,Richardson Merrell Inc
+19510,JJN-197209,Newberry J J Co
+19617,TWA-197812,Transcontinental & Westn Air Inc
+19713,SWX-198408,Swift & Co
+19756,LJ-197604,Libby Mc Neill & Libby
+19764,AMDA-199008,Associated Brewing Co
+19879,FPP-197806,Fibreboard Paper Prods Corp
+19887,HLY-198804,Holly Sugar Corp
+19940,HIR-198004,Walker Hiram Gooderham & Worts
+20001,PDC-197011,Parke Davis & Co
+20095,MPH-198505,Murphy G C & Co
+20167,FO-198001,Flintkote Co
+20239,ELG-198312,El Paso Co
+20263,MGR-198505,Mcgraw Edison Co
+20386,MNC-198404,Masonite Corp
+20407,SBC-198308,Stokely Bros & Co Inc
+20415,LUK-201909,Jefferies Financial Group Inc (still trading; suffix = index exit)
+20474,SCM-198603,Smith Corona Inc
+20896,HD-198307,Hudson Bay Mng & Smlt Ltd
+20976,EAL-198611,Eastern Air Lines Inc
+20992,CTN-197711,National Cylinder Gas Co
+21194,AIC-198012,American Investment Co Il
+21231,WGL-201807,Washington Gas Lt Co
+21282,CCN-200107,Chris Craft Inds Inc
+21303,RCC-198406,Royal Crown Cola Co
+21338,FMO-200204,Federal Mogul Bower Bearings Inc
+21346,FFS-197810,Union Premier Food Stores Inc
+21370,IPL-200103,Ipalco Enterprises Inc
+21530,JL-197411,Jones & Laughlin Stl Corp
+21709,SOC-198409,Superior Oil Co
+21768,GO-198406,Gulf Corp
+21928,IDA-197606,Idaho Power Co (still trading; suffix = index exit)
+21995,NW-198507,Northwest Industries Inc
+22007,GDC-197904,Gardner Denver Co
+22138,SOO-199001,Soo Line Corp
+22189,NAL-198001,National Airlines Inc
+22218,WPI-198611,Western Pacific Railroad Co
+22402,ST-197202,Chicago Milwaukee St Paul & Pac
+22410,SCI-198010,Seaboard Coast Line Inds Inc
+22429,WD-198012,Ward Baking Co
+22461,MMR-198805,Moore Mccormack Lines Inc
+22488,ADL-197404,Admiral Corp
+22496,FDP-200011,Florida Pwr Corp
+22533,CRR-197907,Carrier Corp
+22613,PSR-200008,Public Service Co Co
+22648,DOC-198402,Doctor Pepper Co
+22728,LST-198511,Lowenstein M & Sons
+22787,PUL-199607,Publicker Industries Inc
+22859,DPL-201111,D P L Inc
+22920,SUC-198806,American Molasses Co
+23018,MAG-197507,Magnavox Co
+23050,RVS-198207,Reeves Brothers Inc
+23130,FN-198011,St Louis San Francisco Ry Co
+23210,CVX-198604,Cleveland Electric Illum Co
+23229,CMS-202212,Consumers Power Co (still trading; suffix = index exit)
+23237,DGR-197012,Denver & Rio Grande Westn Rr Co
+23325,SRT-198411,St Regis Paper Co
+23448,VEL-198305,Virginia Electric & Power Co
+23464,GPT-198111,General Portland Cem Co
+23499,NES-200003,New England Elec Sys
+23536,WPC-202212,Wisconsin Elec Pwr Co (still trading; suffix = index exit)
+23587,RI-197503,Chicago Rock Is & Pac Rr Co
+23683,FAL-198905,Falstaff Brewing Corp
+23720,IPC-200002,Illinois Power Co
+23800,GSK-198008,Gamble Skogmo Inc
+23886,RDT-197511,Murphy G W Inds Inc
+23894,CPX-197705,Copper Range Co
+24002,CIV-200208,Delaware Power & Light Co
+24037,SMB-198112,Sunbeam Corp Ill
+24088,ARR-197901,Aristar Inc
+24096,NGE-200809,Energy East Corp
+24141,ANG-198505,American Nat Gas Co
+24328,EQT-202212,Equitable Gas Co (still trading; suffix = index exit)
+24336,SCO-198508,Scovill Manufacturing Co
+24555,AGM-198211,Amalgamated Sugar Co
+24571,CS-198212,Cities Service Co
+24627,MIS-198212,Mississippi River Fuel Corp
+24651,SRY-197704,Stanray Corp
+24707,COE-198403,Cone Mills Corp
+24854,BAW-197803,Babcock & Wilcox Co
+25072,DQU-200705,D Q E Inc
+25144,BSE-199908,B E C Energy
+25195,MQC-197609,Marquette Cement Mfg Co
+25216,STF-198503,Stauffer Chemical Co
+25515,GAC-197512,General Acceptance Corp
+25574,TRA-198402,Trane Company
+25590,NFG-197606,National Fuel Gas Co N J (still trading; suffix = index exit)
+25611,SCI-198512,Storer Broadcasting Co
+25662,ANK-198209,Akzona Inc
+25689,DML-198305,Dan River Mls Inc
+25697,BEC-198203,Beckman Instruments Inc
+25718,KFM-199702,Rymer Foods Inc
+25873,HLR-198410,Heller Walter E Intl Corp
+25902,GSI-198203,General Steel Industries Inc
+25988,REV-198512,Revlon Inc
+26120,GAO-198303,General American Oil Co Tx
+26155,ITE-197604,I T E Imperial Corp
+26307,REE-197912,Reliance Electric Co
+26366,USM-197605,U S M Corp
+26446,SPK-197010,Standard Packaging Corp
+26462,TIS-197809,Tishman Realty & Cnstruction Inc
+26497,MLN-198209,Mclean Trucking Co
+26534,MDE-198303,Mcdermott Inc
+26569,LY-197812,Lykes Corp De
+26737,RTC-199909,Frontier Corp
+26788,TXG-198309,Texas Gas Transmission Corp
+26921,UD-198502,Universal Match Corp
+27000,ICA-199005,San Diego Imperial Corp
+27043,VAR-202104,Varian Associates Inc
+27158,CSY-198505,Central Soya Inc
+27174,JOL-198410,Jonathan Logan Inc
+27190,AHS-198511,American Hospital Supply Corp
+27238,VEN-198805,Vendo Co
+27297,FCF-198308,First Charter Finl Corp
+27342,CRF-198107,Copeland Refrig Corp
+27465,PAS-197607,Pan Amern Sulphur Co
+27510,KNY-198108,Coca Cola Bottling Co Ny Inc
+27748,FLA-200707,Florida East Coast Ind Inc
+27836,BBKS-199606,Bobbie Brooks Inc
+27852,FAC-197302,Factor Max & Co
+27879,HC-199603,Helene Curtis Inds Inc
+28003,LSO-198003,Leesona Corp
+28089,MMA-197406,Harvey Alum Inc
+28169,FCI-197906,Fairchild Camera & Instr Corp
+28177,FFI-198307,Financial Federation Inc
+28265,UFL-198001,United Financial Corp Ca
+28580,MET-198406,Metromedia Inc
+28994,HFG-197006,Home Fin Group Inc
+29911,BWN-198010,Brown Co
+30365,CMK-198501,Carnation Co
+31763,FBG-198408,Faberge Inc
+32141,GDV-198309,General Development Corp
+33056,INA-198203,I N A Corp
+33873,MAK-198101,Macke Co
+34024,MDC-198308,Maryland Cup Corp
+34550,NUM-197407,National Union Electric Corp
+35166,PBD-198510,Peabody Galion Corp
+36505,SGN-198509,Signal Oil & Gas Co
+38041,WFI-198302,Wheelabrator Frye Inc
+38324,HBL-198210,Heublein Inc
+38455,HJ-198006,Howard Johnson Co
+38885,WBR-198605,Warnaco Inc
+38930,URB-197406,Uris Buildings Corp
+39263,STA-198806,Staley A E Manufacturing Co
+39271,ARA-198412,A R A Services Inc
+39335,CTC-199103,Continental Telecom Inc
+39458,SVM-197901,Servomation Corp
+39626,WS-198003,Warner & Swasey Co
+39896,SAF-198112,Santa Fe International Corp
+39992,PRX-198208,Purex Corp
+40010,SRL-198509,Searle G D & Co
+40432,CID-197102,Coronet Industries Inc
+40723,SFN-198502,S F N Companies Inc
+40790,KOE-198009,Koehring Co
+40854,COX-198508,Cox Broadcasting Corp
+41160,HBX-197702,Hoerner Boxes Inc
+41478,HOB-198103,Hobart Mfg Co
+41515,AEX-199704,Foodbrands America Inc
+41785,EXC-197402,Essex International Inc
+41953,GAF-198903,G A F Corp
+42075,GLR-198805,Grolier Inc
+42091,CMO-197507,Continental Mortgage Investors
+42235,AAF-197809,American Air Filter Inc
+42323,RG-197401,Rheingold Corp
+42526,DRI-198501,Dennys Restaurants Inc
+42569,UNC-199709,U N C Resources Inc
+42657,CYM-197909,Cyprus Mines Corp
+43132,HYST-198402,Hyster Co
+43203,HNS-197901,Hanes Corp
+43502,CHI-198104,Crouse Hinds Co
+43510,MB-198409,Milton Bradley Co
+43609,GG-197903,Green Giant Co
+44273,BBL-198411,Blue Bell Inc
+44505,GID-198208,Giddings & Lewis Inc
+45065,MSA-198701,Mesa Petroleum Co
+45081,SLZ-198206,Schlitz Jos Brewing Co
+45225,VHI-197209,Liberty Ln Corp (still trading; suffix = index exit)
+45620,GWU-197802,Great Western United Corp
+45663,PPI-197804,Peter Paul Inc
+46201,MAE-197707,Monroe Auto Equip Co
+46252,IBP-198108,Iowa Beef Processors Inc
+46391,HNG-198507,Houston Natural Gas Corp
+46447,NSI-198309,Norton Simon Inc
+46682,SFF-198312,Santa Fe Inds Inc
+47052,CTU-199303,Central Tel & Utils Corp
+47386,DFC-198208,Dial Corp
+47482,KTY-197107,Kentucky Fried Chicken Corp
+47562,SFR-198105,Schaefer F & M Corp
+48119,UC-197612,Utah Construction & Mining Co
+48258,RGI-198411,Rio Grande Inds Inc
+48434,ID-198208,Ideal Toy Corp
+48549,SED-198412,Sedco Inc
+49592,CRD-198202,Credithrift Financial Corp
+49680,DHR-202212,D M G Inc (still trading; suffix = index exit)
+49920,GNO-198202,Ginos Inc
+49955,NXG-201110,Northgate Exploration Ltd
+50403,FMIF-199307,Great American Communications Co
+50534,BEL-198012,Belden Corp
+50681,CGM-198108,Connecticut Genl Mg A Rlty Inv
+51027,CMR-197804,Chase Manhattan Mtg & Rlty Tr
+51799,OMC-198105,Mayer Oscar & Co Inc De
+51801,MML-198506,Massmutual Mortgage & Rlty Invs
+52070,EDS-198410,Electronic Data Sys Corp
+52564,LVI-198508,Levi Strauss & Co
+54009,CHG-199306,Chicago Milwaukee Corp
+54615,NLT-198211,N L T Corp
+55386,EVT-198203,Envirotech Corp
+55685,HOI-198104,Houston Oil & Minerals Corp
+56012,PIZ-197711,Pizza Hut Inc De
+56098,IN-197811,Inland Container Corp
+56186,SCV-198409,S C A Services Inc
+57250,CIL-199408,Continental Ill Corp
+57488,BKI-198810,Beker Industries Corp
+57779,NWP-197902,Northwest Pipeline Corp
+58464,STK-200508,Storage Technology Corp
+58659,NWP-198311,Northwest Energy Co
+59221,CGEN-198203,Connecticut General Ins Corp
+59416,PABT-198505,Pabst Brewing Co
+59811,TSHR-198404,Tymshare Inc
+60572,RM-198411,Rolm Corp
+63255,NB-198509,Nabisco Brands Inc
+80411,FDSH-197902,Fds Holding Co
+86239,CFIP-199105,C F & I Steel Corp

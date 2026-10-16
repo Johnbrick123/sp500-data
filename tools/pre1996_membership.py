@@ -37,7 +37,9 @@ w["label"] = w.PERMNO.map(lab)
 bad = w[w.label.isna()]
 if len(bad):
     print("UNMAPPED spells:\n" + bad[["PERMNO", "Ticker", "Company", "s", "e"]].to_string()); sys.exit(1)
-cal = sorted(pd.read_parquet(pfile, columns=["date"]).date.unique())
+# the trading calendar: a prices parquet's dates, or a CSV with a Date column (the S&P 500's own
+# daily closes, for years before our price files are dense - added 2026-10-16)
+cal = sorted(pd.read_csv(pfile, parse_dates=["Date"]).Date.unique()) if pfile.endswith(".csv") else sorted(pd.read_parquet(pfile, columns=["date"]).date.unique())
 cal = [pd.Timestamp(d) for d in cal if A <= pd.Timestamp(d) < T]
 nxt = {d: cal[i + 1] if i + 1 < len(cal) else T for i, d in enumerate(cal)}
 rows = []
@@ -63,6 +65,28 @@ if os.path.exists(sl_f):
             k = i[0]; rows[k] = (rows[k][0], rows[k][1], r.first_day, rows[k][3])
             k = max(h, key=lambda k: rows[k][3]); rows[k] = (rows[k][0], rows[k][1], rows[k][2], r.first_day)
             print(f"start late: {r.label} from {r.first_day.date()}, {r.hold_label} held until then")
+# AUDIT=file[,file...] (crsp_identity_audit.py outputs: permno, first, last): any other spell that
+# starts before its permno's first trade starts on it, and a spell of a company leaving on the
+# spell's original start date is held until then (the first such, by label) - added 2026-10-16
+aud_f = os.environ.get("AUDIT")
+if aud_f:
+    au = pd.concat([pd.read_csv(f, parse_dates=["first", "last"]) for f in aud_f.split(",")]).drop_duplicates("permno").set_index("permno")
+    for k, x in enumerate(list(rows)):
+        lab, p, s0, e0 = rows[k]
+        if p not in au.index or s0 <= cal[0]:
+            continue
+        f1 = au.loc[p, "first"]
+        if pd.notna(f1) and f1 > s0:
+            f1 = next((d for d in cal if d >= f1), f1)
+            if f1 >= e0:
+                print(f"NO TRADE IN SPELL: {lab} ({p}) {s0.date()}..{e0.date()}, first trade {f1.date()}"); continue
+            rows[k] = (lab, p, f1, e0)
+            h = sorted([j for j, y in enumerate(rows) if y[3] == s0 and y[0] != lab], key=lambda j: rows[j][0])
+            if h:
+                j = h[0]; rows[j] = (rows[j][0], rows[j][1], rows[j][2], f1)
+                print(f"start late (auto): {lab} from {f1.date()} (listed {s0.date()}), {rows[j][0]} held until then")
+            else:
+                print(f"start late (auto): {lab} from {f1.date()} (listed {s0.date()}) - no company leaving that day to hold")
 hidden = mem[~mem.permno.isin(set(c.PERMNO))]
 for r in hidden.itertuples():
     rows.append((r.label, r.permno, cal[0], T))
