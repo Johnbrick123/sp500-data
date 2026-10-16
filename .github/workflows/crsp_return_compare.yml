@@ -38,5 +38,6 @@ jobs:
         if: always()
         run: |
           grep -iE "refused|missing|anomal|^rows|^tickers|^range" dry_build.log > dry_build_summary.txt || true
-          gh release upload data dry_build_summary.txt dry_verify.log dry_return_compare.txt --clobber
+          cp crsp_return_compare_flagged.csv dry_return_flagged.csv || true
+          gh release upload data dry_build_summary.txt dry_verify.log dry_return_compare.txt dry_return_flagged.csv --clobber
         env: { GH_TOKEN: "${{ github.token }}" }

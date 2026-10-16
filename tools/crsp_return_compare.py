@@ -34,13 +34,16 @@ for r in m.itertuples():
     j = o.merge(k, on="date", how="outer")
     j["label"], j["permno"] = r.label, r.permno
     rows.append(j)
-x = pd.concat(rows)
+x = pd.concat(rows, ignore_index=True)
 x["diff_pct"] = (x.ours - x.ret) * 100
 both = x.dropna(subset=["ours", "ret"])
 bad = both[both.diff_pct.abs() > tol]
 x.to_csv(out, index=False)
+bad[["label", "permno", "date", "ours", "ret", "diff_pct", "close", "source"]].to_csv(out.replace(".csv", "_flagged.csv"), index=False)
 print(f"{len(both):,} member-days compared ({x.label.nunique()} labels); within {tol}%: {100 * (1 - len(bad) / max(len(both), 1)):.3f}%; "
       f"ours without CRSP: {x.ret.isna().sum()}, CRSP without ours: {x.ours.isna().sum()}")
 pd.set_option("display.width", 220); pd.set_option("display.max_rows", 400)
 print("\nlabels with the most differing days:\n" + bad.groupby("label").size().sort_values(ascending=False).head(40).to_string())
-print("\nlargest differences:\n" + bad.reindex(bad.diff_pct.abs().sort_values(ascending=False).index).head(80)[["label", "permno", "date", "ours", "ret", "diff_pct", "close", "prc", "source"]].to_string())
+print("\nby the source of our row:\n" + both.assign(bad=both.diff_pct.abs() > tol).groupby(both.source.astype(str)).bad.agg(["size", "sum"]).to_string())
+print("\nby year:\n" + both.assign(bad=both.diff_pct.abs() > tol).groupby(both.date.dt.year).bad.agg(["size", "sum"]).to_string())
+print("\nlargest differences:\n" + bad.reindex(bad.diff_pct.abs().sort_values(ascending=False).index).head(150)[["label", "permno", "date", "ours", "ret", "diff_pct", "close", "prc", "source"]].to_string())
