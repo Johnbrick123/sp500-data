@@ -1,0 +1,42 @@
+name: Dry build and compare returns with CRSP's (read-only)
+
+# Builds the dataset from the published raw store on the chosen branch (nothing is
+# published but the reports), runs verify.py, and compares every member-day's total return in
+# the window's membership with CRSP's RET (tools/crsp_return_compare.py). Run it on a work
+# branch before merging (gh api .../dispatches -f ref=BRANCH). Added 2026-10-15 for the
+# pre-1996 extension.
+on:
+  workflow_dispatch:
+    inputs:
+      membership: { description: "label,permno,start,end CSV in the repo", required: false, default: "pre1996/membership.csv" }
+      tol: { description: "Tolerance in percentage points", required: false, default: "0.5" }
+      slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
+permissions:
+  contents: write
+jobs:
+  dry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q yfinance pandas pyarrow duckdb beautifulsoup4 lxml 'kaggle>=1.8.0'
+      - name: Restore the raw store
+        run: |
+          gh release download data --pattern 'raw.tar.zst' --dir . --clobber
+          tar --zstd -xf raw.tar.zst
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python build_universe.py
+      - run: python bridge_membership.py
+      - run: python compute_adjusted.py 2>&1 | tee dry_build.log
+      - run: python verify.py 2>&1 | tee dry_verify.log || true
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - run: python tools/crsp_return_compare.py data/prices.parquet "${{ github.event.inputs.membership }}" crsp_return_compare.csv "${{ github.event.inputs.tol }}" | tee dry_return_compare.txt
+      - name: Publish the reports
+        if: always()
+        run: |
+          grep -iE "refused|missing|anomal|^rows|^tickers|^range" dry_build.log > dry_build_summary.txt || true
+          gh release upload data dry_build_summary.txt dry_verify.log dry_return_compare.txt --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }

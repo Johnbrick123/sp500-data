@@ -287,6 +287,9 @@ def apply_splice(df, stem):
     if rows.empty:
         return df
     r = rows.iloc[0]
+    # the ratio may vary by 0.5% across the overlap, or by the row's own tol (a vendor's rounded
+    # 1995 closes against CRSP's; added 2026-10-15 for the pre-1996 prefixes)
+    TOL = float(pd.to_numeric(r.get("tol", np.nan), errors="coerce")) if pd.notna(pd.to_numeric(r.get("tol", np.nan), errors="coerce")) else 0.005
     pf = RAW / f"{r.prefix}.parquet"
     if not pf.exists():
         print(f"  splice {stem} <- {r.prefix}: prefix file missing"); return df
@@ -299,6 +302,23 @@ def apply_splice(df, stem):
     pre = apply_overrides(pre.sort_values("date").reset_index(drop=True))
     for x in (df, pre):
         d = pd.to_datetime(x["date"]); x["date"] = d.dt.tz_localize(None) if d.dt.tz is not None else d
+    srcs = df["source"].astype(str) if "source" in df.columns else pd.Series(["yahoo"])
+    base = srcs[~srcs.str.endswith(("-patch", "-splice"))]
+    tgt = base.mode().iloc[0] if len(base) else "yahoo"
+    if tgt not in ("tiingo", "wiki", "crsp") and str(pre["source"].iloc[0]) == "crsp" and "stock_splits" in pre:
+        # a raw CRSP prefix in front of a Yahoo series (SKYD <- old Viacom): Yahoo's closes and
+        # dividends are already divided by every later split, so put the prefix on that basis too
+        # (old Viacom's 1999 2-for-1) - the overlap ratio k, measured after this, then only has to bridge the rest
+        pre = pre.sort_values("date").reset_index(drop=True)
+        sp = pd.to_numeric(pre["stock_splits"], errors="coerce").fillna(1.0).replace(0, 1.0)
+        # every split on the prefix, including those in the overlap after the splice date: Yahoo's
+        # closes there are divided by them too, so leaving them out made the overlap ratio jump at
+        # the split and the splice was refused (Intel's, HP's and Micron's 1995 2-for-1s in front
+        # of their CRSP prefixes back to 1985 - the pre-1996 extension, 2026-10-15)
+        later = sp[::-1].cumprod()[::-1].shift(-1).fillna(1.0)
+        for col in ("open", "high", "low", "close", "dividends"):
+            if col in pre:
+                pre[col] = pre[col] / later
     own = df[df.date >= r.before] if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true") else df
     j = own[["date", "close"]].merge(pre[["date", "close"]], on="date", suffixes=("", "_p")).dropna()
     ratio = (j.close / j.close_p)
@@ -308,24 +328,10 @@ def apply_splice(df, stem):
         # Media Group's tracking stock -> MediaOne Group, 1998-06-12), both raw closes - the ratio
         # is declared in the file (added 2026-10-15, the 1998 pass)
         ratio = pd.Series([float(fixed)] * 60)
-    elif len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > 0.005:
+    elif len(j) < 60 or (ratio.quantile(0.95) - ratio.quantile(0.05)) / ratio.median() > TOL:
         print(f"  splice {stem} <- {r.prefix}: REFUSED ({len(j)} overlapping days, ratio spread {(ratio.quantile(0.95)-ratio.quantile(0.05))/ratio.median():.4f})")
         return df
     k = float(ratio.median())
-    srcs = df["source"].astype(str) if "source" in df.columns else pd.Series(["yahoo"])
-    base = srcs[~srcs.str.endswith(("-patch", "-splice"))]
-    tgt = base.mode().iloc[0] if len(base) else "yahoo"
-    if tgt not in ("tiingo", "wiki", "crsp") and str(pre["source"].iloc[0]) == "crsp" and "stock_splits" in pre:
-        # a raw CRSP prefix in front of a Yahoo series (SKYD <- old Viacom): Yahoo's closes and
-        # dividends are already divided by every later split, so put the prefix on that basis too
-        # (old Viacom's 1999 2-for-1) - the overlap ratio k then only has to bridge the rest
-        pre = pre.sort_values("date").reset_index(drop=True)
-        sp = pd.to_numeric(pre["stock_splits"], errors="coerce").fillna(1.0).replace(0, 1.0)
-        sp = sp.where(pre["date"] < r.before, 1.0)
-        later = sp[::-1].cumprod()[::-1].shift(-1).fillna(1.0)
-        for col in ("open", "high", "low", "close", "dividends"):
-            if col in pre:
-                pre[col] = pre[col] / later
     if str(r.get("drop_own_before", "")).strip().lower() in ("1", "yes", "true"):
         # the label's own rows before the splice date are another security's quotes (Yahoo's
         # SKYD carries CBS's when-issued market for Dec 2005, while old Viacom - the same company -
