@@ -50,6 +50,19 @@ for r in w.itertuples():
         last = max(d for d in cal if d <= r.e)
         e = nxt[last]
     rows.append((r.label, r.PERMNO, s, e))
+# a company CRSP lists before its first regular-way trade (a merger's or spin-off's new shares,
+# when-issued only) starts on its first trade, and the company it replaced is held until then
+# (pre1996/start_late.csv; the 1996+ convention for Conoco Class B - added 2026-10-16)
+import os
+sl_f = os.path.join(os.path.dirname(os.path.abspath(dfile)), "start_late.csv")
+if os.path.exists(sl_f):
+    for r in pd.read_csv(sl_f, parse_dates=["first_day"]).itertuples():
+        i = [k for k, x in enumerate(rows) if x[0] == r.label and x[2] < r.first_day < x[3]]
+        h = [k for k, x in enumerate(rows) if x[0] == r.hold_label and x[3] <= r.first_day]
+        if i and h:
+            k = i[0]; rows[k] = (rows[k][0], rows[k][1], r.first_day, rows[k][3])
+            k = max(h, key=lambda k: rows[k][3]); rows[k] = (rows[k][0], rows[k][1], rows[k][2], r.first_day)
+            print(f"start late: {r.label} from {r.first_day.date()}, {r.hold_label} held until then")
 hidden = mem[~mem.permno.isin(set(c.PERMNO))]
 for r in hidden.itertuples():
     rows.append((r.label, r.permno, cal[0], T))
