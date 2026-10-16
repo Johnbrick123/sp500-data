@@ -1,0 +1,35 @@
+name: Pre-1996 index check (read-only)
+
+# Rebuilds the S&P 500's daily return from pre1996/membership.csv and the Kaggle CRSP dump and
+# compares it with the published index (fHMM's spx data, from Yahoo's ^GSPC). Added 2026-10-15.
+on:
+  workflow_dispatch:
+    inputs:
+      start: { description: "First day", required: true, default: "1991-01-02" }
+      end: { description: "Last day", required: true, default: "1995-12-29" }
+      membership: { description: "Membership CSV in the repo", required: false, default: "pre1996/membership.csv" }
+      slug: { description: "Kaggle dataset", required: false, default: "meliodaz/crsp-with-mkt-ret-68-24" }
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas 'kaggle>=1.8.0' rdata
+      - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
+        env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
+      - name: S&P 500 closes
+        run: |
+          curl -sSL -o spx.rda https://raw.githubusercontent.com/loelschlaeger/fHMM/master/data/spx.rda
+          python -c "import rdata, pandas as pd; d=rdata.read_rda('spx.rda'); s=pd.DataFrame(list(d.values())[0]); s[['Date','Close']].to_csv('spx.csv', index=False)"
+      - run: mkdir -p data/pre1996_check && python tools/pre1996_index_check.py "${{ github.event.inputs.membership }}" spx.csv "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" data/pre1996_check | tee data/pre1996_check/report.txt
+      - name: Publish
+        if: always()
+        run: |
+          cp data/pre1996_check/index_daily.csv data/pre1996_index_daily.csv && cp data/pre1996_check/report.txt data/pre1996_check_report.txt
+          gh release upload data data/pre1996_index_daily.csv data/pre1996_check_report.txt --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
