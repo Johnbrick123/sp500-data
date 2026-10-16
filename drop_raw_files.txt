@@ -68,3 +68,685 @@ KMB_c85 crsp   # 2026-10-15 (pre-1996): superseded by KMB_c85b, the same permno 
 MCO_c85 crsp   # 2026-10-15 (pre-1996): superseded by MCO_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
 MDP_c85 crsp   # 2026-10-15 (pre-1996): superseded by MDP_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
 PCAR_c85 crsp   # 2026-10-15 (pre-1996): superseded by PCAR_c85b, the same permno run on to 1996-06-28 so CRSP replaces the vendor's 1995 rows
+PN-199109 crsp first=4.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20984)
+CHH-199210 crsp first=23.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40352)
+DPT-199808 crsp first=19.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 59707)
+UH-200005 crsp first=6.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 48565)
+TKA-199108 crsp first=43.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40221)
+SQD-199105 crsp first=39.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20079)
+NCR-199109 crsp first=25.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19537)
+CTCO-199110 crsp first=23.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27749)
+HBJ-199111 crsp first=44.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27924)
+MHC-199112 crsp first=36.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 48223)
+USG-199305 crsp first=59.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19131)
+SPC-199204 crsp first=51.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 60839)
+BNS-200202 crsp first=16.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42606)
+AMT-199607 crsp first=13.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10057)
+MMO-200006 crsp first=14.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 22023)
+WAN-199309 crsp first=25.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 65816)
+WETT-199210 crsp first=25.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 82705)
+WCX-201804 crsp first=17.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 59467)
+IK-199902 crsp first=43.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 15747)
+CUE-199309 crsp first=25.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 13354)
+JWP-199310 crsp first=16.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46288)
+PCLB-199310 crsp first=40.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 64064)
+AMX-199311 crsp first=16.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10161)
+PCI-199407 crsp first=28.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 32475)
+CMCSA-200211 crsp first=19.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25022)
+TIC-199312 crsp first=37.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 47300)
+NL-199401 crsp first=10.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 13303)
+E-199504 crsp first=51.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 58472)
+CNA-199403 crsp first=31.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 47626)
+EY-199403 crsp first=32.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42550)
+LIT-200105 crsp first=64.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26294)
+FJQ-200611 crsp first=5.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23552)
+GQ-199404 crsp first=27.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21274)
+SYN-199410 crsp first=47.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 37102)
+GEB-199408 crsp first=25.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25910)
+UAL-200304 crsp first=44.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19596)
+ACY-199411 crsp first=49.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23341)
+MCK-199411 crsp first=38.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25646)
+FOX-199901 crsp first=27.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17278)
+BV-199409 crsp first=3.8125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27087)
+GCO-199409 crsp first=5.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21055)
+PIN-199410 crsp first=7.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 24192)
+BN-199503 crsp first=63.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 16571)
+TMC-199501 crsp first=38.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40635)
+NED-199706 crsp first=14.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 47028)
+ML-199503 crsp first=43.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20562)
+MXS-199506 crsp first=17.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 24715)
+REN-200006 crsp first=15.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 64477)
+ESY-199505 crsp first=24.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 43342)
+CIC-199505 crsp first=36.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46658)
+CKL-199505 crsp first=25.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18446)
+HMX-200811 crsp first=28.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 22250)
+MAI-199506 crsp first=19.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 34147)
+LOTS-199507 crsp first=24.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 50156)
+SPW-199507 crsp first=25.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 55212)
+SKY-199507 crsp first=16.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 38850)
+BRNO-199508 crsp first=20.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19589)
+SFX-199509 crsp first=25.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 66069)
+FRM-199612 crsp first=9.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 58296)
+BSET-199510 crsp first=35.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17137)
+UPJ-199511 crsp first=69.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26681)
+CBS-199511 crsp first=73.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20730)
+FNB-199511 crsp first=20.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 53858)
+SNC-199511 crsp first=26.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 41081)
+ZE-199805 crsp first=19.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18067)
+SPP-199512 crsp first=34.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18032)
+ZRN-199806 crsp first=25.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 45970)
+MRN-199606 crsp first=33.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 55079)
+FFB-199512 crsp first=46.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 52505)
+ABC-198601 crsp first=62.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10233)
+CLU-198601 crsp first=27.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 11295)
+GLM-200111 crsp first=4.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 45428)
+TXO-198602 crsp first=17.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 41523)
+MGM-198603 crsp first=11.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 61794)
+BRY-198604 crsp first=28.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17953)
+AD-198606 crsp first=37.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10487)
+ZB-198610 crsp first=33.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17128)
+WSW-198604 crsp first=29.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 16088)
+NG-198604 crsp first=39.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20570)
+ECK-198604 crsp first=28.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40141)
+MEI-199302 crsp first=37.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 12933)
+RCA-198606 crsp first=35.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 14090)
+MZ-198607 crsp first=40.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 12976)
+LTV-199306 crsp first=10.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25507)
+TFD-198608 crsp first=19.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42462)
+SAA-198608 crsp first=35.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42999)
+SY-198609 crsp first=41.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 14525)
+XLO-198609 crsp first=37.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20909)
+DG-198610 crsp first=50.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10559)
+HWR-198610 crsp first=18.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 61890)
+FTR-198612 crsp first=22.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21522)
+SA-198611 crsp first=27.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17291)
+RYN-198706 crsp first=25.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 52062)
+CGG-198612 crsp first=19.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 11164)
+OVT-198612 crsp first=27.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 39394)
+CK-198701 crsp first=38.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 15712)
+RDS-198612 crsp first=24.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 41662)
+ALS-198612 crsp first=49.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17304)
+CBM-198702 crsp first=33.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28505)
+CZ-198702 crsp first=80.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19027)
+KCG-198703 crsp first=16.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28433)
+OI-198703 crsp first=40.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 13661)
+BKO-198704 crsp first=16.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28134)
+HT-198704 crsp first=13.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 56485)
+FPA-199003 crsp first=6.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 53903)
+TCB-198704 crsp first=39.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 58093)
+IFC-198706 crsp first=10.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 56805)
+RCB-198704 crsp first=13.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21119)
+JOY-198706 crsp first=25.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21557)
+SRD-198706 crsp first=41.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21450)
+AH-198812 crsp first=6.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10153)
+LTC-198706 crsp first=29.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 43318)
+AMO-198708 crsp first=3.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10321)
+BOR-198707 crsp first=21.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17590)
+DM-198708 crsp first=6.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 11690)
+CRK-198708 crsp first=17.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25478)
+BUR-198709 crsp first=25.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20677)
+TFB-198710 crsp first=60.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28548)
+SGL-198710 crsp first=33.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 37065)
+SLC-198712 crsp first=27.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 55351)
+BY-198802 crsp first=14.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 16651)
+TRR-198712 crsp first=26.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 57234)
+GHB-198803 crsp first=16.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 56864)
+JWC-198801 crsp first=31.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40301)
+WSN-199504 crsp first=4.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 58085)
+CVN-198802 crsp first=36.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 60900)
+SMF-198804 crsp first=29.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27473)
+STY-198802 crsp first=28.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 14592)
+BRK-198802 crsp first=17.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 50737)
+FIN-198809 crsp first=7.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 29962)
+ROP-198804 crsp first=14.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 20343)
+AST-198807 crsp first=30.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10372)
+FDS-198807 crsp first=51.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18550)
+FIR-198805 crsp first=16.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18569)
+STN-198806 crsp first=17.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23421)
+IMSI-198805 crsp first=35.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 43298)
+FW-198806 crsp first=51.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 11332)
+LKS-198806 crsp first=17.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 40053)
+KOP-198811 crsp first=18.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 22170)
+CLO-198909 crsp first=14.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46615)
+MOH-198909 crsp first=22.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 22760)
+FHP-198810 crsp first=58.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 54754)
+GLD-198811 crsp first=21.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 22568)
+RE-198812 crsp first=9.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 41486)
+KLU-198810 crsp first=14.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 24635)
+MLL-198812 crsp first=45.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27027)
+KRA-198812 crsp first=84.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 61970)
+PA-198812 crsp first=50.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 10241)
+PSY-198901 crsp first=44.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 16360)
+LT-198901 crsp first=16.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 69024)
+RJR-198904 crsp first=71.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 14218)
+TGR-198902 crsp first=6.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17340)
+CHU-198909 crsp first=30.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 59205)
+HCA-198903 crsp first=37.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 51561)
+EAF-198904 crsp first=17.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 31659)
+WPM-199312 crsp first=36.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 41427)
+CLN-198904 crsp first=26.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 39140)
+TET-198906 crsp first=29.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27940)
+CHM-198907 crsp first=8.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26622)
+UCT-198905 crsp first=30.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 63802)
+MTI-200005 crsp first=26.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21290)
+CNW-198910 crsp first=25.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 63108)
+NWA-198907 crsp first=40.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21485)
+SKB-198907 crsp first=53.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26390)
+WCI-199001 crsp first=20.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 38551)
+IDL-199003 crsp first=13.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26286)
+ASA-198908 crsp first=46.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 26649)
+MKC-199507 crsp first=41.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 47837)
+PRM-199001 crsp first=17.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 60337)
+RB-200101 crsp first=8.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46228)
+CUL-198909 crsp first=44.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 64207)
+JERR-199005 crsp first=17.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46544)
+SQB-198910 crsp first=52.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 45604)
+AMI-199004 crsp first=19.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 46754)
+NOXL-198911 crsp first=44.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 58596)
+CSP-199001 crsp first=32.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18999)
+RAM-198912 crsp first=5.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 45014)
+HIA-199002 crsp first=42.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 39669)
+LINB-199510 crsp first=24.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 49606)
+GNN-199006 crsp first=35.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 25160)
+NRT-199008 crsp first=36.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 39300)
+GNE-199906 crsp first=35.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 38280)
+GRL-199008 crsp first=16.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23253)
+PHL-199008 crsp first=17.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42753)
+SOV-199008 crsp first=38.625  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 71889)
+PDQ-199207 crsp first=25.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 54447)
+CBL-199010 crsp first=30.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 30912)
+ISS-199206 crsp first=59.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18278)
+LCE-199404 crsp first=25.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 12888)
+MCA-199101 crsp first=39.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 27086)
+AAL-199702_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AAL-199702_c68, the same permno 63845 from 1968-01-02
+AAPL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AAPL_c68, the same permno 14593 from 1968-01-02
+ABI-200811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ABI-200811_c68, the same permno 27713 from 1968-01-02
+ABS-200606_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ABS-200606_c68, the same permno 50032 from 1968-01-02
+ABT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ABT_c68, the same permno 20482 from 1968-01-02
+ABX-201812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ABX-201812_c68, the same permno 71298 from 1968-01-02
+ACKH-200211_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ACKH-200211_c68, the same permno 19692 from 1968-01-02
+ACV-201105_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ACV-201105_c68, the same permno 42083 from 1968-01-02
+ADM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ADM_c68, the same permno 10516 from 1968-01-02
+ADP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ADP_c68, the same permno 44644 from 1968-01-02
+ADSK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ADSK_c68, the same permno 85631 from 1968-01-02
+AEP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AEP_c68, the same permno 24109 from 1968-01-02
+AET-201811_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AET-201811_c68b, the same permno 46850 from 1968-01-02
+AGC-200108_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AGC-200108_c68, the same permno 48397 from 1968-01-02
+AGN-201503_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AGN-201503_c68, the same permno 75646 from 1968-01-02
+AHM-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AHM-199810_c68, the same permno 56266 from 1968-01-02
+AIG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AIG_c68, the same permno 66800 from 1968-01-02
+AIT-199910_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AIT-199910_c68, the same permno 65859 from 1968-01-02
+AL-200711_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AL-200711_c68, the same permno 24264 from 1968-01-02
+ALL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ALL_c68, the same permno 79323 from 1968-01-02
+AM-201308_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AM-201308_c68, the same permno 13056 from 1968-01-02
+AMAT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AMAT_c68, the same permno 14702 from 1968-01-02
+AMD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AMD_c68, the same permno 61241 from 1968-01-02
+AMGN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AMGN_c68, the same permno 14008 from 1968-01-02
+AMH-199709_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AMH-199709_c68, the same permno 60046 from 1968-01-02
+AMP-199904_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AMP-199904_c68, the same permno 27051 from 1968-01-02
+AN-199812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AN-199812_c68, the same permno 19553 from 1968-01-02
+ANDW-200712_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ANDW-200712_c68, the same permno 14323 from 1968-01-02
+ANV-199904_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ANV-199904_c68, the same permno 18147 from 1968-01-02
+APD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by APD_c68, the same permno 28222 from 1968-01-02
+AR-199911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AR-199911_c68, the same permno 10364 from 1968-01-02
+ARC-200004_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ARC-200004_c68, the same permno 10604 from 1968-01-02
+AS-199909_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AS-199909_c68, the same permno 17566 from 1968-01-02
+ASC-199906_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ASC-199906_c68, the same permno 44652 from 1968-01-02
+ASH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ASH_c68, the same permno 24272 from 1968-01-02
+AT-200711_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AT-200711_c68, the same permno 41443 from 1968-01-02
+ATI-199906_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ATI-199906_c68, the same permno 80094 from 1968-01-02
+AVP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AVP_c68, the same permno 40416 from 1968-01-02
+AVY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AVY_c68, the same permno 44601 from 1968-01-02
+AXP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AXP_c68, the same permno 59176 from 1968-01-02
+AZA-A-200106_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by AZA-A-200106_c68, the same permno 64856 from 1968-01-02
+BA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BA_c68, the same permno 19561 from 1968-01-02
+BAC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BAC_c68, the same permno 59408 from 1968-01-02
+BAC-199809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BAC-199809_c68, the same permno 58827 from 1968-01-02
+BALL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BALL_c68, the same permno 57568 from 1968-01-02
+BAX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BAX_c68, the same permno 27887 from 1968-01-02
+BBI-199801_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BBI-199801_c68, the same permno 61284 from 1968-01-02
+BBWI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BBWI_c68, the same permno 64282 from 1968-01-02
+BC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BC_c68, the same permno 10874 from 1968-01-02
+BCO_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BCO_c68b, the same permno 18649 from 1968-01-02
+BCR-201712_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BCR-201712_c68, the same permno 46877 from 1968-01-02
+BDK-201003_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BDK-201003_c68, the same permno 20220 from 1968-01-02
+BDX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BDX_c68, the same permno 39642 from 1968-01-02
+BEAM-201404_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BEAM-201404_c68, the same permno 10225 from 1968-01-02
+BEV-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BEV-200603_c68, the same permno 47992 from 1968-01-02
+BF-B_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BF-B_c68, the same permno 29946 from 1968-01-02
+BFI-199907_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BFI-199907_c68, the same permno 53786 from 1968-01-02
+BFO-200010_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BFO-200010_c68, the same permno 10989 from 1968-01-02
+BGG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BGG_c68, the same permno 17961 from 1968-01-02
+BHMSQ-200401_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BHMSQ-200401_c68, the same permno 10786 from 1968-01-02
+BKB-199909_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BKB-199909_c68, the same permno 51772 from 1968-01-02
+BKR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BKR_c68, the same permno 75034 from 1968-01-02
+BLS-200612_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BLS-200612_c68, the same permno 65883 from 1968-01-02
+BLY-199612_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BLY-199612_c68, the same permno 58480 from 1968-01-02
+BMET-200709_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BMET-200709_c68, the same permno 18092 from 1968-01-02
+BMS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BMS_c68, the same permno 43772 from 1968-01-02
+BMY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BMY_c68, the same permno 19393 from 1968-01-02
+BNI-201002_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BNI-201002_c68, the same permno 50227 from 1968-01-02
+BNL-199806_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BNL-199806_c68, the same permno 19377 from 1968-01-02
+BNY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BNY_c68, the same permno 49656 from 1968-01-02
+BOAT-199701_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BOAT-199701_c68, the same permno 18551 from 1968-01-02
+BOL-200710_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BOL-200710_c68, the same permno 26518 from 1968-01-02
+BR-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BR-200603_c68, the same permno 75333 from 1968-01-02
+BSX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BSX_c68, the same permno 77605 from 1968-01-02
+BT-199906_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BT-199906_c68, the same permno 48354 from 1968-01-02
+BUD-200811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by BUD-200811_c68, the same permno 59184 from 1968-01-02
+C_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by C_c68, the same permno 70519 from 1968-01-02
+C-199811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by C-199811_c68, the same permno 11260 from 1968-01-02
+CA-201811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CA-201811_c68, the same permno 25778 from 1968-01-02
+CAG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CAG_c68, the same permno 56274 from 1968-01-02
+CAL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CAL_c68, the same permno 10866 from 1968-01-02
+CAR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CAR_c68, the same permno 25487 from 1968-01-02
+CAT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CAT_c68, the same permno 18542 from 1968-01-02
+CB-201601_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CB-201601_c68, the same permno 59192 from 1968-01-02
+CBB-199801_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CBB-199801_c68, the same permno 59432 from 1968-01-02
+CBE-201211_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CBE-201211_c68, the same permno 21979 from 1968-01-02
+CBS-200005_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CBS-200005_c68, the same permno 15368 from 1968-01-02
+CCB-199602_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CCB-199602_c68, the same permno 30330 from 1968-01-02
+CCI-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CCI-199810_c68, the same permno 47079 from 1968-01-02
+CCK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CCK_c68, the same permno 17726 from 1968-01-02
+CCTYQ-201009_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CCTYQ-201009_c68, the same permno 47175 from 1968-01-02
+CEN-200711_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CEN-200711_c68, the same permno 38914 from 1968-01-02
+CFL-199804_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CFL-199804_c68, the same permno 27263 from 1968-01-02
+CG-200011_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CG-200011_c68, the same permno 11340 from 1968-01-02
+CGP-200101_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CGP-200101_c68, the same permno 38893 from 1968-01-02
+CHA-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CHA-200006_c68, the same permno 21397 from 1968-01-02
+CHRS-201206_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CHRS-201206_c68, the same permno 22753 from 1968-01-02
+CI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CI_c68, the same permno 64186 from 1968-01-02
+CIN-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CIN-200603_c68, the same permno 22947 from 1968-01-02
+CL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CL_c68, the same permno 18729 from 1968-01-02
+CLX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CLX_c68, the same permno 46578 from 1968-01-02
+CMA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CMA_c68, the same permno 25081 from 1968-01-02
+CMB-199603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CMB-199603_c68, the same permno 41718 from 1968-01-02
+CMCSK-201512_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CMCSK-201512_c68, the same permno 11997 from 1968-01-02
+CMI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CMI_c68, the same permno 41080 from 1968-01-02
+CNG-200001_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CNG-200001_c68, the same permno 21821 from 1968-01-02
+CNP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CNP_c68, the same permno 21792 from 1968-01-02
+CNW-201510_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CNW-201510_c68, the same permno 41929 from 1968-01-02
+COMS-201004_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by COMS-201004_c68, the same permno 76129 from 1968-01-02
+COP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by COP_c68, the same permno 13928 from 1968-01-02
+COST_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by COST_c68, the same permno 87055 from 1968-01-02
+COV-200203_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by COV-200203_c68, the same permno 34841 from 1968-01-02
+CPB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CPB_c68, the same permno 25320 from 1968-01-02
+CPQ-200205_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CPQ-200205_c68, the same permno 68347 from 1968-01-02
+CR-202304_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CR-202304_c68, the same permno 20204 from 1968-01-02
+CRR-199706_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CRR-199706_c68, the same permno 71765 from 1968-01-02
+CSCO_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CSCO_c68, the same permno 76076 from 1968-01-02
+CSR-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CSR-200006_c68, the same permno 23851 from 1968-01-02
+CSX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CSX_c68, the same permno 62148 from 1968-01-02
+CTB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CTB_c68, the same permno 27430 from 1968-01-02
+CTX-200908_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CTX-200908_c68, the same permno 53831 from 1968-01-02
+CVS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CVS_c68, the same permno 17005 from 1968-01-02
+CVX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CVX_c68, the same permno 14541 from 1968-01-02
+CYM-199912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CYM-199912_c68, the same permno 87127 from 1968-01-02
+CYR-199606_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by CYR-199606_c68, the same permno 62164 from 1968-01-02
+D_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by D_c68, the same permno 64936 from 1968-01-02
+DALRQ-200704_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DALRQ-200704_c68, the same permno 26112 from 1968-01-02
+DCNAQ-200801_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DCNAQ-200801_c68, the same permno 11607 from 1968-01-02
+DD-201708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DD-201708_c68, the same permno 11703 from 1968-01-02
+DDS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DDS_c68, the same permno 49429 from 1968-01-02
+DE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DE_c68, the same permno 19350 from 1968-01-02
+DEC-199806_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DEC-199806_c68, the same permno 43916 from 1968-01-02
+DGN-199910_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DGN-199910_c68, the same permno 57592 from 1968-01-02
+DI-199809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DI-199809_c68, the same permno 19254 from 1968-01-02
+DIGI-199809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DIGI-199809_c68, the same permno 30067 from 1968-01-02
+DIS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DIS_c68, the same permno 26403 from 1968-01-02
+DJ-200712_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DJ-200712_c68, the same permno 58990 from 1968-01-02
+DL-199608_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DL-199608_c68, the same permno 19721 from 1968-01-02
+DLX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DLX_c68, the same permno 61743 from 1968-01-02
+DOV_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DOV_c68, the same permno 25953 from 1968-01-02
+DOW-201708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DOW-201708_c68, the same permno 20626 from 1968-01-02
+DTE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DTE_c68, the same permno 11674 from 1968-01-02
+DUK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DUK_c68, the same permno 27959 from 1968-01-02
+DWD-199705_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DWD-199705_c68, the same permno 78946 from 1968-01-02
+DXC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by DXC_c68, the same permno 40125 from 1968-01-02
+EC-200606_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EC-200606_c68, the same permno 62834 from 1968-01-02
+ECH-199807_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ECH-199807_c68, the same permno 31536 from 1968-01-02
+ECL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ECL_c68, the same permno 70578 from 1968-01-02
+ECO-200301_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ECO-200301_c68, the same permno 65568 from 1968-01-02
+ED_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ED_c68, the same permno 11404 from 1968-01-02
+EFU-200011_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EFU-200011_c68, the same permno 26075 from 1968-01-02
+EIX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EIX_c68, the same permno 15720 from 1968-01-02
+EKDKQ-201309_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EKDKQ-201309_c68, the same permno 11754 from 1968-01-02
+EMN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EMN_c68, the same permno 80080 from 1968-01-02
+EMR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EMR_c68, the same permno 22103 from 1968-01-02
+ENRNQ-200411_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ENRNQ-200411_c68, the same permno 23317 from 1968-01-02
+ENS-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ENS-199708_c68, the same permno 25056 from 1968-01-02
+ETN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ETN_c68, the same permno 11762 from 1968-01-02
+ETR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ETR_c68, the same permno 24010 from 1968-01-02
+ETS-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ETS-200603_c68, the same permno 75625 from 1968-01-02
+EXC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by EXC_c68, the same permno 21776 from 1968-01-02
+F_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by F_c68, the same permno 25785 from 1968-01-02
+FBF-200403_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FBF-200403_c68, the same permno 47159 from 1968-01-02
+FBO-199603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FBO-199603_c68, the same permno 25371 from 1968-01-02
+FCN-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FCN-199810_c68, the same permno 56450 from 1968-01-02
+FDC-200709_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FDC-200709_c68, the same permno 77546 from 1968-01-02
+FDX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FDX_c68, the same permno 60628 from 1968-01-02
+FG-199804_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FG-199804_c68, the same permno 50956 from 1968-01-02
+FJ-200011_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FJ-200011_c68, the same permno 61583 from 1968-01-02
+FL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FL_c68, the same permno 15456 from 1968-01-02
+FLMIQ-200408_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FLMIQ-200408_c68, the same permno 47271 from 1968-01-02
+FLTWQ-200907_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FLTWQ-200907_c68, the same permno 46295 from 1968-01-02
+FMC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FMC_c68, the same permno 19166 from 1968-01-02
+FMCC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FMCC_c68, the same permno 75789 from 1968-01-02
+FNMA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FNMA_c68, the same permno 51043 from 1968-01-02
+FTL-A-200004_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FTL-A-200004_c68, the same permno 71984 from 1968-01-02
+FWLT-201412_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by FWLT-201412_c68, the same permno 18112 from 1968-01-02
+G-200509_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by G-200509_c68, the same permno 16424 from 1968-01-02
+GAP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GAP_c68, the same permno 59010 from 1968-01-02
+GAPTQ-201203_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GAPTQ-201203_c68, the same permno 26657 from 1968-01-02
+GAS-201112_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GAS-201112_c68, the same permno 48274 from 1968-01-02
+GD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GD_c68, the same permno 12052 from 1968-01-02
+GDW-200609_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GDW-200609_c68, the same permno 53479 from 1968-01-02
+GE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GE_c68, the same permno 12060 from 1968-01-02
+GFS-A-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GFS-A-199810_c68, the same permno 32205 from 1968-01-02
+GIDL-199709_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GIDL-199709_c68, the same permno 76070 from 1968-01-02
+GIS_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GIS_c68b, the same permno 17144 from 1968-01-02
+GL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GL_c68, the same permno 62308 from 1968-01-02
+GLD-199705_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GLD-199705_c68, the same permno 80694 from 1968-01-02
+GLK-200507_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GLK-200507_c68, the same permno 32379 from 1968-01-02
+GLW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GLW_c68, the same permno 22293 from 1968-01-02
+GP-200512_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GP-200512_c68, the same permno 23915 from 1968-01-02
+GPC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GPC_c68, the same permno 46674 from 1968-01-02
+GPU-200111_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GPU-200111_c68, the same permno 22541 from 1968-01-02
+GR-201207_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GR-201207_c68, the same permno 12140 from 1968-01-02
+GRA-199609_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GRA-199609_c68, the same permno 25005 from 1968-01-02
+GRN-199812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GRN-199812_c68, the same permno 62252 from 1968-01-02
+GSX-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GSX-199810_c68, the same permno 12095 from 1968-01-02
+GT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GT_c68, the same permno 16432 from 1968-01-02
+GTE-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GTE-200006_c68, the same permno 21004 from 1968-01-02
+GWF-199707_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GWF-199707_c68, the same permno 27115 from 1968-01-02
+GWW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by GWW_c68, the same permno 52695 from 1968-01-02
+H-200107_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by H-200107_c68, the same permno 40838 from 1968-01-02
+HAL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HAL_c68, the same permno 23819 from 1968-01-02
+HAS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HAS_c68, the same permno 52978 from 1968-01-02
+HCA-200611_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HCA-200611_c68, the same permno 76171 from 1968-01-02
+HD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HD_c68, the same permno 66181 from 1968-01-02
+HDLM-201301_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HDLM-201301_c68, the same permno 39765 from 1968-01-02
+HES_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HES_c68, the same permno 28484 from 1968-01-02
+HET-200801_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HET-200801_c68, the same permno 76090 from 1968-01-02
+HI-200303_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HI-200303_c68, the same permno 20124 from 1968-01-02
+HLT-200710_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HLT-200710_c68, the same permno 23309 from 1968-01-02
+HM-200112_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HM-200112_c68, the same permno 12319 from 1968-01-02
+HON_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HON_c68, the same permno 10145 from 1968-01-02
+HON-199912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HON-199912_c68, the same permno 18374 from 1968-01-02
+HP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HP_c68, the same permno 32707 from 1968-01-02
+HPH-199912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HPH-199912_c68, the same permno 32563 from 1968-01-02
+HPQ_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HPQ_c68, the same permno 27828 from 1968-01-02
+HRB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HRB_c68, the same permno 49373 from 1968-01-02
+HSH-201408_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HSH-201408_c68, the same permno 22840 from 1968-01-02
+HSY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HSY_c68, the same permno 16600 from 1968-01-02
+HUM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HUM_c68, the same permno 48653 from 1968-01-02
+I-199603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by I-199603_c68, the same permno 26550 from 1968-01-02
+IBM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by IBM_c68, the same permno 12490 from 1968-01-02
+IFF_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by IFF_c68, the same permno 40272 from 1968-01-02
+IKN-200810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by IKN-200810_c68, the same permno 48514 from 1968-01-02
+INCLF-200701_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by INCLF-200701_c68, the same permno 12546 from 1968-01-02
+INGR-200611_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by INGR-200611_c68, the same permno 44792 from 1968-01-02
+INTC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by INTC_c68, the same permno 59328 from 1968-01-02
+IP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by IP_c68, the same permno 21573 from 1968-01-02
+IPG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by IPG_c68, the same permno 53065 from 1968-01-02
+ITT_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ITT_c68b, the same permno 12570 from 1968-01-02
+ITW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ITW_c68, the same permno 56573 from 1968-01-02
+JAVA-201001_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JAVA-201001_c68, the same permno 10078 from 1968-01-02
+JCI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JCI_c68, the same permno 45356 from 1968-01-02
+JCI-201609_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JCI-201609_c68, the same permno 42534 from 1968-01-02
+JCP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JCP_c68, the same permno 18403 from 1968-01-02
+JH-200705_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JH-200705_c68, the same permno 50905 from 1968-01-02
+JNJ_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JNJ_c68, the same permno 22111 from 1968-01-02
+JOS-200005_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JOS-200005_c68, the same permno 42104 from 1968-01-02
+JP-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JP-200603_c68, the same permno 48485 from 1968-01-02
+JPM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JPM_c68, the same permno 47896 from 1968-01-02
+JPM-200012_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JPM-200012_c68, the same permno 48071 from 1968-01-02
+JWN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by JWN_c68, the same permno 57817 from 1968-01-02
+K_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by K_c68, the same permno 26825 from 1968-01-02
+KATE-201707_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KATE-201707_c68, the same permno 49905 from 1968-01-02
+KBH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KBH_c68, the same permno 70092 from 1968-01-02
+KEY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KEY_c68, the same permno 64995 from 1968-01-02
+KM-200212_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KM-200212_c68, the same permno 12749 from 1968-01-02
+KMB_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KMB_c68b, the same permno 17750 from 1968-01-02
+KMG-200608_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KMG-200608_c68, the same permno 25769 from 1968-01-02
+KO_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KO_c68, the same permno 11308 from 1968-01-02
+KR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KR_c68, the same permno 16678 from 1968-01-02
+KRB-200512_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KRB-200512_c68, the same permno 76557 from 1968-01-02
+KRI-200606_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KRI-200606_c68, the same permno 48960 from 1968-01-02
+KWP-199911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by KWP-199911_c68, the same permno 89392 from 1968-01-02
+L_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by L_c68, the same permno 26710 from 1968-01-02
+LDG-200810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LDG-200810_c68, the same permno 53612 from 1968-01-02
+LDW-B-200012_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LDW-B-200012_c68, the same permno 76512 from 1968-01-02
+LHX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LHX_c68, the same permno 25582 from 1968-01-02
+LIN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LIN_c68, the same permno 77768 from 1968-01-02
+LLX-199710_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LLX-199710_c68, the same permno 33814 from 1968-01-02
+LLY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LLY_c68, the same permno 50876 from 1968-01-02
+LMT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LMT_c68, the same permno 21178 from 1968-01-02
+LNC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LNC_c68, the same permno 49015 from 1968-01-02
+LOR-199604_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LOR-199604_c68, the same permno 33785 from 1968-01-02
+LOW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LOW_c68, the same permno 61399 from 1968-01-02
+LPX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LPX_c68, the same permno 56223 from 1968-01-02
+LSI-201405_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LSI-201405_c68, the same permno 48267 from 1968-01-02
+LUB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LUB_c68, the same permno 64020 from 1968-01-02
+LUV_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by LUV_c68, the same permno 58683 from 1968-01-02
+M_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by M_c68, the same permno 77462 from 1968-01-02
+MAS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MAS_c68, the same permno 34032 from 1968-01-02
+MAT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MAT_c68, the same permno 39538 from 1968-01-02
+MAY-200508_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MAY-200508_c68, the same permno 13100 from 1968-01-02
+MCD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MCD_c68, the same permno 43449 from 1968-01-02
+MCIC-199809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MCIC-199809_c68, the same permno 50404 from 1968-01-02
+MCO_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MCO_c68b, the same permno 48506 from 1968-01-02
+MD-199707_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MD-199707_c68, the same permno 26729 from 1968-01-02
+MDP_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MDP_c68b, the same permno 42796 from 1968-01-02
+MDR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MDR_c68, the same permno 64629 from 1968-01-02
+MDT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MDT_c68, the same permno 60097 from 1968-01-02
+MEA-200201_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MEA-200201_c68, the same permno 19895 from 1968-01-02
+MEE-201106_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MEE-201106_c68, the same permno 26382 from 1968-01-02
+MEL-200706_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MEL-200706_c68, the same permno 59379 from 1968-01-02
+MII-199906_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MII-199906_c68, the same permno 75647 from 1968-01-02
+MIL-201007_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MIL-201007_c68, the same permno 54181 from 1968-01-02
+MKG-200010_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MKG-200010_c68, the same permno 12511 from 1968-01-02
+MMM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MMM_c68, the same permno 22592 from 1968-01-02
+MNR-199809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MNR-199809_c68, the same permno 59926 from 1968-01-02
+MO_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MO_c68, the same permno 13901 from 1968-01-02
+MOB-199911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MOB-199911_c68, the same permno 15966 from 1968-01-02
+MRK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MRK_c68, the same permno 22752 from 1968-01-02
+MRO_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MRO_c68, the same permno 15069 from 1968-01-02
+MRSH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MRSH_c68, the same permno 45751 from 1968-01-02
+MSFT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MSFT_c68, the same permno 10107 from 1968-01-02
+MSI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MSI_c68, the same permno 22779 from 1968-01-02
+MST-199808_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MST-199808_c68, the same permno 22891 from 1968-01-02
+MTLQQ-201103_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MTLQQ-201103_c68, the same permno 12079 from 1968-01-02
+MU_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MU_c68, the same permno 53613 from 1968-01-02
+MWI-200402_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MWI-200402_c68, the same permno 62324 from 1968-01-02
+MWV-201507_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MWV-201507_c68, the same permno 21186 from 1968-01-02
+MYG-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MYG-200603_c68, the same permno 13119 from 1968-01-02
+MZIAQ-201010_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by MZIAQ-201010_c68, the same permno 22680 from 1968-01-02
+NAE-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NAE-199708_c68, the same permno 29196 from 1968-01-02
+NAV_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NAV_c68, the same permno 12503 from 1968-01-02
+NC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NC_c68, the same permno 28118 from 1968-01-02
+NCC-200812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NCC-200812_c68, the same permno 56232 from 1968-01-02
+NEE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NEE_c68, the same permno 24205 from 1968-01-02
+NEM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NEM_c68, the same permno 21207 from 1968-01-02
+NKE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NKE_c68, the same permno 57665 from 1968-01-02
+NLC-199912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NLC-199912_c68, the same permno 41179 from 1968-01-02
+NMK-200201_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NMK-200201_c68, the same permno 24184 from 1968-01-02
+NOC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NOC_c68, the same permno 24766 from 1968-01-02
+NOVL-201104_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NOVL-201104_c68, the same permno 90609 from 1968-01-02
+NRTLQ-201510_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NRTLQ-201510_c68, the same permno 58640 from 1968-01-02
+NSC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NSC_c68, the same permno 64311 from 1968-01-02
+NSI-200306_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NSI-200306_c68, the same permno 22066 from 1968-01-02
+NSM-201109_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NSM-201109_c68, the same permno 51377 from 1968-01-02
+NUE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NUE_c68, the same permno 34817 from 1968-01-02
+NWL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NWL_c68, the same permno 60986 from 1968-01-02
+NYN-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NYN-199708_c68, the same permno 66018 from 1968-01-02
+NYT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by NYT_c68, the same permno 47466 from 1968-01-02
+OAT-200108_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by OAT-200108_c68, the same permno 24539 from 1968-01-02
+OKE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by OKE_c68, the same permno 25232 from 1968-01-02
+OM-199709_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by OM-199709_c68, the same permno 20394 from 1968-01-02
+ONE-200406_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ONE-200406_c68, the same permno 65138 from 1968-01-02
+ORCL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ORCL_c68, the same permno 10104 from 1968-01-02
+ORX-199902_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ORX-199902_c68, the same permno 75423 from 1968-01-02
+OWENQ-200610_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by OWENQ-200610_c68, the same permno 24811 from 1968-01-02
+OXY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by OXY_c68, the same permno 34833 from 1968-01-02
+PAC-199703_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PAC-199703_c68, the same permno 66026 from 1968-01-02
+PAS-201002_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PAS-201002_c68, the same permno 38973 from 1968-01-02
+PBI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PBI_c68, the same permno 24459 from 1968-01-02
+PBY-201602_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PBY-201602_c68, the same permno 35238 from 1968-01-02
+PCAR_c85b crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PCAR_c68b, the same permno 60506 from 1968-01-02
+PCG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PCG_c68, the same permno 13688 from 1968-01-02
+PCH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PCH_c68, the same permno 49744 from 1968-01-02
+PD-200703_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PD-200703_c68, the same permno 17806 from 1968-01-02
+PDG-200603_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PDG-200603_c68, the same permno 75181 from 1968-01-02
+PEG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PEG_c68, the same permno 23712 from 1968-01-02
+PEL-199706_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PEL-199706_c68, the same permno 22082 from 1968-01-02
+PEP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PEP_c68, the same permno 13856 from 1968-01-02
+PET-199806_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PET-199806_c68, the same permno 16870 from 1968-01-02
+PFE_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PFE_c68, the same permno 21936 from 1968-01-02
+PG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PG_c68, the same permno 18163 from 1968-01-02
+PGL-200702_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PGL-200702_c68, the same permno 13821 from 1968-01-02
+PGN-201207_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PGN-201207_c68, the same permno 23114 from 1968-01-02
+PH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PH_c68, the same permno 41355 from 1968-01-02
+PHA-200304_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PHA-200304_c68, the same permno 18382 from 1968-01-02
+PHB-199910_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PHB-199910_c68, the same permno 63096 from 1968-01-02
+PHM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PHM_c68, the same permno 54148 from 1968-01-02
+PLL-201508_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PLL-201508_c68, the same permno 35051 from 1968-01-02
+PMI-199911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PMI-199911_c68, the same permno 71001 from 1968-01-02
+PNC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PNC_c68, the same permno 60442 from 1968-01-02
+PPG_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PPG_c68, the same permno 22509 from 1968-01-02
+PPL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PPL_c68, the same permno 22517 from 1968-01-02
+PPW-199911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PPW-199911_c68, the same permno 42833 from 1968-01-02
+PRD-200110_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PRD-200110_c68, the same permno 26438 from 1968-01-02
+PVN-199706_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PVN-199706_c68, the same permno 53081 from 1968-01-02
+PZE-199908_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by PZE-199908_c68, the same permno 35211 from 1968-01-02
+R_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by R_c68, the same permno 27633 from 1968-01-02
+RAD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RAD_c68, the same permno 46922 from 1968-01-02
+RAL-200112_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RAL-200112_c68, the same permno 28353 from 1968-01-02
+RBD-199903_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RBD-199903_c68, the same permno 26884 from 1968-01-02
+RBK-200601_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RBK-200601_c68, the same permno 91380 from 1968-01-02
+RDC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RDC_c68, the same permno 45495 from 1968-01-02
+RDS-A_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RDS-A_c68, the same permno 25267 from 1968-01-02
+RLM-200005_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RLM-200005_c68, the same permno 18921 from 1968-01-02
+RML-200608_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RML-200608_c68, the same permno 47490 from 1968-01-02
+RNB-199912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RNB-199912_c68, the same permno 53938 from 1968-01-02
+ROK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by ROK_c68, the same permno 18948 from 1968-01-02
+RRD_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RRD_c68, the same permno 38682 from 1968-01-02
+RSHCQ-201510_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RSHCQ-201510_c68, the same permno 15560 from 1968-01-02
+RTN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RTN_c68, the same permno 24942 from 1968-01-02
+RTX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RTX_c68, the same permno 17830 from 1968-01-02
+RVTY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RVTY_c68, the same permno 42200 from 1968-01-02
+RYAN-200610_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RYAN-200610_c68, the same permno 68049 from 1968-01-02
+RYC-199908_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RYC-199908_c68, the same permno 64346 from 1968-01-02
+RYI-200710_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by RYI-200710_c68, the same permno 12458 from 1968-01-02
+S-200503_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by S-200503_c68, the same permno 14322 from 1968-01-02
+S-202004_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by S-202004_c68, the same permno 39087 from 1968-01-02
+SAF-200809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SAF-200809_c68, the same permno 59440 from 1968-01-02
+SB-199711_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SB-199711_c68, the same permno 27596 from 1968-01-02
+SCI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SCI_c68, the same permno 51625 from 1968-01-02
+SFA-200602_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SFA-200602_c68, the same permno 45671 from 1968-01-02
+SFS-200008_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SFS-200008_c68, the same permno 76122 from 1968-01-02
+SGID-200610_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SGID-200610_c68, the same permno 10791 from 1968-01-02
+SGP-200911_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SGP-200911_c68, the same permno 25013 from 1968-01-02
+SHN-200007_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SHN-200007_c68, the same permno 70376 from 1968-01-02
+SHW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SHW_c68, the same permno 36468 from 1968-01-02
+SIAL-201511_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SIAL-201511_c68, the same permno 70536 from 1968-01-02
+SK-199805_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SK-199805_c68, the same permno 65066 from 1968-01-02
+SLB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SLB_c68, the same permno 14277 from 1968-01-02
+SMI-200109_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SMI-200109_c68, the same permno 44062 from 1968-01-02
+SMS-200007_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SMS-200007_c68, the same permno 70229 from 1968-01-02
+SNA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SNA_c68, the same permno 60206 from 1968-01-02
+SNT-199910_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SNT-199910_c68, the same permno 21514 from 1968-01-02
+SO_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SO_c68, the same permno 18411 from 1968-01-02
+SPGI_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SPGI_c68, the same permno 17478 from 1968-01-02
+SRR-200708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SRR-200708_c68, the same permno 27764 from 1968-01-02
+STI-201912_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by STI-201912_c68, the same permno 68144 from 1968-01-02
+STJ-201701_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by STJ-201701_c68, the same permno 68591 from 1968-01-02
+STO-199811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by STO-199811_c68, the same permno 36978 from 1968-01-02
+SUN-201210_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SUN-201210_c68, the same permno 14656 from 1968-01-02
+SVU_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SVU_c68, the same permno 44951 from 1968-01-02
+SWK_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SWK_c68, the same permno 43350 from 1968-01-02
+SYY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SYY_c68, the same permno 52038 from 1968-01-02
+T_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by T_c68, the same permno 66093 from 1968-01-02
+T-200511_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by T-200511_c68, the same permno 10401 from 1968-01-02
+TA-199907_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TA-199907_c68, the same permno 19051 from 1968-01-02
+TAP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TAP_c68, the same permno 59248 from 1968-01-02
+TCOMA-199903_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TCOMA-199903_c68, the same permno 75030 from 1968-01-02
+TDM-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TDM-199708_c68, the same permno 74617 from 1968-01-02
+TEK-200711_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TEK-200711_c68, the same permno 40061 from 1968-01-02
+TEN-199612_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TEN-199612_c68, the same permno 26542 from 1968-01-02
+TGNA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TGNA_c68, the same permno 47941 from 1968-01-02
+TGT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TGT_c68, the same permno 49154 from 1968-01-02
+THC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by THC_c68, the same permno 52337 from 1968-01-02
+THY-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by THY-199708_c68, the same permno 53401 from 1968-01-02
+TIN-201202_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TIN-201202_c68, the same permno 66114 from 1968-01-02
+TJX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TJX_c68, the same permno 40539 from 1968-01-02
+TKR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TKR_c68, the same permno 14795 from 1968-01-02
+TLAB-201312_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TLAB-201312_c68, the same permno 75257 from 1968-01-02
+TMC-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TMC-200006_c68, the same permno 81193 from 1968-01-02
+TNB-201205_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TNB-201205_c68, the same permno 38578 from 1968-01-02
+TOY-200507_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TOY-200507_c68, the same permno 61065 from 1968-01-02
+TRB-200712_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TRB-200712_c68, the same permno 65787 from 1968-01-02
+TRV_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TRV_c68, the same permno 59459 from 1968-01-02
+TRW-200212_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TRW-200212_c68, the same permno 18681 from 1968-01-02
+TT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TT_c68, the same permno 12431 from 1968-01-02
+TWX-200101_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TWX-200101_c68, the same permno 40483 from 1968-01-02
+TX-200110_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TX-200110_c68, the same permno 14736 from 1968-01-02
+TXN_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TXN_c68, the same permno 15579 from 1968-01-02
+TXT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TXT_c68, the same permno 23579 from 1968-01-02
+TXU-200710_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by TXU-200710_c68, the same permno 24563 from 1968-01-02
+UAWGQ-200303_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UAWGQ-200303_c68, the same permno 28847 from 1968-01-02
+UCC-199904_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UCC-199904_c68, the same permno 14883 from 1968-01-02
+UCL-200508_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UCL-200508_c68, the same permno 14891 from 1968-01-02
+UCM-200010_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UCM-200010_c68, the same permno 20853 from 1968-01-02
+UIS_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UIS_c68, the same permno 10890 from 1968-01-02
+UK-200102_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UK-200102_c68, the same permno 15659 from 1968-01-02
+UN-202011_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UN-202011_c68, the same permno 28310 from 1968-01-02
+UNH_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UNH_c68, the same permno 92655 from 1968-01-02
+UNM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UNM_c68, the same permno 71175 from 1968-01-02
+UNP_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UNP_c68, the same permno 48725 from 1968-01-02
+USB-200102_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USB-200102_c68, the same permno 66157 from 1968-01-02
+USBC-199708_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USBC-199708_c68, the same permno 78968 from 1968-01-02
+USH-199706_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USH-199706_c68, the same permno 46594 from 1968-01-02
+USHC-199607_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USHC-199607_c68, the same permno 79119 from 1968-01-02
+USS-199810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USS-199810_c68, the same permno 79250 from 1968-01-02
+UST-200901_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by UST-200901_c68, the same permno 15077 from 1968-01-02
+USW-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by USW-200006_c68, the same permno 66122 from 1968-01-02
+VAT-199609_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by VAT-199609_c68, the same permno 34040 from 1968-01-02
+VFC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by VFC_c68, the same permno 43553 from 1968-01-02
+VO-200012_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by VO-200012_c68, the same permno 19916 from 1968-01-02
+VZ_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by VZ_c68, the same permno 65875 from 1968-01-02
+WAI-199808_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WAI-199808_c68, the same permno 80410 from 1968-01-02
+WB-200108_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WB-200108_c68, the same permno 50200 from 1968-01-02
+WB-200812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WB-200812_c68, the same permno 36469 from 1968-01-02
+WBA_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WBA_c68, the same permno 19502 from 1968-01-02
+WEN-200809_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WEN-200809_c68, the same permno 63060 from 1968-01-02
+WFC_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WFC_c68, the same permno 38703 from 1968-01-02
+WFC-199811_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WFC-199811_c68, the same permno 50024 from 1968-01-02
+WHR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WHR_c68, the same permno 25419 from 1968-01-02
+WLA-200006_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WLA-200006_c68, the same permno 24678 from 1968-01-02
+WLL-200203_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WLL-200203_c68, the same permno 82959 from 1968-01-02
+WMB_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WMB_c68, the same permno 38156 from 1968-01-02
+WMT_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WMT_c68, the same permno 55976 from 1968-01-02
+WMX-199807_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WMX-199807_c68, the same permno 57381 from 1968-01-02
+WNDXQ-200611_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WNDXQ-200611_c68, the same permno 24803 from 1968-01-02
+WOR_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WOR_c68, the same permno 83601 from 1968-01-02
+WWY-200810_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WWY-200810_c68, the same permno 15472 from 1968-01-02
+WY_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WY_c68, the same permno 39917 from 1968-01-02
+WYE-200910_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by WYE-200910_c68, the same permno 15667 from 1968-01-02
+X_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by X_c68, the same permno 76644 from 1968-01-02
+XEL_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by XEL_c68, the same permno 23931 from 1968-01-02
+XOM_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by XOM_c68, the same permno 11850 from 1968-01-02
+XRX_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by XRX_c68, the same permno 27983 from 1968-01-02
+YRCW_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by YRCW_c68, the same permno 59483 from 1968-01-02
+HST_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by HST_c68, the same permno 46703 from 1968-01-02
+SAI-199812_c85 crsp   # 2026-10-16 (pre-1996, 1970-85): superseded by SAI-199812_c68, the same permno 33312 from 1968-01-02
+CEG-201203_crsp crsp first=40.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 24221)
+HPC-200811_crsp crsp first=33.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 18016)
+MER-200812_crsp crsp first=25.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 52919)
+OMX-201311_crsp crsp first=39.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 42024)
+ROH-200904_crsp crsp first=63.75  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23990)
+AAMRQ-201312_crsp crsp first=35.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 21020)
+HNZ-201306_crsp crsp first=43.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23077)
+ATI_crsp crsp first=244.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 43123)
+AEE_crsp crsp first=16.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 24985)
+FE_crsp crsp first=13.5  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 23026)
