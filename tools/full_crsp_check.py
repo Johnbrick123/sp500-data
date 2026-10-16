@@ -220,6 +220,26 @@ dr = both.groupby(["label", "y"]).agg(days=("diff_pp", "size"), drift_pp=("diff_
                                       worst_date=("date", lambda s: s.loc[both.loc[s.index, "diff_pp"].abs().idxmax()].date()))
 dr = dr[dr.drift_pp.abs() > DRIFT].sort_values("drift_pp", key=abs, ascending=False).reset_index()
 dr.to_csv(f"{out}/drift.csv", index=False)
+# the days behind each drifting label-year (0.25pp or more): every day over 0.1pp, with our previous
+# close and dividend that day and the distribution CRSP's RET implies on our price basis,
+# (RET - ours) x prev close + ours (exact under the total-return convention, which the build uses
+# since 2026-10-16) - the input for dividend overrides
+big = dr[dr.drift_pp.abs() >= 0.25][["label", "y"]]
+P = p.set_index(["ticker", "date"])
+p["prev_close"] = p.groupby("ticker").close.shift()
+PC = p.set_index(["ticker", "date"])[["prev_close"]]
+dd_ = both.merge(big, on=["label", "y"])
+dd_ = dd_[dd_.diff_pp.abs() > 0.1].copy()
+dd_["prev_close"] = [PC.prev_close.get((l, d), np.nan) for l, d in zip(dd_.label, dd_.date)]
+import pyarrow.parquet as pq_
+if "dividends" in pq_.read_schema(pf).names:
+    divs = pd.read_parquet(pf, columns=["ticker", "date", "dividends"]); divs["date"] = pd.to_datetime(divs.date)
+    DV = divs.set_index(["ticker", "date"]).dividends
+else:
+    DV = pd.Series(dtype=float)
+dd_["our_div"] = [float(DV.get((l, d), 0) or 0) for l, d in zip(dd_.label, dd_.date)]
+dd_["implied_div"] = (dd_.ret - dd_.ours) * dd_.prev_close + dd_.our_div
+dd_.to_csv(f"{out}/drift_days.csv", index=False)
 pd.set_option("display.width", 220); pd.set_option("display.max_rows", 500)
 print(f"\n{len(both):,} member-days compared; within {TOL}pp: {100 * (1 - len(bad) / len(both)):.4f}%; over 2pp: {(both.diff_pp.abs() > 2).sum()}; "
       f"member-days with no CRSP return: {x.ret.isna().sum()}, with no return of ours: {x.ours.isna().sum()}")
