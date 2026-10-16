@@ -1,0 +1,30 @@
+name: Dividends against Nasdaq's record (read-only)
+
+# Every member's dividends in a range of years compared with Nasdaq's dividend history
+# (tools/nasdaq_div_audit.py) - the dividend check for the years the CRSP file does not cover.
+# Added 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      first_year: { description: "First year", required: true, default: "2025" }
+      last_year: { description: "Last year", required: true, default: "2026" }
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q pandas pyarrow
+      - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: mkdir -p nd && python tools/nasdaq_div_audit.py rel/prices.parquet rel/membership_intervals.parquet "${{ github.event.inputs.first_year }}" "${{ github.event.inputs.last_year }}" nd 2>&1 | tee nd/report.txt
+      - name: Publish
+        if: always()
+        run: |
+          cp nd/report.txt nasdaq_div_report.txt; cp nd/issues.csv nasdaq_div_issues.csv; cp nd/coverage.csv nasdaq_div_coverage.csv
+          gh release upload data nasdaq_div_report.txt nasdaq_div_issues.csv nasdaq_div_coverage.csv --clobber
+        env: { GH_TOKEN: "${{ github.token }}" }
