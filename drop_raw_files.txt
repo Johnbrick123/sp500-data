@@ -168,7 +168,6 @@ RDS-198612 crsp first=24.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 19
 ALS-198612 crsp first=49.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 17304)
 CBM-198702 crsp first=33.375  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28505)
 CZ-198702 crsp first=80.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 19027)
-KCG-198703 crsp first=16.875  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28433)
 OI-198703 crsp first=40.0  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 13661)
 BKO-198704 crsp first=16.25  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 28134)
 HT-198704 crsp first=13.125  # 2026-10-16 (pre-1996, 1970-85): refetched from 1968-01-02 (same permno 56485)
