@@ -20,13 +20,13 @@ day, plus ETFs. No paid data vendor.
 > return** (`tools/full_crsp_check.py`, published as `full_check_*` files).
 > Disagreements over 0.5pp go to the published S&P 500's own daily return,
 > which decides when the member is big enough. Results:
-> - 99.990% of 6,943,082 member-days are within 0.5pp. The 674 that are not are
+> - 99.990% of 6,943,082 member-days are within 0.5pp. The 669 that are not are
 >   listed in `full_check_flagged.csv`.
 > - Where the index can judge, it never sides with CRSP against this data: 12 runs
 >   favour ours, and the other 333 are too small or too close to call (mostly
 >   1995–2004 fractional-price closes, where CRSP and the vendors print
 >   different eighths).
-> - Dividends are tested by each label-year's summed difference: 109 of the 28,710
+> - Dividends are tested by each label-year's summed difference: 100 of the 28,710
 >   label-years drift more than 0.1pp, each listed in `full_check_drift.csv`.
 >
 > **Two files to use in any backtest:**
@@ -135,8 +135,19 @@ backtest. The bug was invisible in the price series and obvious in the returns.
   their own symbol. The 1996-onward years were verified day by day against
   several sources.
 - **2025 and 2026 are not in the CRSP check** (the free CRSP file ends in
-  December 2024). They rest on the nightly Nasdaq ledger and the Tiingo
-  audits.
+  December 2024). Instead:
+  - Every member's daily return is audited against Nasdaq. Two days differed
+    in 2025–26, and both are now explained and booked.
+  - The ETFs are audited the same way.
+  - Dividends of the Nasdaq-listed members match Nasdaq's record exactly.
+  - An equal-weight rebuild tracks RSP within the range of the CRSP-checked
+    years.
+
+  Two gaps remain:
+  - Dividends of the NYSE-listed members have no second source until
+    Tiingo's monthly allowance resets (November 2026).
+  - Twelve companies acquired in 2025–26 (about 2,000 member-days) rest on
+    Tiingo alone.
 - **Dividends use the total-return convention**: the ex-date return is
   (close + dividend) / previous close − 1, which is CRSP's and S&P's
   convention. Since 2026-10-16 this replaces Yahoo's formula, which was off
