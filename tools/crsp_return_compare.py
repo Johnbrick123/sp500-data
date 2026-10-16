@@ -5,7 +5,7 @@ splits); CRSP's RET carries every distribution. A splice at the wrong ratio, a s
 the wrong factor or a missed distribution shows as a day where the two differ.
 Usage (CRSP CSV under kag/): python tools/crsp_return_compare.py PRICES.parquet MEMBERSHIP.csv OUT.csv [TOL_PCT=0.5]
   MEMBERSHIP.csv: label,permno,start,end (pre1996/membership.csv). Added 2026-10-15."""
-import glob, sys
+import glob, os, sys
 import numpy as np, pandas as pd
 
 pf, mf, out = sys.argv[1:4]
@@ -47,3 +47,21 @@ print("\nlabels with the most differing days:\n" + bad.groupby("label").size().s
 print("\nby the source of our row:\n" + both.assign(bad=both.diff_pct.abs() > tol).groupby(both.source.astype(str)).bad.agg(["size", "sum"]).to_string())
 print("\nby year:\n" + both.assign(bad=both.diff_pct.abs() > tol).groupby(both.date.dt.year).bad.agg(["size", "sum"]).to_string())
 print("\nlargest differences:\n" + bad.reindex(bad.diff_pct.abs().sort_values(ascending=False).index).head(150)[["label", "permno", "date", "ours", "ret", "diff_pct", "close", "prc", "source"]].to_string())
+
+# PATCH_OUT=path: for vendor rows (tiingo, wiki, yahoo) inside the window, a replace_close patch
+# wherever our close sits more than 0.4% from CRSP's close on the row's own basis (a 21-day rolling
+# median of close / |PRC|, so a Yahoo series' spin-off factor is followed). The pre-1996 tier's
+# prices are CRSP's: a vendor close that disagrees is put on CRSP's (added 2026-10-15).
+po = os.environ.get("PATCH_OUT")
+if po:
+    v = x[x.source.astype(str).isin(["tiingo", "wiki", "yahoo"])].dropna(subset=["close", "prc"]).sort_values(["label", "date"]).copy()
+    v["rt"] = v.close / v.prc.abs()
+    v["b"] = v.groupby("label").rt.transform(lambda s: s.rolling(21, center=True, min_periods=5).median())
+    v["new"] = v.prc.abs() * v.b
+    v["dev"] = v.close / v.new - 1
+    pv = v[v.dev.abs() > 0.004]
+    with open(po, "w") as f:
+        f.write("ticker,date,open,high,low,close,volume,dividends,stock_splits,source,action,note,max_move\n")
+        for r in pv.itertuples():
+            f.write(f'{r.label},{r.date.date()},,,,{r.new:.6f},,0.0,1,crsp-patch,replace_close,"{r.date.date()}: the {r.source} close {r.close:g} is {r.dev * 100:+.2f}% off CRSP\'s {abs(r.prc):g} (permno {r.permno}) on the series\' basis ({r.b:.6f}); the pre-1996 tier\'s prices are CRSP\'s (2026-10-15)",0.1\n')
+    print(f"\n{len(pv)} vendor closes put on CRSP's -> {po}; by label: {pv.groupby('label').size().sort_values(ascending=False).head(30).to_dict()}")
