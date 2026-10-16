@@ -87,8 +87,16 @@ for y in range(1970, LAST + 1):
     Ry = RY[y]; dd = Ry.index
     Ry = Ry[[q for q in Ry.columns if q in cand.get(y, set())]]
     Ry = Ry.loc[:, Ry.notna().sum() >= 20]
-    Oy = O.reindex(index=dd, columns=[l for l in labs if l in O.columns])
-    Oy = Oy.loc[:, Oy.notna().sum() >= 20]
+    Oy = O.reindex(index=dd, columns=[l for l in labs if l in O.columns]).copy()
+    # correlate on the label's member-days only (a label's rows outside its spells can be another
+    # security: an OTC tail after a delisting, a when-issued market)
+    for l in Oy.columns:
+        sp = m[m.ticker == l]
+        inm = np.zeros(len(dd), bool)
+        for r in sp.itertuples():
+            inm |= (dd >= r.start) & (dd < r.end)
+        Oy.loc[~inm, l] = np.nan
+    Oy = Oy.loc[:, Oy.notna().sum() >= 10]
     if Oy.empty:
         continue
     A = (Oy - Oy.mean()).fillna(0).values; B = (Ry - Ry.mean()).fillna(0).values
