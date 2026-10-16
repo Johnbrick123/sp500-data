@@ -18,15 +18,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: pip install -q pandas pyarrow 'kaggle>=1.8.0'
+      - run: pip install -q pandas pyarrow 'kaggle>=1.8.0' rdata
       - run: mkdir -p kag && kaggle datasets download -d "${{ github.event.inputs.slug }}" -p kag --unzip && du -sh kag
         env: { KAGGLE_API_TOKEN: "${{ secrets.KAGGLE_API_TOKEN }}" }
       - run: gh release download data --pattern prices.parquet --pattern membership_intervals.parquet --dir rel --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
       - run: mkdir -p fc && python tools/full_crsp_check.py rel/prices.parquet rel/membership_intervals.parquet fc "${{ github.event.inputs.tol }}" "${{ github.event.inputs.last_year }}" 2>&1 | tee fc/report.txt
+      - name: Settle the flagged days with the published index
+        if: always()
+        run: |
+          curl -sSL -o spx.rda https://raw.githubusercontent.com/loelschlaeger/fHMM/master/data/spx.rda
+          python -c "import rdata, pandas as pd; d=rdata.read_rda('spx.rda'); s=pd.DataFrame(list(d.values())[0]); s[['Date','Close']].to_csv('spx.csv', index=False)"
+          python tools/index_adjudicate.py fc/flagged.csv fc/permno_map.csv rel/membership_intervals.parquet spx.csv fc/adjudicated.csv 2 | tee fc/adjudicate.txt
       - name: Publish the reports
         if: always()
         run: |
-          cd fc && cp report.txt ../full_check_report.txt; cp flagged.csv ../full_check_flagged.csv; cp permno_map.csv ../full_check_permno_map.csv; cp by_year.csv ../full_check_by_year.csv; cd ..
-          gh release upload data full_check_report.txt full_check_flagged.csv full_check_permno_map.csv full_check_by_year.csv --clobber
+          cd fc && cp report.txt ../full_check_report.txt; cp flagged.csv ../full_check_flagged.csv; cp permno_map.csv ../full_check_permno_map.csv; cp by_year.csv ../full_check_by_year.csv; cp adjudicated.csv ../full_check_adjudicated.csv; cp adjudicate.txt ../full_check_adjudicate.txt; cd ..
+          gh release upload data full_check_report.txt full_check_flagged.csv full_check_permno_map.csv full_check_by_year.csv full_check_adjudicated.csv full_check_adjudicate.txt --clobber
         env: { GH_TOKEN: "${{ github.token }}" }
