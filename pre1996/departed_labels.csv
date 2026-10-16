@@ -75,3 +75,126 @@ permno,label,name
 45970,ZRN-199806,Zurn Industries
 55079,MRN-199606,Morrison Knudsen
 52505,FFB-199512,First Fidelity Bancorporation
+10233,ABC-198601,American Broadcasting Companies (into Capital Cities)
+11295,CLU-198601,Cluett Peabody
+45428,GLM-200111,Global Marine
+41523,TXO-198602,Texas Oil & Gas
+61794,MGM-198603,MGM/UA Entertainment
+17953,BRY-198604,Beatrice
+10487,AD-198606,Amsted Industries
+17128,ZB-198610,Crown Zellerbach
+16088,WSW-198604,White Consolidated Industries
+20570,NG-198604,National Gypsum
+40141,ECK-198604,Jack Eckerd
+12933,MEI-199302,MEI Corp
+14090,RCA-198606,RCA Corp
+12976,MZ-198607,R.H. Macy
+25507,LTV-199306,LTV Corp
+42462,TFD-198608,Thrifty Corp
+42999,SAA-198608,Sanders Associates
+14525,SY-198609,Sperry Corp
+20909,XLO-198609,Ex-Cell-O
+10559,DG-198610,Associated Dry Goods
+61890,HWR-198610,Hiram Walker Resources
+21522,FTR-198612,Fruehauf
+17291,SA-198611,Safeway Stores
+52062,RYN-198706,Ryan Homes
+11164,CGG-198612,Chicago Pneumatic Tool
+39394,OVT-198612,Overnite Transportation
+15712,CK-198701,Collins & Aikman
+41662,RDS-198612,Revco D.S.
+17304,ALS-198612,Allied Stores
+28505,CBM-198702,Chesebrough-Pond's
+19027,CZ-198702,Celanese
+28433,KCG-198703,Kaiser Cement
+13661,OI-198703,Owens-Illinois (the pre-1987 company)
+28134,BKO-198704,Baker International
+56485,HT-198704,Hughes Tool
+53903,FPA-199003,First Pennsylvania
+58093,TCB-198704,Texas Commerce Bancshares
+56805,IFC-198706,InterFirst
+21119,RCB-198704,Rexnord
+21557,JOY-198706,Joy Manufacturing
+21450,SRD-198706,Standard Oil (Ohio)
+10153,AH-198812,Allis-Chalmers
+43318,LTC-198706,Leaseway Transportation
+10321,AMO-198708,American Motors
+17590,BOR-198707,Borg-Warner
+11690,DM-198708,Dome Mines
+25478,CRK-198708,Campbell Red Lake Mines
+20677,BUR-198709,Burlington Industries
+28548,TFB-198710,Taft Broadcasting
+37065,SGL-198710,Supermarkets General
+55351,SLC-198712,Southland Corp
+16651,BY-198802,Becor Western
+57234,TRR-198712,Tracor
+56864,GHB-198803,G. Heileman Brewing
+40301,JWC-198801,Jim Walter
+58085,WSN-199504,Western Co. of North America
+60900,CVN-198802,Computervision
+27473,SMF-198804,Singer Co.
+14592,STY-198802,Sterling Drug
+50737,BRK-198802,Brockway
+10623,FRC-200709,First Republic (CRSP permno 10623)
+29962,FIN-198809,Financial Corp. of America
+20343,ROP-198804,Roper Corp.
+10372,AST-198807,American Standard
+18550,FDS-198807,Federated Department Stores (the pre-1988 company)
+18569,FIR-198805,Firestone Tire & Rubber
+23421,STN-198806,J.P. Stevens
+43298,IMSI-198805,IMS International
+11332,FW-198806,CRSP permno 11332 (tickers FW and COT)
+40053,LKS-198806,Lucky Stores
+22170,KOP-198811,Koppers
+46615,CLO-198909,Coleco Industries
+22760,MOH-198909,Mohasco
+54754,FHP-198810,Fort Howard
+22568,GLD-198811,Gould Inc.
+41486,RE-198812,Redman Industries
+24635,KLU-198810,Kaiser Aluminum & Chemical
+27027,MLL-198812,Macmillan Inc.
+61970,KRA-198812,Kraft Inc.
+10241,PA-198812,Primerica (formerly American Can)
+16360,PSY-198901,Pillsbury
+69024,LT-198901,Lorimar-Telepictures
+14218,RJR-198904,RJR Nabisco
+17340,TGR-198902,Tiger International
+59205,CHU-198909,Church's Fried Chicken
+33312,SAI-199812,Kaufman & Broad (later SunAmerica; the same permno as SAI-199812)
+51561,HCA-198903,Hospital Corp. of America (the pre-1989 company)
+31659,EAF-198904,Emery Air Freight
+41427,WPM-199312,West Point-Pepperell
+39140,CLN-198904,Coleman
+27940,TET-198906,Texas Eastern
+26622,CHM-198907,Champion Spark Plug
+63802,UCT-198905,United Cable Television
+21290,MTI-200005,Morton Thiokol (Morton International from 1989)
+63108,CNW-198910,Chicago and North Western Transportation
+21485,NWA-198907,NWA Inc.
+26390,SKB-198907,SmithKline Beckman
+38551,WCI-199001,Warner Communications
+26286,IDL-199003,Ideal Basic Industries
+26649,ASA-198908,ASA Ltd (still trading; suffix = index exit)
+47837,MKC-199507,Marion Laboratories (Marion Merrell Dow from 1989)
+60337,PRM-199001,Prime Computer
+46228,RB-200101,Reading & Bates
+64207,CUL-198909,Cullinet Software
+46544,JERR-199005,Jerrico
+45604,SQB-198910,Squibb
+46754,AMI-199004,American Medical International
+58596,NOXL-198911,Noxell
+18999,CSP-199001,Combustion Engineering
+45014,RAM-198912,Ramada Inc.
+39669,HIA-199002,Holiday Corp.
+49606,LINB-199510,LIN Broadcasting
+25160,GNN-199006,Great Northern Nekoosa
+39300,NRT-199008,Norton Co.
+38280,GNE-199906,Genentech
+23253,GRL-199008,General Instrument (the pre-1990 company)
+42753,PHL-199008,Philips Industries
+71889,SOV-199008,Sovran Financial
+54447,PDQ-199207,Prime Motor Inns
+30912,CBL-199010,Corroon & Black
+18278,ISS-199206,Interco
+12888,LCE-199404,Lone Star Industries
+27086,MCA-199101,MCA Inc.
