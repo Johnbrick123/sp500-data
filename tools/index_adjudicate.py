@@ -15,7 +15,8 @@ ff, mpf, mf, sf, out = sys.argv[1:6]
 MIN = float(sys.argv[6]) if len(sys.argv) > 6 else 2.0
 fl = pd.read_csv(ff, parse_dates=["date"])
 mp = pd.read_csv(mpf)
-M = {(r.label, r.year): int(r.permno) for r in mp.itertuples()}
+MON = "month" in mp.columns
+M = {((r.label, r.year, r.month) if MON else (r.label, r.year)): int(r.permno) for r in mp.itertuples()}
 m = pd.read_parquet(mf); m["start"] = pd.to_datetime(m.start); m["end"] = pd.to_datetime(m.end).fillna(pd.Timestamp("2100-01-01"))
 pre = pd.read_csv("pre1996/membership.csv", parse_dates=["start", "end"])
 spx = pd.read_csv(sf, parse_dates=["Date"]).set_index("Date").Close.sort_index().pct_change()
@@ -48,7 +49,7 @@ for d in dates:
         mem = pre[(pre.start <= d) & (pre.end > d)][["label", "permno"]].values.tolist()
     else:
         labs = m[(m.start <= d) & (m.end > d)].ticker
-        mem = [(l, M.get((l, d.year))) for l in labs]
+        mem = [(l, M.get((l, d.year, d.month) if MON else (l, d.year))) for l in labs]
     ws, rs, lab_perm = [], [], {}
     for l, q in mem:
         if q is None or (d0, q) not in C.index or (d, q) not in C.index:

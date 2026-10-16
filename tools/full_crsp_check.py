@@ -1,6 +1,7 @@
 """Every member-day since 1970 against CRSP's daily total return (RET), in one run.
 
-1. Each label's CRSP permno, year by year: the 1970-1995 spells carry theirs (pre1996/membership.csv);
+1. Each label's CRSP permno, month by month (a year's best match, overridden for a month whose own
+   best match is clearly better): the 1970-1995 spells carry theirs (pre1996/membership.csv);
    for 1996 on, the permno whose daily RET correlates best with the label's own daily returns that year
    among the 1,500 largest CRSP permnos at the start of the year (plus every permno we already use).
    A label-year whose best correlation is under 0.9 is reported as unmapped.
@@ -78,7 +79,8 @@ for y in range(1970, LAST + 1):
     if y < 1996:
         pr = pre[(pre.start <= b) & (pre.end > a)]
         for r in pr.drop_duplicates("label").itertuples():
-            rows.append((r.label, y, r.permno, np.nan, -1))
+            for mo in range(1, 13):
+                rows.append((r.label, y, mo, r.permno, np.nan, -1, np.nan))
         labs = [l for l in labs if l not in set(pr.label)]
         if not labs:
             continue
@@ -100,31 +102,66 @@ for y in range(1970, LAST + 1):
     if Oy.empty:
         continue
     Bv = Ry.values
-    for l in Oy.columns:
-        msk = Oy[l].notna().values
-        a = Oy[l].values[msk]; b = Bv[msk]
+    mon = dd.month.values
+
+    def best(vals, msk):
+        a = vals[msk]; b = Bv[msk]
         ok = ~np.isnan(b)
-        b = np.where(ok, b, np.nan)
         am = a - a.mean()
-        bm = b - np.nanmean(b, axis=0)
-        bm = np.where(ok, bm, 0.0)
+        with np.errstate(invalid="ignore"), __import__("warnings").catch_warnings():
+            __import__("warnings").simplefilter("ignore")
+            bm = np.where(ok, b - np.nanmean(np.where(ok, b, np.nan), axis=0), 0.0)
         num = am @ bm
         den = np.sqrt((am ** 2).sum()) * np.sqrt((bm ** 2).sum(0))
-        cc = num / np.where(den == 0, np.nan, den)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            cc = num / np.where(den == 0, np.nan, den)
         cc = np.where(ok.sum(0) >= max(5, int(0.8 * msk.sum())), cc, np.nan)
         if np.all(np.isnan(cc)):
-            continue
+            return None, np.nan
         j = int(np.nanargmax(cc))
-        rows.append((l, y, int(Ry.columns[j]), float(cc[j]), int(msk.sum())))
+        return int(Ry.columns[j]), float(cc[j])
+
+    cols = {q: j for j, q in enumerate(Ry.columns)}
+
+    def fit(vals, msk, q):
+        b = Bv[msk, cols[q]]; a = vals[msk]; ok = ~np.isnan(b)
+        return float(np.corrcoef(a[ok], b[ok])[0, 1]) if ok.sum() >= max(5, int(0.8 * msk.sum())) else np.nan
+
+    for l in Oy.columns:
+        vals = Oy[l].values
+        msk = ~np.isnan(vals)
+        qy, cy = best(vals, msk)   # None when no single permno covers 80% of the year (a mid-year switch)
+        # month by month: a permno can change inside a year (a merger that keeps the symbol, a
+        # spin-off's when-issued days). A month keeps the year's permno unless the month's own best
+        # match fits clearly better; the correlation reported is the month's own for the permno chosen
+        for mo in sorted(set(mon[msk])):
+            mm = msk & (mon == mo)
+            cq = fit(vals, mm, qy) if qy is not None else np.nan
+            q, cm = qy, cq
+            if mm.sum() >= 8 or qy is None:
+                q2, c2 = best(vals, mm)
+                if q2 is not None and q2 != qy and c2 >= 0.9 and not (cq >= c2 - 0.02):
+                    q, cm = q2, c2
+            if q is None:
+                continue
+            if mm.sum() < 8 and q == qy:
+                cm = cy   # too few days to judge the month alone: the year's fit stands
+            bq = Bv[mm, cols[q]]
+            match = float(np.mean(np.abs(vals[mm] - bq) < 0.005)) if len(bq) else np.nan
+            rows.append((l, y, int(mo), q, cm, int(mm.sum()), match))
     print(y, len(Oy.columns), "labels mapped", flush=True)
-mp = pd.DataFrame(rows, columns=["label", "year", "permno", "corr", "n"])
+mp = pd.DataFrame(rows, columns=["label", "year", "month", "permno", "corr", "n", "match"])
 mp.to_csv(f"{out}/permno_map.csv", index=False)
-weak = mp[(mp["corr"] < 0.9) & (mp["n"] > 0)]
-print(f"\nmapping: {len(mp)} label-years; under 0.9 correlation: {len(weak)}")
+# unmapped: a weak correlation AND fewer than half the days within 0.5pp (one bad day can pull a
+# month's correlation under 0.9; that month must still be compared, or the check hides the error)
+weak = mp[(mp["corr"] < 0.9) & (mp["n"] > 0) & ~(mp["match"] >= 0.5)]
+print(f"\nmapping: {len(mp)} label-months; under 0.9 correlation: {len(weak)}; "
+      f"label-months whose permno differs from the label's main permno that year: "
+      f"{(mp.groupby(['label', 'year']).permno.transform(lambda s: s.mode().iloc[0]) != mp.permno).sum()}")
 print(weak.sort_values("corr").head(80).to_string())
 
 # 2. member-day comparison
-M = {(r.label, r.year): r.permno for r in mp.itertuples() if not (r.n > 0 and r.corr < 0.9)}
+M = {(r.label, r.year, r.month): r.permno for r in mp.drop(weak.index).itertuples()}
 res = []
 spans = pd.concat([m.rename(columns={"ticker": "label"})[["label", "start", "end"]]])
 spans = spans[spans.start < pd.Timestamp(f"{LAST + 1}-01-01")]
@@ -132,15 +169,17 @@ pre1996 = pre.rename(columns={})[["label", "start", "end"]]
 spans = pd.concat([pre1996, spans[spans.end > pd.Timestamp("1996-01-02")].assign(start=lambda x: x.start.clip(lower=pd.Timestamp("1996-01-02")))])
 for r in spans.itertuples():
     for y in range(max(r.start.year, 1970), min(r.end.year, LAST) + 1):
-        q = M.get((r.label, y))
-        if q is None or y not in RY or q not in RY[y].columns or r.label not in O.columns:
+        if y not in RY or r.label not in O.columns:
             continue
         a = max(r.start, pd.Timestamp(f"{y}-01-01")); b = min(r.end - pd.Timedelta(days=1), pd.Timestamp(f"{y}-12-31"))
         Ry = RY[y]; dd = Ry.index[(Ry.index >= a) & (Ry.index <= b)]
-        if not len(dd):
-            continue
-        o = O[r.label].reindex(dd); k = Ry.loc[dd, q]
-        res.append(pd.DataFrame({"label": r.label, "permno": q, "date": dd, "ours": o.values, "ret": k.values}))
+        for mo in sorted(set(dd.month)):
+            q = M.get((r.label, y, mo))
+            if q is None or q not in Ry.columns:
+                continue
+            dm = dd[dd.month == mo]
+            o = O[r.label].reindex(dm); k = Ry.loc[dm, q]
+            res.append(pd.DataFrame({"label": r.label, "permno": q, "date": dm, "ours": o.values, "ret": k.values}))
 x = pd.concat(res, ignore_index=True)
 both = x.dropna(subset=["ours", "ret"]).copy()
 both["diff_pp"] = (both.ours - both.ret) * 100
