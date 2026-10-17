@@ -13,3 +13,6 @@ data/*.txt
 data/*.csv
 kag/
 data/universe/*.csv
+# backtester
+data/panels/
+results/
