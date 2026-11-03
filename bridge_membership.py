@@ -411,6 +411,8 @@ MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcemen
     ("2026-10-01", "VYLR", ""),       # Vylor added on its spin-off from Corteva
     ("2026-10-06", "",     "CTVA"),   # Corteva removed (Vylor replaces it)
     ("2026-10-06", "TWLO", "WBD"),    # Twilio replaces Warner Bros. Discovery (acquired by Paramount Skydance)
+    ("2026-11-04", "OKTA", "KVUE"),   # Okta replaces Kenvue (acquired by Kimberly-Clark; deal closed and KVUE stopped trading before the
+                                      #   2026-11-02 open, last bar 2026-10-30; S&P DJI release 2026-10-30, effective prior to the 11/4 open)
 ]
 
 
