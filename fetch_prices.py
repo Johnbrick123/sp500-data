@@ -137,47 +137,73 @@ def main():
                     f.unlink(); print(f"  dropped raw file {lab} ({src}) per drop_raw_files.txt", flush=True)
     open_members = {t for t, (a, b) in membership_spans().items() if pd.isna(b)}
     saved, empty, dropped, truncated = 0, [], 0, []
+
+    def keep(t, df):
+        """Store ticker t's series out of a yf.download frame. False = nothing usable."""
+        nonlocal saved, dropped
+        try:
+            sub = df[t] if isinstance(df.columns, pd.MultiIndex) else df
+        except KeyError:
+            return False
+        sub = sub.dropna(how="all")
+        # a row with no positive close is not a price (Yahoo emits 0.0 on some
+        # listing days and during outages); keep it out of the raw store
+        if "Close" in sub.columns:
+            n0 = len(sub); sub = sub[sub["Close"] > 0]; dropped += n0 - len(sub)
+        # Never store the current New York session's bar. Yahoo serves it
+        # before it is final - open/high/low from different moments, so the
+        # open can sit outside the high-low range and the close moves between
+        # downloads. That failed nightly runs #5 and #6. It is picked up,
+        # finalized, on the next run.
+        n0 = len(sub)
+        idx = pd.to_datetime(sub.index)
+        idx = idx.tz_localize(None) if idx.tz is not None else idx
+        sub = sub[idx.normalize() < NY_TODAY]; dropped += n0 - len(sub)
+        # a stub is suspicious (Yahoo outages serve 1-2 rows) unless the name is
+        # a brand-new listing that is a current member (Vylor joined 2026-10-01
+        # with four sessions on tape)
+        if len(sub) < 20 and not (t in open_members and len(sub) >= 2):
+            return False
+        sub = sub.reset_index()
+        sub.columns = [str(c).lower().replace(" ", "_") for c in sub.columns]
+        sub = sub.drop(columns=["adj_close"], errors="ignore")
+        sub["ticker"] = t; sub["source"] = "yahoo"
+        sub["date"] = pd.to_datetime(sub["date"]).dt.tz_localize(None)
+        sub, patched = guard_truncation(t, sub)
+        if patched:
+            truncated.append(t)
+        sub.to_parquet(RAW / f"{t}.parquet", index=False)   # overwrite: full restated history
+        saved += 1
+        return True
+
     for i in range(0, len(live), BATCH):
         batch = live[i:i + BATCH]
         df = fetch_batch(batch)
         if df is None:
             empty.extend(batch); continue
         for t in batch:
-            try:
-                sub = df[t] if isinstance(df.columns, pd.MultiIndex) else df
-            except KeyError:
-                empty.append(t); continue
-            sub = sub.dropna(how="all")
-            # a row with no positive close is not a price (Yahoo emits 0.0 on some
-            # listing days and during outages); keep it out of the raw store
-            if "Close" in sub.columns:
-                n0 = len(sub); sub = sub[sub["Close"] > 0]; dropped += n0 - len(sub)
-            # Never store the current New York session's bar. Yahoo serves it
-            # before it is final - open/high/low from different moments, so the
-            # open can sit outside the high-low range and the close moves between
-            # downloads. That failed nightly runs #5 and #6. It is picked up,
-            # finalized, on the next run.
-            n0 = len(sub)
-            idx = pd.to_datetime(sub.index)
-            idx = idx.tz_localize(None) if idx.tz is not None else idx
-            sub = sub[idx.normalize() < NY_TODAY]; dropped += n0 - len(sub)
-            # a stub is suspicious (Yahoo outages serve 1-2 rows) unless the name is
-            # a brand-new listing that is a current member (Vylor joined 2026-10-01
-            # with four sessions on tape)
-            if len(sub) < 20 and not (t in open_members and len(sub) >= 2):
-                empty.append(t); continue
-            sub = sub.reset_index()
-            sub.columns = [str(c).lower().replace(" ", "_") for c in sub.columns]
-            sub = sub.drop(columns=["adj_close"], errors="ignore")
-            sub["ticker"] = t; sub["source"] = "yahoo"
-            sub["date"] = pd.to_datetime(sub["date"]).dt.tz_localize(None)
-            sub, patched = guard_truncation(t, sub)
-            if patched:
-                truncated.append(t)
-            sub.to_parquet(RAW / f"{t}.parquet", index=False)   # overwrite: full restated history
-            saved += 1
+            if not keep(t, df):
+                empty.append(t)
         print(f"  {i + len(batch):>5}/{len(live)}  saved={saved}  empty={len(empty)}", flush=True)
         time.sleep(PAUSE)
+
+    # One more try, one name at a time, for CURRENT members that came back empty.
+    # A transient yfinance error inside a batch ("OperationalError: database is
+    # locked" on its timezone cache - AMZN, 2026-11-03) otherwise leaves the name
+    # on yesterday's file for a night, and the Tiingo fallback below does not
+    # touch it because that file still covers the membership window.
+    retry = [t for t in empty if t in open_members]
+    if retry:
+        time.sleep(5)
+        back = []
+        for t in retry:
+            df = fetch_batch([t])
+            if df is not None and keep(t, df):
+                back.append(t)
+            time.sleep(PAUSE)
+        empty = [t for t in empty if t not in back]
+        print(f"  retry of {len(retry)} current members that returned nothing: {len(back)} recovered {back}; "
+              f"still empty {[t for t in retry if t not in back]}", flush=True)
 
     # Names whose history Tiingo keeps under another symbol (tiingo_aliases.csv:
     # FRC -> FRCB), under a permaTicker only (WRK), or where Yahoo only has an
