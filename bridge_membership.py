@@ -389,6 +389,21 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
 
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
+# S&P DJI effective dates override the Wikipedia change-log date where the
+# latter reflects ticker trading/name-change timing rather than index inclusion.
+EFFECTIVE_DATE_OVERRIDES = {("IR", "XEC"): "2020-03-03"}
+
+
+def apply_effective_date_overrides(changes):
+    changes = changes.copy()
+    for (added, removed), effective in EFFECTIVE_DATE_OVERRIDES.items():
+        mask = (changes.added_ticker == added) & (changes.removed_ticker == removed)
+        if int(mask.sum()) != 1:
+            raise ValueError(f"Expected exactly one {added}/{removed} change row; found {int(mask.sum())}")
+        changes.loc[mask, "date"] = pd.Timestamp(effective)
+    return changes
+
+
 MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements: changes after the Wikipedia log ends,
                      # and spin-offs the log leaves out. Since Oct 2015 S&P adds every spin-off to its parent's index at a
                      # zero price after the close before the ex-date; one that does not qualify stays until S&P moves it.
@@ -491,7 +506,7 @@ def main():
     members["date"] = pd.to_datetime(members["date"])
     members = members[members.date <= SNAP_END]
     ch = wiki_changes()
-    curr = pd.read_csv(U / "current_constituents.csv")
+    ch = apply_effective_date_overrides(ch)\n    curr = pd.read_csv(U / "current_constituents.csv")
     current = set(curr["Symbol"].astype(str).str.strip())   # normalized below
 
     # --- replay changes forward from the 2019 snapshot ---
