@@ -501,7 +501,7 @@ def replay_changes(changes, initial_members, after_date, through_date=None):
     return pd.DataFrame(rows, columns=["date", "ticker"]), held
 
 
-def load_snapshot_metadata(path):
+def load_snapshot_metadata(path, allow_test_fixture=False):
     """Return the auditable snapshot date; reject missing, stale or mismatched metadata."""
     path = Path(path)
     if not path.exists():
@@ -514,7 +514,10 @@ def load_snapshot_metadata(path):
         symbol_count = int(meta["symbol_count"])
     except Exception as e:
         raise RuntimeError(f"Invalid current-constituent snapshot metadata: {e}") from e
-    if source != "wikipedia:List_of_S%26P_500_companies#constituents":
+    allowed_sources = {"wikipedia:List_of_S%26P_500_companies#constituents"}
+    if allow_test_fixture:
+        allowed_sources.add("test-fixture:published-release")
+    if source not in allowed_sources:
         raise RuntimeError(f"Unapproved current-constituent source: {source}")
     now = pd.Timestamp.now(tz="UTC")
     age = now - fetched_at
