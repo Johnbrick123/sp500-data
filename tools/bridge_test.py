@@ -47,6 +47,11 @@ pd.DataFrame({"Symbol": cur}).to_csv(U / "current_constituents.csv", index=False
 (U / "tickers.txt").write_text("\n".join(sorted({t for _, t in rows} | set(cur))))
 
 shutil.copy(REPO / "bridge_membership.py", W / "bridge_membership.py")
+pre1996_src = REPO / "pre1996" / "membership.csv"
+if pre1996_src.exists():
+    pre1996_dir = W / "pre1996"
+    pre1996_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(pre1996_src, pre1996_dir / "membership.csv")
 spec = importlib.util.spec_from_file_location("bm", W / "bridge_membership.py")
 bm = importlib.util.module_from_spec(spec); spec.loader.exec_module(bm)
 bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["date"])   # the published copy, no Wikipedia fetch
