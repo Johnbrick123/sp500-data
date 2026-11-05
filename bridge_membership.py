@@ -501,6 +501,33 @@ def replay_changes(changes, initial_members, after_date, through_date=None):
     return pd.DataFrame(rows, columns=["date", "ticker"]), held
 
 
+def load_snapshot_metadata(path):
+    """Return the auditable snapshot date; reject missing, stale or mismatched metadata."""
+    path = Path(path)
+    if not path.exists():
+        raise RuntimeError(f"Missing current-constituent snapshot metadata: {path}")
+    try:
+        meta = json.loads(path.read_text(encoding="utf-8"))
+        source = meta["source"]
+        snapshot_date = pd.Timestamp(meta["snapshot_date"]).normalize()
+        fetched_at = pd.to_datetime(meta["fetched_at_utc"], utc=True)
+        symbol_count = int(meta["symbol_count"])
+    except Exception as e:
+        raise RuntimeError(f"Invalid current-constituent snapshot metadata: {e}") from e
+    if source != "wikipedia:List_of_S%26P_500_companies#constituents":
+        raise RuntimeError(f"Unapproved current-constituent source: {source}")
+    now = pd.Timestamp.now(tz="UTC")
+    age = now - fetched_at
+    if age < pd.Timedelta(minutes=-5) or age > pd.Timedelta(hours=24):
+        raise RuntimeError(f"Current-constituent snapshot metadata is stale or future-dated: age={age}")
+    fetched_local_date = fetched_at.tz_convert("America/Chicago").date()
+    if snapshot_date.date() != fetched_local_date:
+        raise RuntimeError("Snapshot date does not match the fetch date in America/Chicago")
+    if not 480 <= symbol_count <= 520:
+        raise RuntimeError(f"Implausible symbol_count in snapshot metadata: {symbol_count}")
+    return snapshot_date, meta
+
+
 def main():
     members = pd.read_parquet(U / "members.parquet")
     members["date"] = pd.to_datetime(members["date"])
@@ -508,7 +535,10 @@ def main():
     ch = wiki_changes()
     ch = apply_effective_date_overrides(ch)
     curr = pd.read_csv(U / "current_constituents.csv")
-    current = set(curr["Symbol"].astype(str).str.strip())   # normalized below
+    as_of_date, snapshot_meta = load_snapshot_metadata(U / "current_constituents.meta.json")
+    current = {s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"}   # normalized below
+    if len(current) != snapshot_meta["symbol_count"]:
+        raise RuntimeError(f"Current constituents CSV/metadata count mismatch: {len(current)} != {snapshot_meta['symbol_count']}")
 
     # --- replay changes forward from the 2019 snapshot ---
     members["ticker"] = members["ticker"].map(norm).map(lambda t: KNOWN_RENAMES.get(t, t))
@@ -520,7 +550,6 @@ def main():
                            "removed_ticker": r, "removed_name": "", "reason": "manual"}
                           for d, a, r in MANUAL_CHANGES])
     ch = pd.concat([ch, extra], ignore_index=True).sort_values("date")
-    as_of_date = pd.Timestamp.today().normalize()
     held = set(members[members.date == members.date.max()].ticker)
     print(f"2019-01-11 snapshot: {len(held)} names")
 
