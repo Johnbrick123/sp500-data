@@ -102,7 +102,7 @@ for label, start, cutoff in bm.RELABEL["IR"]:
 assert list(labels.ticker) == ["TT", "IR"], f"TT/IR relabel boundary failed: {list(labels.ticker)}"
 print("PASS: as-of replay cutoff, future projection from current snapshot, 2020-03-03 IR/XEC effective date, and TT relabel boundary")
 
-bm.main()
+bm.main(allow_test_fixture=True)
 
 new = pd.read_parquet(U / "membership_intervals.parquet")
 for x in (new, pub):
