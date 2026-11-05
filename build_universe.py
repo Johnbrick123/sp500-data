@@ -9,6 +9,7 @@ Outputs:
   data/universe/members.parquet   point-in-time index membership (date, ticker)
   data/universe/tickers.txt       every ticker we need prices for
 """
+import json
 import pandas as pd
 from pathlib import Path
 
@@ -70,6 +71,7 @@ def main():
     # which tracks S&P DJI announcements within days. The upstream sp500.csv is the
     # fallback only: in Oct 2026 it was two months stale (missing BE, ILMN, P, TWLO).
     curr = None
+    snapshot_source = None
     try:
         import io, urllib.request
         html = urllib.request.urlopen(urllib.request.Request(
@@ -79,20 +81,34 @@ def main():
         w = tabs[0]
         if "Symbol" in w.columns and 480 <= len(w) <= 520:
             curr = w.rename(columns={"Security": "Name"})
+            snapshot_source = "wikipedia:List_of_S%26P_500_companies#constituents"
             print(f"current list: Wikipedia constituents table, {len(curr)} rows")
         else:
             print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - using upstream sp500.csv")
     except Exception as e:
         print(f"current list: Wikipedia unavailable ({type(e).__name__}) - using upstream sp500.csv")
     if curr is None:
-        curr = pd.read_csv(CURR_URL)
-    current_tickers = sorted(set(curr["Symbol"].astype(str).str.strip()))
+        raise RuntimeError("Current constituents could not be fetched from the live Wikipedia table; refusing the known-potentially-stale upstream sp500.csv fallback.")
+    current_tickers = sorted({s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"})
+    if not 480 <= len(current_tickers) <= 520:
+        raise RuntimeError(f"Current constituents count is implausible: {len(current_tickers)}")
 
     ever = sorted(set(members["ticker"]) | set(current_tickers))
     all_tickers = sorted(set(ever) | set(ETFS))
 
     members.to_parquet(OUT / "members.parquet", index=False)
     curr.to_csv(OUT / "current_constituents.csv", index=False)
+    observed_at = pd.Timestamp.now(tz="UTC")
+    metadata = {
+        "source": snapshot_source,
+        "snapshot_date": pd.Timestamp.now(tz="America/Chicago").date().isoformat(),
+        "fetched_at_utc": observed_at.isoformat(),
+        "symbol_count": len(current_tickers),
+    }
+    meta_path = OUT / "current_constituents.meta.json"
+    meta_tmp = meta_path.with_suffix(".json.tmp")
+    meta_tmp.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    meta_tmp.replace(meta_path)
     (OUT / "tickers.txt").write_text("\n".join(all_tickers))
 
     print(f"membership snapshots : {members['date'].min().date()} -> "
