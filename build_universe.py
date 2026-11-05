@@ -72,9 +72,13 @@ def main():
     snapshot_source = None
     try:
         import io, urllib.request
-        html = urllib.request.urlopen(urllib.request.Request(
+        request = urllib.request.Request(
             "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
-            headers={"User-Agent": "sp500-data nightly build (github.com/Johnbrick123/sp500-data)"}), timeout=60).read().decode()
+            headers={"User-Agent": "sp500-data nightly build (github.com/Johnbrick123/sp500-data)"}
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            html = response.read().decode()
+        fetched_at = pd.Timestamp.now(tz="UTC")
         tabs = pd.read_html(io.StringIO(html), attrs={"id": "constituents"})
         w = tabs[0]
         if "Symbol" in w.columns and 480 <= len(w) <= 520:
@@ -96,11 +100,10 @@ def main():
 
     members.to_parquet(OUT / "members.parquet", index=False)
     curr.to_csv(OUT / "current_constituents.csv", index=False)
-    observed_at = pd.Timestamp.now(tz="UTC")
     metadata = {
         "source": snapshot_source,
-        "snapshot_date": observed_at.tz_convert("America/Chicago").date().isoformat(),
-        "fetched_at_utc": observed_at.isoformat(),
+        "snapshot_date": fetched_at.tz_convert("America/Chicago").date().isoformat(),
+        "fetched_at_utc": fetched_at.isoformat(),
         "symbol_count": len(current_tickers),
     }
     meta_path = OUT / "current_constituents.meta.json"
