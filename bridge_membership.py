@@ -506,7 +506,8 @@ def main():
     members["date"] = pd.to_datetime(members["date"])
     members = members[members.date <= SNAP_END]
     ch = wiki_changes()
-    ch = apply_effective_date_overrides(ch)\n    curr = pd.read_csv(U / "current_constituents.csv")
+    ch = apply_effective_date_overrides(ch)
+    curr = pd.read_csv(U / "current_constituents.csv")
     current = set(curr["Symbol"].astype(str).str.strip())   # normalized below
 
     # --- replay changes forward from the 2019 snapshot ---
