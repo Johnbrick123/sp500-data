@@ -18,8 +18,6 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 HIST_URL = ("https://raw.githubusercontent.com/fja05680/sp500/master/"
             "S%26P%20500%20Historical%20Components%20%26%20Changes.csv")
-CURR_URL = "https://raw.githubusercontent.com/fja05680/sp500/master/sp500.csv"
-
 # ~50 ETFs chosen for the longest available history.
 # Inception years noted: most ETFs simply did not exist before 2000.
 ETFS = [
@@ -67,9 +65,9 @@ def main():
                 rows.append((d, t))
     members = pd.DataFrame(rows, columns=["date", "ticker"])
 
-    # Today's list comes from Wikipedia's live constituents table (id="constituents"),
-    # which tracks S&P DJI announcements within days. The upstream sp500.csv is the
-    # fallback only: in Oct 2026 it was two months stale (missing BE, ILMN, P, TWLO).
+    # Current membership comes from Wikipedia's live constituents table (id="constituents").
+    # The upstream sp500.csv was two months stale in Oct 2026 (missing BE, ILMN, P, TWLO),
+    # so a failed live fetch is a hard error rather than a silent fallback.
     curr = None
     snapshot_source = None
     try:
@@ -101,7 +99,7 @@ def main():
     observed_at = pd.Timestamp.now(tz="UTC")
     metadata = {
         "source": snapshot_source,
-        "snapshot_date": pd.Timestamp.now(tz="America/Chicago").date().isoformat(),
+        "snapshot_date": observed_at.tz_convert("America/Chicago").date().isoformat(),
         "fetched_at_utc": observed_at.isoformat(),
         "symbol_count": len(current_tickers),
     }
