@@ -82,9 +82,9 @@ def main():
             snapshot_source = "wikipedia:List_of_S%26P_500_companies#constituents"
             print(f"current list: Wikipedia constituents table, {len(curr)} rows")
         else:
-            print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - using upstream sp500.csv")
+            print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - refusing snapshot")
     except Exception as e:
-        print(f"current list: Wikipedia unavailable ({type(e).__name__}) - using upstream sp500.csv")
+        print(f"current list: Wikipedia unavailable ({type(e).__name__}) - refusing snapshot")
     if curr is None:
         raise RuntimeError("Current constituents could not be fetched from the live Wikipedia table; refusing the known-potentially-stale upstream sp500.csv fallback.")
     current_tickers = sorted({s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"})
