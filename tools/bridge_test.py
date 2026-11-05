@@ -65,7 +65,7 @@ future, future_end = bm.replay_changes(events, current, as_of)
 assert future_end == {"TT", "OKTA", "BASE", "NEW"}, f"future replay did not start from current snapshot: {future_end}"
 first_future = set(future[future.date == pd.Timestamp("2026-11-06")].ticker)
 assert first_future == {"TT", "OKTA", "BASE", "NEW"}, f"future first snapshot mismatch: {first_future}"
-assert "NEW" not in first_future and "KVUE" not in future_end
+assert "NEW" in first_future and "KVUE" not in future_end
 tt_relabel = bm.RELABEL["IR"][0]
 assert tt_relabel[0] == "TT" and tt_relabel[2] == "2020-03-03", f"TT cutoff mismatch: {tt_relabel}"
 print("PASS: as-of historical cutoff, future projection from current snapshot, and TT 2020-03-03 relabel boundary")
