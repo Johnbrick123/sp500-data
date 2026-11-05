@@ -16,7 +16,7 @@ itself held an extra line (2017-08-07, Brighthouse added the day before
 AutoNation left; 2016-07-05, Fortive added at the Danaher spin while Columbia
 Pipeline left after that day's close) the S&P DJI release is the authority.
 """
-import importlib.util, shutil, subprocess, sys
+import importlib.util, json, shutil, subprocess, sys
 from pathlib import Path
 import pandas as pd
 
@@ -50,6 +50,27 @@ shutil.copy(REPO / "bridge_membership.py", W / "bridge_membership.py")
 spec = importlib.util.spec_from_file_location("bm", W / "bridge_membership.py")
 bm = importlib.util.module_from_spec(spec); spec.loader.exec_module(bm)
 bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["date"])   # the published copy, no Wikipedia fetch
+
+# The synthetic current-members snapshot must carry fresh, source-qualified metadata.
+meta_path = U / "current_constituents.meta.json"
+now_utc = pd.Timestamp.now(tz="UTC")
+valid_meta = {
+    "source": "wikipedia:List_of_S%26P_500_companies#constituents",
+    "snapshot_date": now_utc.tz_convert("America/Chicago").date().isoformat(),
+    "fetched_at_utc": now_utc.isoformat(),
+    "symbol_count": len(cur),
+}
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+assert bm.load_snapshot_metadata(meta_path)[1]["symbol_count"] == len(cur)
+stale_meta = dict(valid_meta, fetched_at_utc=(now_utc - pd.Timedelta(days=2)).isoformat())
+meta_path.write_text(json.dumps(stale_meta), encoding="utf-8")
+try:
+    bm.load_snapshot_metadata(meta_path)
+    raise AssertionError("stale current-constituent metadata was accepted")
+except RuntimeError:
+    pass
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+print("PASS: fresh snapshot metadata accepted; stale metadata rejected")
 
 # Point-in-time regression: future events must be projected from the actual
 # current snapshot, not from the stale historical replay state.
