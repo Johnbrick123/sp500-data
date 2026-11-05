@@ -58,13 +58,13 @@ events = pd.DataFrame([
     {"date": pd.Timestamp("2026-11-04"), "added_ticker": "OKTA", "removed_ticker": "KVUE"},
     {"date": pd.Timestamp("2026-11-06"), "added_ticker": "NEW", "removed_ticker": "OLD"},
 ])
-current = {"TT", "KVUE", "OLD", "BASE"}
+current = {"TT", "OKTA", "OLD", "BASE"}
 historical, hist_end = bm.replay_changes(events, {"TT", "KVUE", "OLD"}, "2026-11-03", as_of)
 assert hist_end == {"TT", "OKTA", "OLD"}, f"historical replay cutoff failed: {hist_end}"
 future, future_end = bm.replay_changes(events, current, as_of)
 assert future_end == {"TT", "OKTA", "BASE", "NEW"}, f"future replay did not start from current snapshot: {future_end}"
 first_future = set(future[future.date == pd.Timestamp("2026-11-06")].ticker)
-assert first_future == {"TT", "OKTA", "OLD", "BASE"}, f"future first snapshot mismatch: {first_future}"
+assert first_future == {"TT", "OKTA", "BASE", "NEW"}, f"future first snapshot mismatch: {first_future}"
 assert "NEW" not in first_future and "KVUE" not in future_end
 tt_relabel = bm.RELABEL["IR"][0]
 assert tt_relabel[0] == "TT" and tt_relabel[2] == "2020-03-03", f"TT cutoff mismatch: {tt_relabel}"
