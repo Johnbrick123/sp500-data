@@ -531,14 +531,16 @@ def load_snapshot_metadata(path, allow_test_fixture=False):
     return snapshot_date, meta
 
 
-def main():
+def main(allow_test_fixture=False):
     members = pd.read_parquet(U / "members.parquet")
     members["date"] = pd.to_datetime(members["date"])
     members = members[members.date <= SNAP_END]
     ch = wiki_changes()
     ch = apply_effective_date_overrides(ch)
     curr = pd.read_csv(U / "current_constituents.csv")
-    as_of_date, snapshot_meta = load_snapshot_metadata(U / "current_constituents.meta.json")
+    as_of_date, snapshot_meta = load_snapshot_metadata(
+        U / "current_constituents.meta.json", allow_test_fixture=allow_test_fixture
+    )
     current = {s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"}   # normalized below
     if len(current) != snapshot_meta["symbol_count"]:
         raise RuntimeError(f"Current constituents CSV/metadata count mismatch: {len(current)} != {snapshot_meta['symbol_count']}")
