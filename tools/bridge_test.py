@@ -68,7 +68,18 @@ assert first_future == {"TT", "OKTA", "BASE", "NEW"}, f"future first snapshot mi
 assert "NEW" in first_future and "KVUE" not in future_end
 tt_relabel = bm.RELABEL["IR"][0]
 assert tt_relabel[0] == "TT" and tt_relabel[2] == "2020-03-03", f"TT cutoff mismatch: {tt_relabel}"
-print("PASS: as-of historical cutoff, future projection from current snapshot, and TT 2020-03-03 relabel boundary")
+effective_fixture = pd.DataFrame([
+    {"date": pd.Timestamp("2020-03-02"), "added_ticker": "IR", "removed_ticker": "XEC"}
+])
+effective_fixture = bm.apply_effective_date_overrides(effective_fixture)
+assert effective_fixture.iloc[0].date == pd.Timestamp("2020-03-03"), "IR/XEC index effective-date override failed"
+labels = pd.DataFrame({"date": [pd.Timestamp("2020-03-02"), pd.Timestamp("2020-03-03")],
+                       "ticker": ["IR", "IR"]})
+for label, start, cutoff in bm.RELABEL["IR"]:
+    mask = (labels.ticker == "IR") & (labels.date >= pd.Timestamp(start)) & (labels.date < pd.Timestamp(cutoff))
+    labels.loc[mask, "ticker"] = label
+assert list(labels.ticker) == ["TT", "IR"], f"TT/IR relabel boundary failed: {list(labels.ticker)}"
+print("PASS: as-of replay cutoff, future projection from current snapshot, 2020-03-03 IR/XEC effective date, and TT relabel boundary")
 
 bm.main()
 
