@@ -55,17 +55,17 @@ bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["d
 meta_path = U / "current_constituents.meta.json"
 now_utc = pd.Timestamp.now(tz="UTC")
 valid_meta = {
-    "source": "wikipedia:List_of_S%26P_500_companies#constituents",
+    "source": "test-fixture:published-release",
     "snapshot_date": now_utc.tz_convert("America/Chicago").date().isoformat(),
     "fetched_at_utc": now_utc.isoformat(),
     "symbol_count": len(cur),
 }
 meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
-assert bm.load_snapshot_metadata(meta_path)[1]["symbol_count"] == len(cur)
+assert bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)[1]["symbol_count"] == len(cur)
 stale_meta = dict(valid_meta, fetched_at_utc=(now_utc - pd.Timedelta(days=2)).isoformat())
 meta_path.write_text(json.dumps(stale_meta), encoding="utf-8")
 try:
-    bm.load_snapshot_metadata(meta_path)
+    bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)
     raise AssertionError("stale current-constituent metadata was accepted")
 except RuntimeError:
     pass
