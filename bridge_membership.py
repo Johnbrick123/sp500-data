@@ -510,7 +510,7 @@ def main():
 
     # Historical replay stops at the date represented by the downloaded final
     # constituents file. Future events must never determine the current set.
-    historical, replay_held = replay_changes(ch, held, SNAP_END, as_of_date)
+    historical, replay_held = replay_changes(ch, held, SNAP_END, as_of_date - pd.Timedelta(days=1))
     print(f"historical replay through {as_of_date.date()}: {len(replay_held)} names")
 
     # --- reconcile the point-in-time final snapshot ---
