@@ -16,7 +16,7 @@ itself held an extra line (2017-08-07, Brighthouse added the day before
 AutoNation left; 2016-07-05, Fortive added at the Danaher spin while Columbia
 Pipeline left after that day's close) the S&P DJI release is the authority.
 """
-import importlib.util, shutil, subprocess, sys
+import importlib.util, json, shutil, subprocess, sys
 from pathlib import Path
 import pandas as pd
 
@@ -47,10 +47,67 @@ pd.DataFrame({"Symbol": cur}).to_csv(U / "current_constituents.csv", index=False
 (U / "tickers.txt").write_text("\n".join(sorted({t for _, t in rows} | set(cur))))
 
 shutil.copy(REPO / "bridge_membership.py", W / "bridge_membership.py")
+pre1996_src = REPO / "pre1996" / "membership.csv"
+if pre1996_src.exists():
+    pre1996_dir = W / "pre1996"
+    pre1996_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(pre1996_src, pre1996_dir / "membership.csv")
 spec = importlib.util.spec_from_file_location("bm", W / "bridge_membership.py")
 bm = importlib.util.module_from_spec(spec); spec.loader.exec_module(bm)
 bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["date"])   # the published copy, no Wikipedia fetch
-bm.main()
+
+# The synthetic current-members snapshot must carry fresh, source-qualified metadata.
+meta_path = U / "current_constituents.meta.json"
+now_utc = pd.Timestamp.now(tz="UTC")
+valid_meta = {
+    "source": "test-fixture:published-release",
+    "snapshot_date": now_utc.tz_convert("America/Chicago").date().isoformat(),
+    "fetched_at_utc": now_utc.isoformat(),
+    "symbol_count": len(cur),
+}
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+assert bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)[1]["symbol_count"] == len(cur)
+stale_meta = dict(valid_meta, fetched_at_utc=(now_utc - pd.Timedelta(days=2)).isoformat())
+meta_path.write_text(json.dumps(stale_meta), encoding="utf-8")
+try:
+    bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)
+    raise AssertionError("stale current-constituent metadata was accepted")
+except RuntimeError:
+    pass
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+print("PASS: fresh snapshot metadata accepted; stale metadata rejected")
+
+# Point-in-time regression: future events must be projected from the actual
+# current snapshot, not from the stale historical replay state.
+as_of = pd.Timestamp("2026-11-05")
+events = pd.DataFrame([
+    {"date": pd.Timestamp("2026-11-04"), "added_ticker": "OKTA", "removed_ticker": "KVUE"},
+    {"date": pd.Timestamp("2026-11-06"), "added_ticker": "NEW", "removed_ticker": "OLD"},
+])
+current = {"TT", "OKTA", "OLD", "BASE"}
+historical, hist_end = bm.replay_changes(events, {"TT", "KVUE", "OLD"}, "2026-11-03", as_of)
+assert hist_end == {"TT", "OKTA", "OLD"}, f"historical replay cutoff failed: {hist_end}"
+future, future_end = bm.replay_changes(events, current, as_of)
+assert future_end == {"TT", "OKTA", "BASE", "NEW"}, f"future replay did not start from current snapshot: {future_end}"
+first_future = set(future[future.date == pd.Timestamp("2026-11-06")].ticker)
+assert first_future == {"TT", "OKTA", "BASE", "NEW"}, f"future first snapshot mismatch: {first_future}"
+assert "NEW" in first_future and "KVUE" not in future_end
+tt_relabel = bm.RELABEL["IR"][0]
+assert tt_relabel[0] == "TT" and tt_relabel[2] == "2020-03-03", f"TT cutoff mismatch: {tt_relabel}"
+effective_fixture = pd.DataFrame([
+    {"date": pd.Timestamp("2020-03-02"), "added_ticker": "IR", "removed_ticker": "XEC"}
+])
+effective_fixture = bm.apply_effective_date_overrides(effective_fixture)
+assert effective_fixture.iloc[0].date == pd.Timestamp("2020-03-03"), "IR/XEC index effective-date override failed"
+labels = pd.DataFrame({"date": [pd.Timestamp("2020-03-02"), pd.Timestamp("2020-03-03")],
+                       "ticker": ["IR", "IR"]})
+for label, start, cutoff in bm.RELABEL["IR"]:
+    mask = (labels.ticker == "IR") & (labels.date >= pd.Timestamp(start)) & (labels.date < pd.Timestamp(cutoff))
+    labels.loc[mask, "ticker"] = label
+assert list(labels.ticker) == ["TT", "IR"], f"TT/IR relabel boundary failed: {list(labels.ticker)}"
+print("PASS: as-of replay cutoff, future projection from current snapshot, 2020-03-03 IR/XEC effective date, and TT relabel boundary")
+
+bm.main(allow_test_fixture=True)
 
 new = pd.read_parquet(U / "membership_intervals.parquet")
 for x in (new, pub):
