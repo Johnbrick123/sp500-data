@@ -87,7 +87,7 @@ valid_meta = {
 }
 meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
 assert bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)[1]["symbol_count"] == len(cur)
-stale_meta = dict(valid_meta, fetched_at_utc=(now_utc - pd.Timedelta(days=2)).isoformat())
+stale_meta = dict(valid_meta, fetched_at_utc=(fetched_at - pd.Timedelta(days=2)).isoformat())
 meta_path.write_text(json.dumps(stale_meta), encoding="utf-8")
 try:
     bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)
