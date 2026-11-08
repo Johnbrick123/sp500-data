@@ -16,7 +16,7 @@ itself held an extra line (2017-08-07, Brighthouse added the day before
 AutoNation left; 2016-07-05, Fortive added at the Danaher spin while Columbia
 Pipeline left after that day's close) the S&P DJI release is the authority.
 """
-import importlib.util, json, shutil, subprocess, sys
+import importlib.util, io, json, shutil, subprocess, sys, urllib.request
 from pathlib import Path
 import pandas as pd
 
@@ -30,7 +30,8 @@ U = W / "data" / "universe"; U.mkdir(parents=True, exist_ok=True)
 
 
 def get(url, dest):
-    subprocess.run(["curl", "-sSL", "--retry", "3", "-o", str(dest), url], check=True)
+    # Treat HTTP 4xx/5xx as download failures, not as successful HTML/JSON files.
+    subprocess.run(["curl", "-fSsL", "--retry", "3", "-o", str(dest), url], check=True)
 
 
 get(HIST, W / "hist.csv")
@@ -42,8 +43,28 @@ hist = pd.read_csv(W / "hist.csv"); hist["date"] = pd.to_datetime(hist["date"])
 rows = [(d, t.strip()) for d, tks in zip(hist["date"], hist["tickers"]) for t in str(tks).split(",") if t.strip()]
 pd.DataFrame(rows, columns=["date", "ticker"]).to_parquet(U / "members.parquet", index=False)
 pub = pd.read_parquet(W / "published_intervals.parquet")
-cur = sorted(pub[pub["end"].isna()].ticker)                    # today's list = the published open intervals
-pd.DataFrame({"Symbol": cur}).to_csv(U / "current_constituents.csv", index=False)
+
+# Fetch a real current snapshot. Never relabel a published Release's old
+# open intervals with a synthetic "fetched now" timestamp: that would make
+# the 24-hour freshness check meaningless.
+request = urllib.request.Request(
+    "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+    headers={"User-Agent": "sp500-data bridge regression test"}
+)
+with urllib.request.urlopen(request, timeout=60) as response:
+    html = response.read().decode()
+    fetched_at = pd.Timestamp.now(tz="UTC")
+tables = pd.read_html(io.StringIO(html), attrs={"id": "constituents"})
+if not tables:
+    raise RuntimeError("Live Wikipedia constituents table is missing")
+current_table = tables[0]
+if "Symbol" not in current_table.columns or not 480 <= len(current_table) <= 520:
+    raise RuntimeError(f"Live Wikipedia constituents table is implausible: rows={len(current_table)}")
+cur = sorted({s for s in current_table["Symbol"].astype(str).str.strip()
+              if s and s.lower() != "nan"})
+if not 480 <= len(cur) <= 520:
+    raise RuntimeError(f"Live Wikipedia unique-symbol count is implausible: {len(cur)}")
+current_table.to_csv(U / "current_constituents.csv", index=False)
 (U / "tickers.txt").write_text("\n".join(sorted({t for _, t in rows} | set(cur))))
 
 shutil.copy(REPO / "bridge_membership.py", W / "bridge_membership.py")
@@ -58,11 +79,10 @@ bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["d
 
 # The synthetic current-members snapshot must carry fresh, source-qualified metadata.
 meta_path = U / "current_constituents.meta.json"
-now_utc = pd.Timestamp.now(tz="UTC")
 valid_meta = {
-    "source": "test-fixture:published-release",
-    "snapshot_date": now_utc.tz_convert("America/Chicago").date().isoformat(),
-    "fetched_at_utc": now_utc.isoformat(),
+    "source": "wikipedia:List_of_S%26P_500_companies#constituents",
+    "snapshot_date": fetched_at.tz_convert("America/Chicago").date().isoformat(),
+    "fetched_at_utc": fetched_at.isoformat(),
     "symbol_count": len(cur),
 }
 meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
