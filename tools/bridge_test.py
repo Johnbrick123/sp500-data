@@ -138,6 +138,58 @@ for y in range(Y0, Y1 + 1):
     c = pd.Series({d: int(((new.start <= d) & (new["end"].isna() | (new["end"] > d))).sum()) for d in cal if d.year == y})
     odd = c[c != c.mode().iloc[0]]
     print(f"{y}: {dict(c.value_counts().sort_index())}" + (f"  days off the usual count: {', '.join(f'{d.date()}={v}' for d, v in odd.items())}" if 0 < len(odd) <= 40 else (f"  {len(odd)} days off the usual count" if len(odd) else "")))
-o = set(map(tuple, pub[["ticker", "start", "end"]].astype(str).values)); n = set(map(tuple, new[["ticker", "start", "end"]].astype(str).values))
-print("intervals only in the published membership:", sorted(o - n))
-print("intervals only in this test:", sorted(n - o))
+def norm_date(value):
+    return None if pd.isna(value) else pd.Timestamp(value).date().isoformat()
+
+
+def interval_set(frame):
+    return {
+        (str(row.ticker), norm_date(row.start), norm_date(row.end))
+        for row in frame[["ticker", "start", "end"]].itertuples(index=False)
+    }
+
+
+published_only = interval_set(pub) - interval_set(new)
+rebuilt_only = interval_set(new) - interval_set(pub)
+expected_published_only = {
+    ("IR", "2020-03-02", None),
+    ("XEC", "2014-06-23", "2020-03-02"),
+}
+expected_rebuilt_only = {
+    ("IR", "2020-03-03", None),
+    ("XEC", "2014-06-23", "2020-03-03"),
+}
+assert published_only == expected_published_only, (
+    "Unexpected intervals removed/changed versus published membership: "
+    f"actual={sorted(published_only, key=str)} expected={sorted(expected_published_only, key=str)}"
+)
+assert rebuilt_only == expected_rebuilt_only, (
+    "Unexpected intervals added/changed versus published membership: "
+    f"actual={sorted(rebuilt_only, key=str)} expected={sorted(expected_rebuilt_only, key=str)}"
+)
+
+# The rebuilt open-ended intervals must reproduce the live snapshot exactly.
+open_members = set(new.loc[new["end"].isna(), "ticker"].astype(str))
+assert len(cur) == 503, f"Expected the audited 503-member live snapshot, got {len(cur)}"
+assert open_members == set(cur), (
+    "Open membership intervals do not match the live snapshot: "
+    f"missing={sorted(set(cur) - open_members)}, extra={sorted(open_members - set(cur))}"
+)
+assert len(open_members) == 503, f"Expected 503 current members, got {len(open_members)}"
+
+tt = new[new.ticker == "TT"]
+assert len(tt) == 1 and norm_date(tt.iloc[0].start) == "2010-11-17" and pd.isna(tt.iloc[0]["end"]), (
+    f"TT must have one continuous [2010-11-17, open) interval: {tt.to_dict('records')}"
+)
+ir = new[new.ticker == "IR"]
+assert len(ir) == 1 and norm_date(ir.iloc[0].start) == "2020-03-03" and pd.isna(ir.iloc[0]["end"]), (
+    f"IR must have one [2020-03-03, open) interval: {ir.to_dict('records')}"
+)
+xec = new[new.ticker == "XEC"]
+assert len(xec) == 1 and norm_date(xec.iloc[0].end) == "2020-03-03", (
+    f"XEC must exit on 2020-03-03: {xec.to_dict('records')}"
+)
+
+print("PASS: exact full-history interval diff; only the two approved 2020-03-03 IR/XEC date corrections")
+print("PASS: 503 open-ended membership intervals exactly match the live snapshot")
+print("PASS: TT continuity and IR/XEC effective-date boundaries")
