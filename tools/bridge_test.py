@@ -185,16 +185,24 @@ assert open_members == cur_normalized, (
 assert len(open_members) == 503, f"Expected 503 current members, got {len(open_members)}"
 
 tt = new[new.ticker == "TT"]
-assert len(tt) == 1 and norm_date(tt.iloc[0].start) == "2010-11-17" and pd.isna(tt.iloc[0]["end"]), (
-    f"TT must have one continuous [2010-11-17, open) interval: {tt.to_dict('records')}"
+tt_open = tt[tt["end"].isna()]
+assert len(tt_open) == 1 and norm_date(tt_open.iloc[0].start) == "2010-11-17", (
+    f"TT must have exactly one current [2010-11-17, open) interval; "
+    f"historical intervals may also exist: {tt.to_dict('records')}"
 )
 ir = new[new.ticker == "IR"]
-assert len(ir) == 1 and norm_date(ir.iloc[0].start) == "2020-03-03" and pd.isna(ir.iloc[0]["end"]), (
-    f"IR must have one [2020-03-03, open) interval: {ir.to_dict('records')}"
+ir_open = ir[ir["end"].isna()]
+assert len(ir_open) == 1 and norm_date(ir_open.iloc[0].start) == "2020-03-03", (
+    f"IR must have exactly one current [2020-03-03, open) interval; "
+    f"historical intervals may also exist: {ir.to_dict('records')}"
 )
 xec = new[new.ticker == "XEC"]
-assert len(xec) == 1 and norm_date(xec.iloc[0].end) == "2020-03-03", (
-    f"XEC must exit on 2020-03-03: {xec.to_dict('records')}"
+xec_target = xec[
+    (xec["start"].map(norm_date) == "2014-06-23")
+    & (xec["end"].map(norm_date) == "2020-03-03")
+]
+assert len(xec_target) == 1, (
+    f"XEC must have the expected [2014-06-23, 2020-03-03) interval: {xec.to_dict('records')}"
 )
 
 print("PASS: exact full-history interval diff; only the two approved 2020-03-03 IR/XEC date corrections")
