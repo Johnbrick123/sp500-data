@@ -99,14 +99,24 @@ def main():
     all_tickers = sorted(set(ever) | set(ETFS))
 
     members.to_parquet(OUT / "members.parquet", index=False)
-    curr.to_csv(OUT / "current_constituents.csv", index=False)
+
+    # Stage the new CSV first. Invalidate the old metadata immediately before
+    # atomically replacing the snapshot, so a crash can never pair a new CSV
+    # with metadata describing the previous snapshot.
+    snapshot_path = OUT / "current_constituents.csv"
+    snapshot_tmp = snapshot_path.with_suffix(".csv.tmp")
+    snapshot_tmp.unlink(missing_ok=True)
+    curr.to_csv(snapshot_tmp, index=False)
+    meta_path = OUT / "current_constituents.meta.json"
+    meta_path.unlink(missing_ok=True)
+    snapshot_tmp.replace(snapshot_path)
+
     metadata = {
         "source": snapshot_source,
         "snapshot_date": fetched_at.tz_convert("America/Chicago").date().isoformat(),
         "fetched_at_utc": fetched_at.isoformat(),
         "symbol_count": len(current_tickers),
     }
-    meta_path = OUT / "current_constituents.meta.json"
     meta_tmp = meta_path.with_suffix(".json.tmp")
     meta_tmp.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     meta_tmp.replace(meta_path)
