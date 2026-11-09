@@ -169,11 +169,18 @@ assert rebuilt_only == expected_rebuilt_only, (
 )
 
 # The rebuilt open-ended intervals must reproduce the live snapshot exactly.
-open_members = set(new.loc[new["end"].isna(), "ticker"].astype(str))
+# bridge_membership.norm() defines the project's canonical symbol convention
+# (e.g. Wikipedia's BRK.B / BF.B becomes BRK-B / BF-B in the interval table).
+cur_normalized = {bm.norm(t) for t in cur}
 assert len(cur) == 503, f"Expected the audited 503-member live snapshot, got {len(cur)}"
-assert open_members == set(cur), (
-    "Open membership intervals do not match the live snapshot: "
-    f"missing={sorted(set(cur) - open_members)}, extra={sorted(open_members - set(cur))}"
+assert len(cur_normalized) == len(cur), (
+    "Live snapshot symbols collide after canonical normalization: "
+    f"raw={len(cur)} normalized={len(cur_normalized)}"
+)
+open_members = set(new.loc[new["end"].isna(), "ticker"].astype(str))
+assert open_members == cur_normalized, (
+    "Open membership intervals do not match the normalized live snapshot: "
+    f"missing={sorted(cur_normalized - open_members)}, extra={sorted(open_members - cur_normalized)}"
 )
 assert len(open_members) == 503, f"Expected 503 current members, got {len(open_members)}"
 
