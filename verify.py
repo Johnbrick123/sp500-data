@@ -225,11 +225,13 @@ def check_cross_source(df):
                 u = (f"https://api.nasdaq.com/api/quote/{tk}/historical?assetclass={ac}"
                      f"&fromdate=2016-09-01&todate={date.today():%Y-%m-%d}&limit=9999")
                 d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
-                rows = d.get("data", {}).get("tradesTable", {}).get("rows") or []
+                got = d.get("data", {}).get("tradesTable", {}).get("rows") or []
+                if len(got) > len(rows):          # keep the better answer: a listing younger than 250 days
+                    rows = got                     # is served as "stocks" and must not be erased by the "etf" try
                 if len(rows) >= 250:
                     break
             except Exception as e:
-                rows = []; err = type(e).__name__
+                err = type(e).__name__
             time.sleep(0.7)
         need_days = min(250, int(0.8 * int((df.ticker == tk).sum())))
         if len(rows) < max(60, need_days):
