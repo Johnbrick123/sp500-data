@@ -1,0 +1,28 @@
+name: Bridge membership regression
+
+on:
+  push:
+    branches:
+      - fix/current-membership-asof-tt-2020-03-03
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install regression dependencies
+        run: python -m pip install --upgrade pip pandas pyarrow beautifulsoup4 lxml
+
+      - name: Run full membership regression in scratch directory
+        run: python tools/bridge_test.py "$RUNNER_TEMP/spy-bridge-regression" 1996 2026

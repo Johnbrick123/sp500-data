@@ -16,7 +16,7 @@ itself held an extra line (2017-08-07, Brighthouse added the day before
 AutoNation left; 2016-07-05, Fortive added at the Danaher spin while Columbia
 Pipeline left after that day's close) the S&P DJI release is the authority.
 """
-import importlib.util, shutil, subprocess, sys
+import importlib.util, io, json, shutil, subprocess, sys, urllib.request
 from pathlib import Path
 import pandas as pd
 
@@ -30,7 +30,8 @@ U = W / "data" / "universe"; U.mkdir(parents=True, exist_ok=True)
 
 
 def get(url, dest):
-    subprocess.run(["curl", "-sSL", "--retry", "3", "-o", str(dest), url], check=True)
+    # Treat HTTP 4xx/5xx as download failures, not as successful HTML/JSON files.
+    subprocess.run(["curl", "-fSsL", "--retry", "3", "-o", str(dest), url], check=True)
 
 
 get(HIST, W / "hist.csv")
@@ -42,15 +43,91 @@ hist = pd.read_csv(W / "hist.csv"); hist["date"] = pd.to_datetime(hist["date"])
 rows = [(d, t.strip()) for d, tks in zip(hist["date"], hist["tickers"]) for t in str(tks).split(",") if t.strip()]
 pd.DataFrame(rows, columns=["date", "ticker"]).to_parquet(U / "members.parquet", index=False)
 pub = pd.read_parquet(W / "published_intervals.parquet")
-cur = sorted(pub[pub["end"].isna()].ticker)                    # today's list = the published open intervals
-pd.DataFrame({"Symbol": cur}).to_csv(U / "current_constituents.csv", index=False)
+
+# Fetch a real current snapshot. Never relabel a published Release's old
+# open intervals with a synthetic "fetched now" timestamp: that would make
+# the 24-hour freshness check meaningless.
+request = urllib.request.Request(
+    "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+    headers={"User-Agent": "sp500-data bridge regression test"}
+)
+with urllib.request.urlopen(request, timeout=60) as response:
+    html = response.read().decode()
+    fetched_at = pd.Timestamp.now(tz="UTC")
+tables = pd.read_html(io.StringIO(html), attrs={"id": "constituents"})
+if not tables:
+    raise RuntimeError("Live Wikipedia constituents table is missing")
+current_table = tables[0]
+if "Symbol" not in current_table.columns or not 480 <= len(current_table) <= 520:
+    raise RuntimeError(f"Live Wikipedia constituents table is implausible: rows={len(current_table)}")
+cur = sorted({s for s in current_table["Symbol"].astype(str).str.strip()
+              if s and s.lower() != "nan"})
+if not 480 <= len(cur) <= 520:
+    raise RuntimeError(f"Live Wikipedia unique-symbol count is implausible: {len(cur)}")
+current_table.to_csv(U / "current_constituents.csv", index=False)
 (U / "tickers.txt").write_text("\n".join(sorted({t for _, t in rows} | set(cur))))
 
 shutil.copy(REPO / "bridge_membership.py", W / "bridge_membership.py")
+pre1996_src = REPO / "pre1996" / "membership.csv"
+if pre1996_src.exists():
+    pre1996_dir = W / "pre1996"
+    pre1996_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(pre1996_src, pre1996_dir / "membership.csv")
 spec = importlib.util.spec_from_file_location("bm", W / "bridge_membership.py")
 bm = importlib.util.module_from_spec(spec); spec.loader.exec_module(bm)
 bm.wiki_changes = lambda: pd.read_csv(bm.U / "wiki_changes.csv", parse_dates=["date"])   # the published copy, no Wikipedia fetch
-bm.main()
+
+# The synthetic current-members snapshot must carry fresh, source-qualified metadata.
+meta_path = U / "current_constituents.meta.json"
+valid_meta = {
+    "source": "wikipedia:List_of_S%26P_500_companies#constituents",
+    "snapshot_date": fetched_at.tz_convert("America/Chicago").date().isoformat(),
+    "fetched_at_utc": fetched_at.isoformat(),
+    "symbol_count": len(cur),
+}
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+assert bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)[1]["symbol_count"] == len(cur)
+stale_meta = dict(valid_meta, fetched_at_utc=(fetched_at - pd.Timedelta(days=2)).isoformat())
+meta_path.write_text(json.dumps(stale_meta), encoding="utf-8")
+try:
+    bm.load_snapshot_metadata(meta_path, allow_test_fixture=True)
+    raise AssertionError("stale current-constituent metadata was accepted")
+except RuntimeError:
+    pass
+meta_path.write_text(json.dumps(valid_meta), encoding="utf-8")
+print("PASS: fresh snapshot metadata accepted; stale metadata rejected")
+
+# Point-in-time regression: future events must be projected from the actual
+# current snapshot, not from the stale historical replay state.
+as_of = pd.Timestamp("2026-11-05")
+events = pd.DataFrame([
+    {"date": pd.Timestamp("2026-11-04"), "added_ticker": "OKTA", "removed_ticker": "KVUE"},
+    {"date": pd.Timestamp("2026-11-06"), "added_ticker": "NEW", "removed_ticker": "OLD"},
+])
+current = {"TT", "OKTA", "OLD", "BASE"}
+historical, hist_end = bm.replay_changes(events, {"TT", "KVUE", "OLD"}, "2026-11-03", as_of)
+assert hist_end == {"TT", "OKTA", "OLD"}, f"historical replay cutoff failed: {hist_end}"
+future, future_end = bm.replay_changes(events, current, as_of)
+assert future_end == {"TT", "OKTA", "BASE", "NEW"}, f"future replay did not start from current snapshot: {future_end}"
+first_future = set(future[future.date == pd.Timestamp("2026-11-06")].ticker)
+assert first_future == {"TT", "OKTA", "BASE", "NEW"}, f"future first snapshot mismatch: {first_future}"
+assert "NEW" in first_future and "KVUE" not in future_end
+tt_relabel = bm.RELABEL["IR"][0]
+assert tt_relabel[0] == "TT" and tt_relabel[2] == "2020-03-03", f"TT cutoff mismatch: {tt_relabel}"
+effective_fixture = pd.DataFrame([
+    {"date": pd.Timestamp("2020-03-02"), "added_ticker": "IR", "removed_ticker": "XEC"}
+])
+effective_fixture = bm.apply_effective_date_overrides(effective_fixture)
+assert effective_fixture.iloc[0].date == pd.Timestamp("2020-03-03"), "IR/XEC index effective-date override failed"
+labels = pd.DataFrame({"date": [pd.Timestamp("2020-03-02"), pd.Timestamp("2020-03-03")],
+                       "ticker": ["IR", "IR"]})
+for label, start, cutoff in bm.RELABEL["IR"]:
+    mask = (labels.ticker == "IR") & (labels.date >= pd.Timestamp(start)) & (labels.date < pd.Timestamp(cutoff))
+    labels.loc[mask, "ticker"] = label
+assert list(labels.ticker) == ["TT", "IR"], f"TT/IR relabel boundary failed: {list(labels.ticker)}"
+print("PASS: as-of replay cutoff, future projection from current snapshot, 2020-03-03 IR/XEC effective date, and TT relabel boundary")
+
+bm.main(allow_test_fixture=True)
 
 new = pd.read_parquet(U / "membership_intervals.parquet")
 for x in (new, pub):
@@ -61,6 +138,73 @@ for y in range(Y0, Y1 + 1):
     c = pd.Series({d: int(((new.start <= d) & (new["end"].isna() | (new["end"] > d))).sum()) for d in cal if d.year == y})
     odd = c[c != c.mode().iloc[0]]
     print(f"{y}: {dict(c.value_counts().sort_index())}" + (f"  days off the usual count: {', '.join(f'{d.date()}={v}' for d, v in odd.items())}" if 0 < len(odd) <= 40 else (f"  {len(odd)} days off the usual count" if len(odd) else "")))
-o = set(map(tuple, pub[["ticker", "start", "end"]].astype(str).values)); n = set(map(tuple, new[["ticker", "start", "end"]].astype(str).values))
-print("intervals only in the published membership:", sorted(o - n))
-print("intervals only in this test:", sorted(n - o))
+def norm_date(value):
+    return None if pd.isna(value) else pd.Timestamp(value).date().isoformat()
+
+
+def interval_set(frame):
+    return {
+        (str(row.ticker), norm_date(row.start), norm_date(row.end))
+        for row in frame[["ticker", "start", "end"]].itertuples(index=False)
+    }
+
+
+published_only = interval_set(pub) - interval_set(new)
+rebuilt_only = interval_set(new) - interval_set(pub)
+expected_published_only = {
+    ("IR", "2020-03-02", None),
+    ("XEC", "2014-06-23", "2020-03-02"),
+}
+expected_rebuilt_only = {
+    ("IR", "2020-03-03", None),
+    ("XEC", "2014-06-23", "2020-03-03"),
+}
+assert published_only == expected_published_only, (
+    "Unexpected intervals removed/changed versus published membership: "
+    f"actual={sorted(published_only, key=str)} expected={sorted(expected_published_only, key=str)}"
+)
+assert rebuilt_only == expected_rebuilt_only, (
+    "Unexpected intervals added/changed versus published membership: "
+    f"actual={sorted(rebuilt_only, key=str)} expected={sorted(expected_rebuilt_only, key=str)}"
+)
+
+# The rebuilt open-ended intervals must reproduce the live snapshot exactly.
+# bridge_membership.norm() defines the project's canonical symbol convention
+# (e.g. Wikipedia's BRK.B / BF.B becomes BRK-B / BF-B in the interval table).
+cur_normalized = {bm.norm(t) for t in cur}
+assert len(cur) == 503, f"Expected the audited 503-member live snapshot, got {len(cur)}"
+assert len(cur_normalized) == len(cur), (
+    "Live snapshot symbols collide after canonical normalization: "
+    f"raw={len(cur)} normalized={len(cur_normalized)}"
+)
+open_members = set(new.loc[new["end"].isna(), "ticker"].astype(str))
+assert open_members == cur_normalized, (
+    "Open membership intervals do not match the normalized live snapshot: "
+    f"missing={sorted(cur_normalized - open_members)}, extra={sorted(open_members - cur_normalized)}"
+)
+assert len(open_members) == 503, f"Expected 503 current members, got {len(open_members)}"
+
+tt = new[new.ticker == "TT"]
+tt_open = tt[tt["end"].isna()]
+assert len(tt_open) == 1 and norm_date(tt_open.iloc[0].start) == "2010-11-17", (
+    f"TT must have exactly one current [2010-11-17, open) interval; "
+    f"historical intervals may also exist: {tt.to_dict('records')}"
+)
+ir = new[new.ticker == "IR"]
+ir_open = ir[ir["end"].isna()]
+assert len(ir_open) == 1 and norm_date(ir_open.iloc[0].start) == "2020-03-03", (
+    f"IR must have exactly one current [2020-03-03, open) interval; "
+    f"historical intervals may also exist: {ir.to_dict('records')}"
+)
+xec = new[new.ticker == "XEC"]
+xec_target = xec[
+    (xec["start"].map(norm_date) == "2014-06-23")
+    & (xec["end"].map(norm_date) == "2020-03-03")
+]
+assert len(xec_target) == 1, (
+    f"XEC must have the expected [2014-06-23, 2020-03-03) interval: {xec.to_dict('records')}"
+)
+
+print("PASS: exact full-history interval diff; only the two approved 2020-03-03 IR/XEC date corrections")
+print("PASS: 503 open-ended membership intervals exactly match the live snapshot")
+print("PASS: TT continuity and IR/XEC effective-date boundaries")
