@@ -240,14 +240,21 @@ def check_cross_source(df):
         n = pd.DataFrame(rows)
         n["date"] = pd.to_datetime(n["date"], errors="coerce")
         n["close"] = pd.to_numeric(n["close"].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce")
+        n["volume"] = pd.to_numeric(n["volume"].astype(str).str.replace(",", ""), errors="coerce") if "volume" in n else np.nan
         n = n.dropna(subset=["date", "close"]).sort_values("date")
         o = df[df.ticker == tk][["date", "close", "stock_splits"]]
-        m = o.merge(n[["date", "close"]], on="date", suffixes=("_o", "_n")).sort_values("date")
+        m = o.merge(n[["date", "close", "volume"]], on="date", suffixes=("_o", "_n")).sort_values("date")
         # Yahoo's close is split-adjusted, Nasdaq's is not: compare daily RETURNS
         # and drop days on or after a split, where the two bases differ.
         m["r_o"] = m.close_o.pct_change(); m["r_n"] = m.close_n.pct_change()
         sp = m.stock_splits.replace(0, 1).fillna(1)      # Yahoo writes 0.0 for "no split"
-        m = m[(sp == 1) & (sp.shift(-1).fillna(1) == 1)]
+        # On a day with no trade at all (thin ETFs: ERET traded 0 shares on 20 days in 2022-23)
+        # Nasdaq carries the previous close forward (volume blank, return 0) while Yahoo records
+        # the official close; the next day Nasdaq catches up. Neither day holds a price Nasdaq
+        # observed, so both are dropped, as a split day and the day after are. The 0.5pp / 1%
+        # thresholds are unchanged.
+        nt = m.volume.isna() | (m.volume <= 0)
+        m = m[(sp == 1) & (sp.shift(-1).fillna(1) == 1) & ~nt & ~nt.shift(1, fill_value=False)]
         diff = (m.r_o - m.r_n).abs().dropna()
         if len(diff) < max(60, need_days):
             record("nasdaq " + tk, "UNVERIFIED", f"{tk}: only {len(diff)} comparable days")
