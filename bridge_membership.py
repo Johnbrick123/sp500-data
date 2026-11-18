@@ -372,7 +372,7 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
     "STI":  [("STI-201912", "1900-01-01", "2020-01-01")],   # SunTrust -> reused 2024
     "APC":  [("APC-201908", "1900-01-01", "2019-09-01")],   # Anadarko -> reused 2026
     "INFO": [("INFO-202203","1900-01-01", "2022-03-01")],   # IHS Markit -> reused 2024
-    "IR":   [("TT",         "1900-01-01", "2020-03-02")],   # Ingersoll-Rand plc renamed Trane Technologies; a NEW Ingersoll Rand Inc took IR on 2020-03-02
+    "IR":   [("TT",         "1900-01-01", "2020-03-03")],   # Old Ingersoll-Rand plc became Trane Technologies; new Ingersoll Rand Inc took IR effective 2020-03-03
     "FOXA": [("FOXA-201903","1900-01-01", "2019-03-19")],   # (old News Corp ->) 21st Century Fox Class A; Fox Corp took FOXA on 2019-03-19
     "FOX":  [("FOX-201903", "1900-01-01", "2019-03-19")],   # 21st Century Fox Class B; Fox Corp took FOX on 2019-03-19
     "BBBY": [("BBBY-202305","1900-01-01", "2023-10-01")],   # Bed Bath & Beyond Inc. (S&P 500 1999-10-01..2017-07-26; Nasdaq delisting 2023-05, shares
@@ -389,6 +389,21 @@ RELABEL = {   # bare ticker: list of (dated label, first date, first date of the
 
 # Index changes after the last Wikipedia-logged change, at their EFFECTIVE dates.
 # (date, added, removed). Source: S&P DJI announcements.
+# S&P DJI effective dates override the Wikipedia change-log date where the
+# latter reflects ticker trading/name-change timing rather than index inclusion.
+EFFECTIVE_DATE_OVERRIDES = {("IR", "XEC"): "2020-03-03"}
+
+
+def apply_effective_date_overrides(changes):
+    changes = changes.copy()
+    for (added, removed), effective in EFFECTIVE_DATE_OVERRIDES.items():
+        mask = (changes.added_ticker == added) & (changes.removed_ticker == removed)
+        if int(mask.sum()) != 1:
+            raise ValueError(f"Expected exactly one {added}/{removed} change row; found {int(mask.sum())}")
+        changes.loc[mask, "date"] = pd.Timestamp(effective)
+    return changes
+
+
 MANUAL_CHANGES = [   # (effective date, added, removed) from S&P DJI announcements: changes after the Wikipedia log ends,
                      # and spin-offs the log leaves out. Since Oct 2015 S&P adds every spin-off to its parent's index at a
                      # zero price after the close before the ex-date; one that does not qualify stays until S&P moves it.
@@ -462,13 +477,73 @@ def build_intervals(snapshots):
     return iv.sort_values(["ticker", "start"]).reset_index(drop=True)
 
 
-def main():
+def replay_changes(changes, initial_members, after_date, through_date=None):
+    """Replay dated membership changes from a known member set.
+
+    The caller supplies the correct point-in-time starting set. This is
+    deliberately reusable for historical replay and for projecting future
+    changes from the current final snapshot.
+    """
+    held = set(initial_members)
+    rows = []
+    selected = changes[changes.date > pd.Timestamp(after_date)]
+    if through_date is not None:
+        selected = selected[selected.date <= pd.Timestamp(through_date)]
+    for d, g in selected.groupby("date", sort=True):
+        for _, r in g.iterrows():
+            rem = str(r.removed_ticker).strip()
+            add = str(r.added_ticker).strip()
+            if rem and rem != "nan":
+                held.discard(rem)
+            if add and add != "nan":
+                held.add(add)
+        rows.extend((d, t) for t in sorted(held))
+    return pd.DataFrame(rows, columns=["date", "ticker"]), held
+
+
+def load_snapshot_metadata(path, allow_test_fixture=False):
+    """Return the auditable snapshot date; reject missing, stale or mismatched metadata."""
+    path = Path(path)
+    if not path.exists():
+        raise RuntimeError(f"Missing current-constituent snapshot metadata: {path}")
+    try:
+        meta = json.loads(path.read_text(encoding="utf-8"))
+        source = meta["source"]
+        snapshot_date = pd.Timestamp(meta["snapshot_date"]).normalize()
+        fetched_at = pd.to_datetime(meta["fetched_at_utc"], utc=True)
+        symbol_count = int(meta["symbol_count"])
+    except Exception as e:
+        raise RuntimeError(f"Invalid current-constituent snapshot metadata: {e}") from e
+    allowed_sources = {"wikipedia:List_of_S%26P_500_companies#constituents"}
+    if allow_test_fixture:
+        allowed_sources.add("test-fixture:published-release")
+    if source not in allowed_sources:
+        raise RuntimeError(f"Unapproved current-constituent source: {source}")
+    now = pd.Timestamp.now(tz="UTC")
+    age = now - fetched_at
+    if age < pd.Timedelta(minutes=-5) or age > pd.Timedelta(hours=24):
+        raise RuntimeError(f"Current-constituent snapshot metadata is stale or future-dated: age={age}")
+    fetched_local_date = fetched_at.tz_convert("America/Chicago").date()
+    if snapshot_date.date() != fetched_local_date:
+        raise RuntimeError("Snapshot date does not match the fetch date in America/Chicago")
+    if not 480 <= symbol_count <= 520:
+        raise RuntimeError(f"Implausible symbol_count in snapshot metadata: {symbol_count}")
+    return snapshot_date, meta
+
+
+def main(allow_test_fixture=False):
     members = pd.read_parquet(U / "members.parquet")
     members["date"] = pd.to_datetime(members["date"])
     members = members[members.date <= SNAP_END]
     ch = wiki_changes()
+    ch = apply_effective_date_overrides(ch)
     curr = pd.read_csv(U / "current_constituents.csv")
-    current = set(curr["Symbol"].astype(str).str.strip())   # normalized below
+    as_of_date, snapshot_meta = load_snapshot_metadata(
+        U / "current_constituents.meta.json", allow_test_fixture=allow_test_fixture
+    )
+    current = {s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"}   # normalized below
+    if len(current) != snapshot_meta["symbol_count"]:
+        raise RuntimeError(f"Current constituents CSV/metadata count mismatch: {len(current)} != {snapshot_meta['symbol_count']}")
 
     # --- replay changes forward from the 2019 snapshot ---
     members["ticker"] = members["ticker"].map(norm).map(lambda t: KNOWN_RENAMES.get(t, t))
@@ -482,27 +557,24 @@ def main():
     ch = pd.concat([ch, extra], ignore_index=True).sort_values("date")
     held = set(members[members.date == members.date.max()].ticker)
     print(f"2019-01-11 snapshot: {len(held)} names")
-    rows = []
-    for d, g in ch[ch.date > SNAP_END].groupby("date"):
-        for _, r in g.iterrows():
-            rem = str(r.removed_ticker).strip()
-            add = str(r.added_ticker).strip()
-            if rem and rem != "nan":
-                held.discard(rem)
-            if add and add != "nan":
-                held.add(add)
-        rows.extend((d, t) for t in sorted(held))
-    replayed = pd.DataFrame(rows, columns=["date", "ticker"])
-    print(f"replayed through {replayed.date.max().date()}: {len(held)} names")
 
-    # --- close the final gap vs today's list ---
-    missed_add = current - held
-    missed_rem = held - current
-    print(f"vs today: +{len(missed_add)} not in replay {sorted(missed_add)}, "
+    # Historical replay stops at the date represented by the downloaded final
+    # constituents file. Future events must never determine the current set.
+    historical, replay_held = replay_changes(ch, held, SNAP_END, as_of_date - pd.Timedelta(days=1))
+    print(f"historical replay through {as_of_date.date()}: {len(replay_held)} names")
+
+    # --- reconcile the point-in-time final snapshot ---
+    missed_add = current - replay_held
+    missed_rem = replay_held - current
+    print(f"vs current final snapshot: +{len(missed_add)} not in replay {sorted(missed_add)}, "
           f"-{len(missed_rem)} in replay but not current {sorted(missed_rem)}")
-    today = pd.Timestamp.today().normalize()
-    rows = [(today, t) for t in sorted(current)]
-    final = pd.DataFrame(rows, columns=["date", "ticker"])
+    final = pd.DataFrame([(as_of_date, t) for t in sorted(current)],
+                         columns=["date", "ticker"])
+
+    # Project any known future changes from the actual current final snapshot,
+    # never from a potentially stale 2019-based historical replay.
+    future, _ = replay_changes(ch, current, as_of_date)
+    replayed = pd.concat([historical, future], ignore_index=True)
 
     # --- rename map: same company, new symbol ---
     # Source 1: change-log rows where the added and removed company match.
@@ -571,8 +643,8 @@ def main():
     # A current member that the snapshots or the replay lost without any change-log
     # removal (Linde after Praxair's rename, Trane after the IR relabel) is bridged:
     # it is held continuously from its last appearance through today.
-    today_ = all_m.date.max()
-    cur_set = set(all_m[all_m.date == today_].ticker)
+    today_ = as_of_date
+    cur_set = set(all_m[all_m.date == as_of_date].ticker)
     all_dates = sorted(all_m.date.unique())
     removed_on = {}
     for _, r in ch.iterrows():

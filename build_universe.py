@@ -9,6 +9,7 @@ Outputs:
   data/universe/members.parquet   point-in-time index membership (date, ticker)
   data/universe/tickers.txt       every ticker we need prices for
 """
+import json
 import pandas as pd
 from pathlib import Path
 
@@ -17,8 +18,6 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 HIST_URL = ("https://raw.githubusercontent.com/fja05680/sp500/master/"
             "S%26P%20500%20Historical%20Components%20%26%20Changes.csv")
-CURR_URL = "https://raw.githubusercontent.com/fja05680/sp500/master/sp500.csv"
-
 # ~50 ETFs chosen for the longest available history.
 # Inception years noted: most ETFs simply did not exist before 2000.
 ETFS = [
@@ -66,33 +65,61 @@ def main():
                 rows.append((d, t))
     members = pd.DataFrame(rows, columns=["date", "ticker"])
 
-    # Today's list comes from Wikipedia's live constituents table (id="constituents"),
-    # which tracks S&P DJI announcements within days. The upstream sp500.csv is the
-    # fallback only: in Oct 2026 it was two months stale (missing BE, ILMN, P, TWLO).
+    # Current membership comes from Wikipedia's live constituents table (id="constituents").
+    # The upstream sp500.csv was two months stale in Oct 2026 (missing BE, ILMN, P, TWLO),
+    # so a failed live fetch is a hard error rather than a silent fallback.
     curr = None
+    snapshot_source = None
     try:
         import io, urllib.request
-        html = urllib.request.urlopen(urllib.request.Request(
+        request = urllib.request.Request(
             "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
-            headers={"User-Agent": "sp500-data nightly build (github.com/Johnbrick123/sp500-data)"}), timeout=60).read().decode()
+            headers={"User-Agent": "sp500-data nightly build (github.com/Johnbrick123/sp500-data)"}
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            html = response.read().decode()
+        fetched_at = pd.Timestamp.now(tz="UTC")
         tabs = pd.read_html(io.StringIO(html), attrs={"id": "constituents"})
         w = tabs[0]
         if "Symbol" in w.columns and 480 <= len(w) <= 520:
             curr = w.rename(columns={"Security": "Name"})
+            snapshot_source = "wikipedia:List_of_S%26P_500_companies#constituents"
             print(f"current list: Wikipedia constituents table, {len(curr)} rows")
         else:
-            print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - using upstream sp500.csv")
+            print(f"current list: Wikipedia table looked wrong ({len(w)} rows) - refusing snapshot")
     except Exception as e:
-        print(f"current list: Wikipedia unavailable ({type(e).__name__}) - using upstream sp500.csv")
+        print(f"current list: Wikipedia unavailable ({type(e).__name__}) - refusing snapshot")
     if curr is None:
-        curr = pd.read_csv(CURR_URL)
-    current_tickers = sorted(set(curr["Symbol"].astype(str).str.strip()))
+        raise RuntimeError("Current constituents could not be fetched from the live Wikipedia table; refusing the known-potentially-stale upstream sp500.csv fallback.")
+    current_tickers = sorted({s for s in curr["Symbol"].astype(str).str.strip() if s and s.lower() != "nan"})
+    if not 480 <= len(current_tickers) <= 520:
+        raise RuntimeError(f"Current constituents count is implausible: {len(current_tickers)}")
 
     ever = sorted(set(members["ticker"]) | set(current_tickers))
     all_tickers = sorted(set(ever) | set(ETFS))
 
     members.to_parquet(OUT / "members.parquet", index=False)
-    curr.to_csv(OUT / "current_constituents.csv", index=False)
+
+    # Stage the new CSV first. Invalidate the old metadata immediately before
+    # atomically replacing the snapshot, so a crash can never pair a new CSV
+    # with metadata describing the previous snapshot.
+    snapshot_path = OUT / "current_constituents.csv"
+    snapshot_tmp = snapshot_path.with_suffix(".csv.tmp")
+    snapshot_tmp.unlink(missing_ok=True)
+    curr.to_csv(snapshot_tmp, index=False)
+    meta_path = OUT / "current_constituents.meta.json"
+    meta_path.unlink(missing_ok=True)
+    snapshot_tmp.replace(snapshot_path)
+
+    metadata = {
+        "source": snapshot_source,
+        "snapshot_date": fetched_at.tz_convert("America/Chicago").date().isoformat(),
+        "fetched_at_utc": fetched_at.isoformat(),
+        "symbol_count": len(current_tickers),
+    }
+    meta_tmp = meta_path.with_suffix(".json.tmp")
+    meta_tmp.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    meta_tmp.replace(meta_path)
     (OUT / "tickers.txt").write_text("\n".join(all_tickers))
 
     print(f"membership snapshots : {members['date'].min().date()} -> "
